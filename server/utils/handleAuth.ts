@@ -1,6 +1,6 @@
 import { H3Event, createError } from "h3";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../../lib/prisma";
 import { loginSchema, registerSchema } from "../validation/schemas";
 import { UserSession } from "../types/authTypes";
 import { compare, hash } from "bcrypt";
@@ -9,7 +9,6 @@ const JWT_SECRET = process.env.JWT_SECRET || "generate JWT_SECRET";
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "generate REFRESH_SECRET";
 const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || "15m";
 const REFRESH_TOKEN_TTL = process.env.REFRESH_TOKEN_TTL || "7d";
-const prisma = new PrismaClient();
 
 /**
  * Request sign up user

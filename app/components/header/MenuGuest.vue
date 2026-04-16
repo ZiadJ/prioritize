@@ -34,7 +34,7 @@
         <div class="flex items-center gap-4">
           <button @click="changeColorMode" class="flex items-center gap-2 outline-none"
             v-if="!$colorMode.unknown && !$colorMode.forced">
-            <Icon :name="determianteIconMode" :class="determianteIconColorMode"></Icon>
+            <span :class="determianteIconColorMode">{{ determianteIconMode === 'line-md:moon' ? '🌙' : '☀️' }}</span>
           </button>
           <template v-if="status === 'unauthenticated'">
             <Button size="small" label="Sign In" as="router-link" to="/login" />
