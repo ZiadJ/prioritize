@@ -17,7 +17,7 @@ cd prioritize
 npm install
 
 # Create .env file and set DB url
-copy .env.example to .env
+copy .env.example .env
 
 # Initialize database
 npm prisma db push
