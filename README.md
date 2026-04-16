@@ -16,13 +16,10 @@ cd prioritize
 # Install dependencies
 npm install
 
-# Create .env file
-
-Copy .env.example to .env
-Set DB url
+# Create .env file and set DB url
+copy .env.example to .env
 
 # Initialize database
-
 npm prisma db push
 
 # Start the development server
