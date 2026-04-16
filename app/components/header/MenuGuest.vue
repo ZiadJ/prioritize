@@ -60,7 +60,7 @@ const determineIconMode = computed(() => {
 });
 
 const determineIconColorMode = computed(() => {
-  return (colorMode.value === "dark") ? "text-xl text-white animate-bounce-slow transition-transform duration-500" : "text-yellow-800 animate-spin-slow transition-transform duration-500";
+  return (colorMode.value === "dark") ? "text-xl text-white" : "text-yellow-800 animate-spin-slow";
 });
 
 const items = ref<[{ label: string, to: string, root: boolean }]>([
