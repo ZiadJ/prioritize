@@ -54,15 +54,7 @@
 </template>
 
 <script setup lang="ts">
-const {
-    status,
-    data,
-    token,
-    getSession,
-    signUp,
-    signIn,
-    signOut,
-} = useAuth()
+const { status, signUp,} = useAuth()
 
 definePageMeta({
     auth: {

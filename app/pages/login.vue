@@ -21,8 +21,7 @@
           <label for="email">Email</label>
         </IftaLabel>
         <IftaLabel>
-          <InputText v-model="form.password.value" id="password" type="password" required autofocus class="w-full"
-            autocomplete="username" />
+          <InputText v-model="form.password.value" id="password" type="password" required autofocus class="w-full"/>
           <label for="password">Password</label>
         </IftaLabel>
 

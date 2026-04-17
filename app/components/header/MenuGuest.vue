@@ -69,5 +69,10 @@ const items = ref<[{ label: string, to: string, root: boolean }]>([
     to: "/",
     root: true,
   },
+  {
+    label: "Test",
+    to: "/",
+    root: true,
+  },
 ]);
 </script>

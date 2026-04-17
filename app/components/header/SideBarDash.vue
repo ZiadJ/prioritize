@@ -6,9 +6,9 @@
                 <span :class="[item.icon, 'text-primary group-hover:text-inherit']" />
                 <span :class="['ml-2', { 'font-semibold': item.items }]">{{ item.label }}</span>
                 <Badge v-if="item.badge" class="ml-auto" :value="item.badge" />
-                <span v-if="item.shortcut"
+                <!-- <span v-if="item.shortcut"
                     class="ml-auto border border-surface rounded bg-emphasis text-muted-color text-xs p-1">{{
-                        item.shortcut }}</span>
+                        item.shortcut }}</span> -->
             </NuxtLink>
         </template>
     </PanelMenu>
@@ -41,65 +41,41 @@ const itemsWithIds = ref(addIdsToItems([
         label: 'Home',
         icon: 'pi pi-home',
         to: '/dash',
-        badge: 5,
+    },
+    {
+        label: 'Requests',
+        icon: 'pi pi-chart-bar',
+        to: '/dash/reports',
         // items: [
         //     {
-        //         label: 'Compose',
-        //         icon: 'pi pi-file-edit',
-        //         // shortcut: '⌘+N'
+        //         label: 'Sales',
+        //         icon: 'pi pi-chart-line',
+        //         badge: 3,
+        //         shortcut: '⌘+R',
         //     },
         //     {
-        //         label: 'Inbox',
-        //         icon: 'pi pi-inbox',
-        //         badge: 5
-        //     },
-        //     {
-        //         label: 'Sent',
-        //         icon: 'pi pi-send',
-        //         // shortcut: '⌘+S'
-        //     },
-        //     {
-        //         label: 'Trash',
-        //         icon: 'pi pi-trash',
-        //         // shortcut: '⌘+T'
+        //         label: 'Products',
+        //         icon: 'pi pi-list',
+        //         badge: 6
         //     }
         // ]
     },
     {
-        label: 'Reports',
-        icon: 'pi pi-chart-bar',
-        to: '/dash/reports',
-        // shortcut: '⌘+R',
-        items: [
-            {
-                label: 'Sales',
-                icon: 'pi pi-chart-line',
-                badge: 3
-            },
-            {
-                label: 'Products',
-                icon: 'pi pi-list',
-                badge: 6
-            }
-        ]
-    },
-    {
-        label: 'Profile',
+        label: 'Proposals',
         icon: 'pi pi-user',
         to: '/dash/profile',
-        // shortcut: '⌘+W',
-        items: [
-            {
-                label: 'Settings',
-                icon: 'pi pi-cog',
-                // shortcut: '⌘+O'
-            },
-            {
-                label: 'Privacy',
-                icon: 'pi pi-shield',
-                // shortcut: '⌘+P'
-            }
-        ]
+        // items: [
+        //     {
+        //         label: 'Settings',
+        //         icon: 'pi pi-cog',
+        //         // shortcut: '⌘+O'
+        //     },
+        //     {
+        //         label: 'Privacy',
+        //         icon: 'pi pi-shield',
+        //         // shortcut: '⌘+P'
+        //     }
+        // ]
     }
 ]));
 </script>
