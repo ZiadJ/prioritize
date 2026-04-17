@@ -1,4 +1,42 @@
 import Aura from "@primevue/themes/aura";
+import { definePreset } from "@primevue/themes";
+
+const MyPreset = definePreset(Aura, {
+	semantic: {
+		primary: {
+			50: '{zinc.50}',
+			100: '{zinc.100}',
+			200: '{zinc.200}',
+			300: '{zinc.300}',
+			400: '{zinc.400}',
+			500: '{zinc.500}',
+			600: '{zinc.600}',
+			700: '{zinc.700}',
+			800: '{zinc.800}',
+			900: '{zinc.900}',
+			950: '{zinc.950}'
+		},
+		colorScheme: {
+			light: {
+				primary: {
+					color: '{zinc.950}',
+					contrastColor: '#ffffff',
+					hoverColor: '{zinc.900}',
+					activeColor: '{zinc.800}'
+				}
+			},
+			dark: {
+				primary: {
+					color: '{zinc.50}',
+					contrastColor: '{zinc.950}',
+					hoverColor: '{zinc.100}',
+					activeColor: '{zinc.200}'
+				}
+			}
+		}
+	}
+});
+
 export default defineNuxtConfig({
 	compatibilityDate: '2024-11-01',
 	devtools: { enabled: true },
@@ -51,7 +89,7 @@ export default defineNuxtConfig({
 	primevue: {
 		options: {
 			theme: {
-				preset: Aura,
+				preset: MyPreset,
 				options: {
 					darkModeSelector: '.dark',
 				},
