@@ -57,6 +57,7 @@ const validatePassword = () => { };
 const validateEmail = () => { };
 const error = ref();
 const submit = async () => {
+    alert("Not implemented yet");
     // error.value = null
     // const dataLogin = await $login({
     //     email: form.value.email.value,
