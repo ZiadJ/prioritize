@@ -212,21 +212,21 @@ model User {
   createdAt DateTime @default(now())
   isActive  Boolean  @default(true)
 
-  name              String
-  firstname         String
-  lastname          String
+  name              String    @default("") // required by auth
+  firstname         String    @default("")
+  lastname          String    @default("")
   username          String    @unique
   email             String    @unique
   password          String
-  bio               String
+  bio               String    @default("")
   picture           String?
   githubId          String?   @unique
   tokenVersion      Int       @default(0)
-  lastTimelineVisit DateTime?
-  dateOfBirth       DateTime
-  longitude         Int // For delivery cost estimation
-  lattitude         Int
-  preferences       String // Json(no Sqlite support)
+  lastTimeVisit     DateTime?
+  dateOfBirth       DateTime?
+  longitude         Int       @default(0) // For delivery cost estimation
+  lattitude         Int       @default(0)
+  preferences       Json      @default("{}") // Json(no Sqlite support)
   isVerified        Boolean   @default(false)
 
   tokens            Token[]

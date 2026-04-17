@@ -53,11 +53,10 @@ export type UserMinAggregateOutputType = {
   picture: string | null
   githubId: string | null
   tokenVersion: number | null
-  lastTimelineVisit: Date | null
+  lastTimeVisit: Date | null
   dateOfBirth: Date | null
   longitude: number | null
   lattitude: number | null
-  preferences: string | null
   isVerified: boolean | null
 }
 
@@ -76,11 +75,10 @@ export type UserMaxAggregateOutputType = {
   picture: string | null
   githubId: string | null
   tokenVersion: number | null
-  lastTimelineVisit: Date | null
+  lastTimeVisit: Date | null
   dateOfBirth: Date | null
   longitude: number | null
   lattitude: number | null
-  preferences: string | null
   isVerified: boolean | null
 }
 
@@ -99,7 +97,7 @@ export type UserCountAggregateOutputType = {
   picture: number
   githubId: number
   tokenVersion: number
-  lastTimelineVisit: number
+  lastTimeVisit: number
   dateOfBirth: number
   longitude: number
   lattitude: number
@@ -136,11 +134,10 @@ export type UserMinAggregateInputType = {
   picture?: true
   githubId?: true
   tokenVersion?: true
-  lastTimelineVisit?: true
+  lastTimeVisit?: true
   dateOfBirth?: true
   longitude?: true
   lattitude?: true
-  preferences?: true
   isVerified?: true
 }
 
@@ -159,11 +156,10 @@ export type UserMaxAggregateInputType = {
   picture?: true
   githubId?: true
   tokenVersion?: true
-  lastTimelineVisit?: true
+  lastTimeVisit?: true
   dateOfBirth?: true
   longitude?: true
   lattitude?: true
-  preferences?: true
   isVerified?: true
 }
 
@@ -182,7 +178,7 @@ export type UserCountAggregateInputType = {
   picture?: true
   githubId?: true
   tokenVersion?: true
-  lastTimelineVisit?: true
+  lastTimeVisit?: true
   dateOfBirth?: true
   longitude?: true
   lattitude?: true
@@ -292,11 +288,11 @@ export type UserGroupByOutputType = {
   picture: string | null
   githubId: string | null
   tokenVersion: number
-  lastTimelineVisit: Date | null
-  dateOfBirth: Date
+  lastTimeVisit: Date | null
+  dateOfBirth: Date | null
   longitude: number
   lattitude: number
-  preferences: string
+  preferences: runtime.JsonValue
   isVerified: boolean
   _count: UserCountAggregateOutputType | null
   _avg: UserAvgAggregateOutputType | null
@@ -338,11 +334,11 @@ export type UserWhereInput = {
   picture?: Prisma.StringNullableFilter<"User"> | string | null
   githubId?: Prisma.StringNullableFilter<"User"> | string | null
   tokenVersion?: Prisma.IntFilter<"User"> | number
-  lastTimelineVisit?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFilter<"User"> | Date | string
+  lastTimeVisit?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  dateOfBirth?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   longitude?: Prisma.IntFilter<"User"> | number
   lattitude?: Prisma.IntFilter<"User"> | number
-  preferences?: Prisma.StringFilter<"User"> | string
+  preferences?: Prisma.JsonFilter<"User">
   isVerified?: Prisma.BoolFilter<"User"> | boolean
   tokens?: Prisma.TokenListRelationFilter
   expertise?: Prisma.ExpertiseNodeListRelationFilter
@@ -369,8 +365,8 @@ export type UserOrderByWithRelationInput = {
   picture?: Prisma.SortOrderInput | Prisma.SortOrder
   githubId?: Prisma.SortOrderInput | Prisma.SortOrder
   tokenVersion?: Prisma.SortOrder
-  lastTimelineVisit?: Prisma.SortOrderInput | Prisma.SortOrder
-  dateOfBirth?: Prisma.SortOrder
+  lastTimeVisit?: Prisma.SortOrderInput | Prisma.SortOrder
+  dateOfBirth?: Prisma.SortOrderInput | Prisma.SortOrder
   longitude?: Prisma.SortOrder
   lattitude?: Prisma.SortOrder
   preferences?: Prisma.SortOrder
@@ -403,11 +399,11 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   bio?: Prisma.StringFilter<"User"> | string
   picture?: Prisma.StringNullableFilter<"User"> | string | null
   tokenVersion?: Prisma.IntFilter<"User"> | number
-  lastTimelineVisit?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFilter<"User"> | Date | string
+  lastTimeVisit?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  dateOfBirth?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   longitude?: Prisma.IntFilter<"User"> | number
   lattitude?: Prisma.IntFilter<"User"> | number
-  preferences?: Prisma.StringFilter<"User"> | string
+  preferences?: Prisma.JsonFilter<"User">
   isVerified?: Prisma.BoolFilter<"User"> | boolean
   tokens?: Prisma.TokenListRelationFilter
   expertise?: Prisma.ExpertiseNodeListRelationFilter
@@ -434,8 +430,8 @@ export type UserOrderByWithAggregationInput = {
   picture?: Prisma.SortOrderInput | Prisma.SortOrder
   githubId?: Prisma.SortOrderInput | Prisma.SortOrder
   tokenVersion?: Prisma.SortOrder
-  lastTimelineVisit?: Prisma.SortOrderInput | Prisma.SortOrder
-  dateOfBirth?: Prisma.SortOrder
+  lastTimeVisit?: Prisma.SortOrderInput | Prisma.SortOrder
+  dateOfBirth?: Prisma.SortOrderInput | Prisma.SortOrder
   longitude?: Prisma.SortOrder
   lattitude?: Prisma.SortOrder
   preferences?: Prisma.SortOrder
@@ -465,11 +461,11 @@ export type UserScalarWhereWithAggregatesInput = {
   picture?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   githubId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   tokenVersion?: Prisma.IntWithAggregatesFilter<"User"> | number
-  lastTimelineVisit?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
-  dateOfBirth?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
+  lastTimeVisit?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  dateOfBirth?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   longitude?: Prisma.IntWithAggregatesFilter<"User"> | number
   lattitude?: Prisma.IntWithAggregatesFilter<"User"> | number
-  preferences?: Prisma.StringWithAggregatesFilter<"User"> | string
+  preferences?: Prisma.JsonWithAggregatesFilter<"User">
   isVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
 }
 
@@ -478,21 +474,21 @@ export type UserCreateInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutUsersInput
@@ -509,21 +505,21 @@ export type UserUncheckedCreateInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenUncheckedCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutUsersInput
@@ -550,11 +546,11 @@ export type UserUpdateInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutUsersNestedInput
@@ -581,11 +577,11 @@ export type UserUncheckedUpdateInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUncheckedUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutUsersNestedInput
@@ -602,21 +598,21 @@ export type UserCreateManyInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
 }
 
@@ -635,11 +631,11 @@ export type UserUpdateManyMutationInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
@@ -658,11 +654,11 @@ export type UserUncheckedUpdateManyInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
@@ -686,7 +682,7 @@ export type UserCountOrderByAggregateInput = {
   picture?: Prisma.SortOrder
   githubId?: Prisma.SortOrder
   tokenVersion?: Prisma.SortOrder
-  lastTimelineVisit?: Prisma.SortOrder
+  lastTimeVisit?: Prisma.SortOrder
   dateOfBirth?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
   lattitude?: Prisma.SortOrder
@@ -715,11 +711,10 @@ export type UserMaxOrderByAggregateInput = {
   picture?: Prisma.SortOrder
   githubId?: Prisma.SortOrder
   tokenVersion?: Prisma.SortOrder
-  lastTimelineVisit?: Prisma.SortOrder
+  lastTimeVisit?: Prisma.SortOrder
   dateOfBirth?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
   lattitude?: Prisma.SortOrder
-  preferences?: Prisma.SortOrder
   isVerified?: Prisma.SortOrder
 }
 
@@ -738,11 +733,10 @@ export type UserMinOrderByAggregateInput = {
   picture?: Prisma.SortOrder
   githubId?: Prisma.SortOrder
   tokenVersion?: Prisma.SortOrder
-  lastTimelineVisit?: Prisma.SortOrder
+  lastTimeVisit?: Prisma.SortOrder
   dateOfBirth?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
   lattitude?: Prisma.SortOrder
-  preferences?: Prisma.SortOrder
   isVerified?: Prisma.SortOrder
 }
 
@@ -959,21 +953,21 @@ export type UserCreateWithoutFeedbackInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutUsersInput
@@ -989,21 +983,21 @@ export type UserUncheckedCreateWithoutFeedbackInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenUncheckedCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutUsersInput
@@ -1045,11 +1039,11 @@ export type UserUpdateWithoutFeedbackInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutUsersNestedInput
@@ -1075,11 +1069,11 @@ export type UserUncheckedUpdateWithoutFeedbackInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUncheckedUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutUsersNestedInput
@@ -1095,21 +1089,21 @@ export type UserCreateWithoutTokensInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutUsersInput
   steps?: Prisma.StepNodeCreateNestedManyWithoutAssignedToInput
@@ -1125,21 +1119,21 @@ export type UserUncheckedCreateWithoutTokensInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutUsersInput
   steps?: Prisma.StepNodeUncheckedCreateNestedManyWithoutAssignedToInput
@@ -1181,11 +1175,11 @@ export type UserUpdateWithoutTokensInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutUsersNestedInput
   steps?: Prisma.StepNodeUpdateManyWithoutAssignedToNestedInput
@@ -1211,11 +1205,11 @@ export type UserUncheckedUpdateWithoutTokensInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutUsersNestedInput
   steps?: Prisma.StepNodeUncheckedUpdateManyWithoutAssignedToNestedInput
@@ -1231,21 +1225,21 @@ export type UserCreateWithoutFromRelationshipsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutUsersInput
@@ -1261,21 +1255,21 @@ export type UserUncheckedCreateWithoutFromRelationshipsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenUncheckedCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutUsersInput
@@ -1296,21 +1290,21 @@ export type UserCreateWithoutToRelationshipsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutUsersInput
@@ -1326,21 +1320,21 @@ export type UserUncheckedCreateWithoutToRelationshipsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenUncheckedCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutUsersInput
@@ -1382,11 +1376,11 @@ export type UserUpdateWithoutFromRelationshipsInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutUsersNestedInput
@@ -1412,11 +1406,11 @@ export type UserUncheckedUpdateWithoutFromRelationshipsInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUncheckedUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutUsersNestedInput
@@ -1453,11 +1447,11 @@ export type UserUpdateWithoutToRelationshipsInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutUsersNestedInput
@@ -1483,11 +1477,11 @@ export type UserUncheckedUpdateWithoutToRelationshipsInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUncheckedUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutUsersNestedInput
@@ -1503,21 +1497,21 @@ export type UserCreateWithoutRevisionsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutUsersInput
@@ -1533,21 +1527,21 @@ export type UserUncheckedCreateWithoutRevisionsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenUncheckedCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutUsersInput
@@ -1589,11 +1583,11 @@ export type UserUpdateWithoutRevisionsInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutUsersNestedInput
@@ -1619,11 +1613,11 @@ export type UserUncheckedUpdateWithoutRevisionsInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUncheckedUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutUsersNestedInput
@@ -1639,21 +1633,21 @@ export type UserCreateWithoutTagsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutUsersInput
@@ -1669,21 +1663,21 @@ export type UserUncheckedCreateWithoutTagsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenUncheckedCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutUsersInput
@@ -1733,11 +1727,11 @@ export type UserScalarWhereInput = {
   picture?: Prisma.StringNullableFilter<"User"> | string | null
   githubId?: Prisma.StringNullableFilter<"User"> | string | null
   tokenVersion?: Prisma.IntFilter<"User"> | number
-  lastTimelineVisit?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFilter<"User"> | Date | string
+  lastTimeVisit?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  dateOfBirth?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   longitude?: Prisma.IntFilter<"User"> | number
   lattitude?: Prisma.IntFilter<"User"> | number
-  preferences?: Prisma.StringFilter<"User"> | string
+  preferences?: Prisma.JsonFilter<"User">
   isVerified?: Prisma.BoolFilter<"User"> | boolean
 }
 
@@ -1746,21 +1740,21 @@ export type UserCreateWithoutExpertiseInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenCreateNestedManyWithoutUserInput
   steps?: Prisma.StepNodeCreateNestedManyWithoutAssignedToInput
@@ -1776,21 +1770,21 @@ export type UserUncheckedCreateWithoutExpertiseInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenUncheckedCreateNestedManyWithoutUserInput
   steps?: Prisma.StepNodeUncheckedCreateNestedManyWithoutAssignedToInput
@@ -1827,21 +1821,21 @@ export type UserCreateWithoutStepsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutUsersInput
@@ -1857,21 +1851,21 @@ export type UserUncheckedCreateWithoutStepsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name: string
-  firstname: string
-  lastname: string
+  name?: string
+  firstname?: string
+  lastname?: string
   username: string
   email: string
   password: string
-  bio: string
+  bio?: string
   picture?: string | null
   githubId?: string | null
   tokenVersion?: number
-  lastTimelineVisit?: Date | string | null
-  dateOfBirth: Date | string
-  longitude: number
-  lattitude: number
-  preferences: string
+  lastTimeVisit?: Date | string | null
+  dateOfBirth?: Date | string | null
+  longitude?: number
+  lattitude?: number
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: boolean
   tokens?: Prisma.TokenUncheckedCreateNestedManyWithoutUserInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutUsersInput
@@ -1918,11 +1912,11 @@ export type UserUpdateWithoutTagsInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutUsersNestedInput
@@ -1948,11 +1942,11 @@ export type UserUncheckedUpdateWithoutTagsInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUncheckedUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutUsersNestedInput
@@ -1978,11 +1972,11 @@ export type UserUncheckedUpdateManyWithoutTagsInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
@@ -2001,11 +1995,11 @@ export type UserUpdateWithoutExpertiseInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUpdateManyWithoutUserNestedInput
   steps?: Prisma.StepNodeUpdateManyWithoutAssignedToNestedInput
@@ -2031,11 +2025,11 @@ export type UserUncheckedUpdateWithoutExpertiseInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUncheckedUpdateManyWithoutUserNestedInput
   steps?: Prisma.StepNodeUncheckedUpdateManyWithoutAssignedToNestedInput
@@ -2061,11 +2055,11 @@ export type UserUncheckedUpdateManyWithoutExpertiseInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
@@ -2084,11 +2078,11 @@ export type UserUpdateWithoutStepsInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutUsersNestedInput
@@ -2114,11 +2108,11 @@ export type UserUncheckedUpdateWithoutStepsInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tokens?: Prisma.TokenUncheckedUpdateManyWithoutUserNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutUsersNestedInput
@@ -2144,11 +2138,11 @@ export type UserUncheckedUpdateManyWithoutStepsInput = {
   picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
-  lastTimelineVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  dateOfBirth?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastTimeVisit?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   longitude?: Prisma.IntFieldUpdateOperationsInput | number
   lattitude?: Prisma.IntFieldUpdateOperationsInput | number
-  preferences?: Prisma.StringFieldUpdateOperationsInput | string
+  preferences?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
@@ -2261,7 +2255,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   picture?: boolean
   githubId?: boolean
   tokenVersion?: boolean
-  lastTimelineVisit?: boolean
+  lastTimeVisit?: boolean
   dateOfBirth?: boolean
   longitude?: boolean
   lattitude?: boolean
@@ -2293,7 +2287,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   picture?: boolean
   githubId?: boolean
   tokenVersion?: boolean
-  lastTimelineVisit?: boolean
+  lastTimeVisit?: boolean
   dateOfBirth?: boolean
   longitude?: boolean
   lattitude?: boolean
@@ -2316,7 +2310,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   picture?: boolean
   githubId?: boolean
   tokenVersion?: boolean
-  lastTimelineVisit?: boolean
+  lastTimeVisit?: boolean
   dateOfBirth?: boolean
   longitude?: boolean
   lattitude?: boolean
@@ -2339,7 +2333,7 @@ export type UserSelectScalar = {
   picture?: boolean
   githubId?: boolean
   tokenVersion?: boolean
-  lastTimelineVisit?: boolean
+  lastTimeVisit?: boolean
   dateOfBirth?: boolean
   longitude?: boolean
   lattitude?: boolean
@@ -2347,7 +2341,7 @@ export type UserSelectScalar = {
   isVerified?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "updatedAt" | "createdAt" | "isActive" | "name" | "firstname" | "lastname" | "username" | "email" | "password" | "bio" | "picture" | "githubId" | "tokenVersion" | "lastTimelineVisit" | "dateOfBirth" | "longitude" | "lattitude" | "preferences" | "isVerified", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "updatedAt" | "createdAt" | "isActive" | "name" | "firstname" | "lastname" | "username" | "email" | "password" | "bio" | "picture" | "githubId" | "tokenVersion" | "lastTimeVisit" | "dateOfBirth" | "longitude" | "lattitude" | "preferences" | "isVerified", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tokens?: boolean | Prisma.User$tokensArgs<ExtArgs>
   expertise?: boolean | Prisma.User$expertiseArgs<ExtArgs>
@@ -2389,11 +2383,11 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     picture: string | null
     githubId: string | null
     tokenVersion: number
-    lastTimelineVisit: Date | null
-    dateOfBirth: Date
+    lastTimeVisit: Date | null
+    dateOfBirth: Date | null
     longitude: number
     lattitude: number
-    preferences: string
+    preferences: runtime.JsonValue
     isVerified: boolean
   }, ExtArgs["result"]["user"]>
   composites: {}
@@ -2840,11 +2834,11 @@ export interface UserFieldRefs {
   readonly picture: Prisma.FieldRef<"User", 'String'>
   readonly githubId: Prisma.FieldRef<"User", 'String'>
   readonly tokenVersion: Prisma.FieldRef<"User", 'Int'>
-  readonly lastTimelineVisit: Prisma.FieldRef<"User", 'DateTime'>
+  readonly lastTimeVisit: Prisma.FieldRef<"User", 'DateTime'>
   readonly dateOfBirth: Prisma.FieldRef<"User", 'DateTime'>
   readonly longitude: Prisma.FieldRef<"User", 'Int'>
   readonly lattitude: Prisma.FieldRef<"User", 'Int'>
-  readonly preferences: Prisma.FieldRef<"User", 'String'>
+  readonly preferences: Prisma.FieldRef<"User", 'Json'>
   readonly isVerified: Prisma.FieldRef<"User", 'Boolean'>
 }
     
