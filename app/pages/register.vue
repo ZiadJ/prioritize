@@ -17,7 +17,7 @@
             <Form :resolver="resolver" @submit="submit" class="flex flex-col gap-4 w-full">
                 <FormField #="$field" name="username">
                     <IftaLabel>
-                        <InputText id="username" type="text" required class="w-full" autocomplete="name" v-bind="$field" />
+                        <InputText id="username" type="text" class="w-full" autocomplete="name" v-bind="$field" />
                         <label for="username">User Name</label>
                     </IftaLabel>
                     <Message v-if="$field.invalid" severity="error" size="small" variant="simple">
@@ -27,7 +27,7 @@
 
                 <FormField #="$field" name="email">
                     <IftaLabel>
-                        <InputText id="email" type="email" required class="w-full" autocomplete="email" v-bind="$field" />
+                        <InputText id="email" type="email" class="w-full" autocomplete="email" v-bind="$field" />
                         <label for="email">Email</label>
                     </IftaLabel>
                     <Message v-if="$field.invalid" severity="error" size="small" variant="simple">
@@ -37,7 +37,7 @@
 
                 <FormField #="$field" name="password">
                     <IftaLabel>
-                        <InputText id="password" type="password" required class="w-full" v-bind="$field" />
+                        <InputText id="password" type="password" class="w-full" v-bind="$field" />
                         <label for="password">Password</label>
                     </IftaLabel>
                     <Message v-if="$field.invalid" severity="error" size="small" variant="simple">
@@ -47,7 +47,7 @@
 
                 <FormField #="$field" name="confirm_password">
                     <IftaLabel>
-                        <InputText id="confirm_password" type="password" required class="w-full" v-bind="$field" />
+                        <InputText id="confirm_password" type="password" class="w-full" v-bind="$field" />
                         <label for="confirm_password">Confirm password</label>
                     </IftaLabel>
                     <Message v-if="$field.invalid" severity="error" size="small" variant="simple">
@@ -117,12 +117,7 @@ const submit = async (e: { valid: boolean; values: Record<string, any> }) => {
     processing.value = true;
 
     try {
-        await signUp({
-            username: e.values.username,
-            email: e.values.email,
-            password: e.values.password,
-            confirm_password: e.values.confirm_password,
-        }, { callbackUrl: '/dash', redirect: true });
+        await signUp(e.values, { callbackUrl: '/dash', redirect: true });
     } catch (thrown: any) {
         serverError.value = thrown.response?._data?.message || thrown.message || 'Registration failed';
     } finally {
