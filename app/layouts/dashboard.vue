@@ -5,10 +5,10 @@
         <div class="flex flex-col w-full h-screen">
             <HeaderTopBarDash class="h-20" />
             <div class="flex min-h-[calc(100vh-5rem)] h-full">
-                <div class="w-64">
+                <div :class="sidebarCollapsed ? 'w-16' : 'w-64'" class="transition-all duration-300">
                     <HeaderSideBarDash />
                 </div>
-                <div class="w-[calc(100vw-18rem)]">
+                <div :class="sidebarCollapsed ? 'w-[calc(100vw-4rem)]' : 'w-[calc(100vw-18rem)]'" class="transition-all duration-300">
                     <div class="body-content-dash">
                         <slot />
                     </div>
@@ -17,10 +17,9 @@
         </div>
     </div>
 </template>
-<script setup lang="ts"></script>
-
-<script lang="ts" setup>
-
+<script setup lang="ts">
+const sidebarCollapsed = ref(true)
+provide('sidebarCollapsed', sidebarCollapsed)
 </script>
 
 <style>
