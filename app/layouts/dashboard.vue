@@ -22,22 +22,27 @@
 /* Default collapsed */
 .sidebar-inner {
     width: 4rem;
+    transition: width 0.3s ease;
 }
 .content-inner {
     width: calc(100vw - 4rem);
+    transition: width 0.3s ease;
 }
 
-/* Hover to expand */
+/* Hover to expand with delay */
 .sidebar-inner:hover {
     width: 16rem;
+    transition-delay: 0.3s;
 }
 .sidebar-inner:hover + .content-inner {
     width: calc(100vw - 18rem);
+    transition-delay: 0.3s;
 }
 
-/* Show labels on hover */
+/* Show labels on hover with delay */
 .sidebar-inner:hover .sidebar-label {
     opacity: 1;
+    transition-delay: 0.3s;
 }
 
 /* Center menu items when collapsed, left-align when expanded/hover */
