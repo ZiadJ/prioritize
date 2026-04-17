@@ -44,7 +44,7 @@
 
             <Message v-if="error" severity="error">{{ error }}</Message>
             <div class="flex items-center justify-end mt-4">
-                <Button class="max-w-xs w-full" :loading="form.processing" @click="submit" type="button"
+                <Button class="w-full" :loading="form.processing" @click="submit" type="button"
                     :disabled="form.processing" label="Sign up" />
             </div>
             <div class="flex items-center justify-end mt-4">
