@@ -27,13 +27,14 @@
 
         <template #end>
             <div class="card flex justify-center">
-                <Button type="button" @click="toggle" aria-haspopup="true" aria-controls="overlay_tmenu" :pt="{
+                <Button type="button" @click="toggle" aria-haspopup="true" aria-controls="overlay_tmenu" 
+                    icon="pi pi-user" :pt="{
                     root: 'rounded-full !bg-transparent !border-none !p-0',
                     icon: '!text-white',
                     iconOnly: '!text-white',
                     iconPos: 'right'
                 }">
-                    <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" shape="circle" />
+                    <!-- <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" shape="circle" /> -->
                 </Button>
                 <TieredMenu ref="menu" id="overlay_tmenu" :model="profileActions" popup />
             </div>
@@ -48,7 +49,7 @@ const menu = ref();
 const profileActions = [
     {
         label: 'Profile',
-        icon: 'pi pi-fw pi-user',
+        icon: 'pi pi-fw pi-credit-card',
         command: () => {
             navigateTo('/dash/profile');
         }
