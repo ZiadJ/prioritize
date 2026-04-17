@@ -14,8 +14,7 @@ export default defineNuxtConfig({
 		'@sidebase/nuxt-auth',
 		'@nuxtjs/tailwindcss',
 		'@nuxtjs/color-mode',
-		'@nuxt/icon', // Disabled: requires Nuxt >= 4.0.0
-		'@prisma/nuxt',
+		'@nuxt/icon', 
 		'@primevue/nuxt-module',
 	],
 	css: [

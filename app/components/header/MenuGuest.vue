@@ -34,7 +34,7 @@
         <div class="flex items-center gap-4">
           <button @click="changeColorMode" class="flex items-center gap-2 outline-none"
             v-if="!$colorMode.unknown && !$colorMode.forced">
-            <Icon :name="determineIconMode" :class="determineIconColorMode"></Icon>
+            <Icon :name="determianteIconMode" :class="determianteIconColorMode"></Icon>
           </button>
           <template v-if="status === 'unauthenticated'">
             <Button size="small" label="Sign In" as="router-link" to="/login" />
@@ -55,12 +55,12 @@ const changeColorMode = () => {
   colorMode.preference = (colorMode.value === "dark") ? "light" : "dark";
 };
 
-const determineIconMode = computed(() => {
+const determianteIconMode = computed(() => {
   return (colorMode.value === "dark") ? "line-md:moon" : "line-md:sunny-filled-loop";
 });
 
-const determineIconColorMode = computed(() => {
-  return (colorMode.value === "dark") ? "text-xl text-white" : "text-yellow-800 animate-spin-slow";
+const determianteIconColorMode = computed(() => {
+  return (colorMode.value === "dark") ? "text-xl text-white transition-transform duration-500" : "text-yellow-800 transition-transform duration-500";
 });
 
 const items = ref<[{ label: string, to: string, root: boolean }]>([
