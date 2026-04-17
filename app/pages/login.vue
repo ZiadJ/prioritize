@@ -11,7 +11,7 @@
     </template>
     <template #content>
       <div class="my-2">
-        <p class="text-xl font-bold">Sing in</p>
+        <p class="text-xl font-bold">Sign in</p>
       </div>
 
       <IftaLabel>
@@ -28,7 +28,7 @@
       <div class="block mt-4">
         <label class="flex items-center">
           <Checkbox name="remember" v-model="form.remember" :binary="true" />
-          <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">Recordarme</span>
+          <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">Remember me</span>
         </label>
       </div>
       <div class="flex flex-col space-y-2 justify-start mt-2" v-if="form.errors.email || form.errors.password">
@@ -43,7 +43,7 @@
       <Message v-if="error" severity="error">{{ error }}</Message>
       <div class="flex items-center justify-end mt-4">
         <Button class="max-w-xs w-full" :loading="form.processing" @click="submit" type="button"
-          :disabled="form.processing" label="Sing in" />
+          :disabled="form.processing" label="Sign in" />
       </div>
       <div class="flex items-center justify-end mt-4">
         <div class="flex w-full justify-between">

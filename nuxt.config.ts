@@ -170,7 +170,7 @@ export default defineNuxtConfig({
 	app: {
 		pageTransition: { name: 'page', mode: 'out-in' },
 		head: {
-			title: 'JetNuxt Prime',
+			title: 'Prioritize',
 			meta: [
 				{ charset: 'utf-8' },
 				{
@@ -178,9 +178,8 @@ export default defineNuxtConfig({
 					content: 'width=device-width, initial-scale=1',
 				},
 				{
-					hid: 'description',
 					name: 'description',
-					content: 'JetNuxt Prime - A Nuxt.js starter template with PrimeVue',
+					content: 'Prioritize',
 				},
 			],
 			link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],

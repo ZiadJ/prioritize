@@ -11,7 +11,7 @@
         </template>
         <template #content>
             <div class="my-2">
-                <p class="text-xl font-bold">Sing up</p>
+                <p class="text-xl font-bold">Sign up</p>
             </div>
             <IftaLabel>
                 <InputText v-model="form.username.value" id="username" type="text" required class="w-full"
@@ -45,7 +45,7 @@
             <Message v-if="error" severity="error">{{ error }}</Message>
             <div class="flex items-center justify-end mt-4">
                 <Button class="max-w-xs w-full" :loading="form.processing" @click="submit" type="button"
-                    :disabled="form.processing" label="Sing up" />
+                    :disabled="form.processing" label="Sign up" />
             </div>
             <div class="flex items-center justify-end mt-4">
 
