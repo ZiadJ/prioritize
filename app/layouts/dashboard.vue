@@ -21,7 +21,7 @@
 <style>
 /* Default collapsed */
 .sidebar-inner {
-    width: 4rem;
+    width: 3.5rem;
     transition: width 0.3s ease;
 }
 .content-inner {

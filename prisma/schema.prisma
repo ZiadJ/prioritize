@@ -1,5 +1,28 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// generator PrismaTypeGraphQLTypesGenerator {
+//   provider = "npx prisma-typegraphql-types-generator"
+//   //modelsOutput = "./src/models" // Optional defaults to "./src/generated/models"
+//   //enumsOutput  = "./src/types/enums" // Optional defaults to "./src/generated/enums"
+//   //useYarn      = true // Optional if you want `graphql-scalars` installation to be done via yarn defaults to "npm"
+//   //exportedNameSuffix = "GQL" // Optional if you want to add a suffix to the end of your exported class names and enums
+//   //exportedNamePrefix = "TYPE" // Optional if you want to prefix your exported class names and enums
+// }
+
+// generator dbml {
+//   provider = "prisma-dbml-generator"
+// }
+
+// generator class_validator {
+//   provider = "prisma-class-validator-generator"
+//   output   = "../src/db"
+// }
+
+// generator trpc {
+//   provider       = "prisma-trpc-generator"
+//   output         = "./trpc"
+//   withMiddleware = false
+//   withShield     = false
+//   contextPath    = "../../../../src/context"
+// }
 
 generator client {
   provider = "prisma-client"
@@ -10,24 +33,663 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
+//                                               RELATIONAL MODEL EXAMPLES
+// model one2one {
+//   id          Int      @id @default(autoincrement())
+//   name        String?
+//   successorId Int?     @unique
+//   successor   one2one? @relation("one2one", fields: [successorId], references: [id])
+//   //predecessorId Int?     @unique
+//   predecessor one2one? @relation("one2one") //, fields: [predecessorId], references: [id])
+// }
+
+// model one2many {
+//   id    Int        @id @default(autoincrement())
+//   name  String?
+//   oneId Int?     
+//   one   one2many?  @relation("one2many", fields: [oneId], references: [id])
+//   many  one2many[] @relation("one2many")
+// }
+
+// model many2many {
+//   id         Int         @id @default(autoincrement())
+//   name       String?
+//   followedBy many2many[] @relation("many2many")
+//   following  many2many[] @relation("many2many")
+// }
+
+//                                               INHERITED MODELS
+// model BasicEntity {
+//   id         Int      @id @default(autoincrement())
+//   modifiedAt DateTime @updatedAt
+//   createdAt  DateTime @default(now())
+//   isActive   Boolean
+// }
+
+model ComposableNode {
   id        Int      @id @default(autoincrement())
-  username  String   @unique
-  email     String   @unique
-  password  String // Hash de la contraseña
-  name      String?
-  picture   String?
+  updateAt  DateTime @updatedAt
   createdAt DateTime @default(now())
+  isActive  Boolean
+
+  path     String           @unique // An auto-generated list of ids alllowing quick access to parents
+  depth    Int
+  numchild Int              @default(0)
+  parent   ComposableNode?  @relation("Self", fields: [parentId], references: [id])
+  parentId Int
+  children ComposableNode[] @relation("Self")
+
+  //composableNodeId Int
+
+  @@index([path])
+}
+
+// model PublicEntity {
+//   id           Int      @id @default(autoincrement())
+//   modifiedAt   DateTime
+//   createdAt    DateTime
+//   isActive     Boolean
+// title String @unique
+//   description  String
+// 
+//   isDirty      Boolean? // Client-server-clients sync flag
+//   revisions Revision[]
+// }
+
+//                                               ENUMS FOR SUPPORTING DATABASES
+// enum FeedbackType {
+//   User
+//   Revision
+//   Request
+//   Interest
+//   RequestNode
+//   Effect
+//   ProposalNode
+// }
+
+enum RevisionType {
+  Self
+  Suggestion
+  Deduplication
+  ModeratorFlag
+}
+
+enum relationType {
+  Enabler
+  Disabler
+  Multiplier
+  Incrementor
+}
+
+enum ResourceType {
+  ServiceTime
+  Material
+  Digital
+}
+
+enum InterestType {
+  Emotional
+  Observational
+  Material
+}
+
+enum InterestLevel {
+  Safety
+  Health
+  Belonging
+  Esteem
+  SelfActualization
+}
+
+enum UnitOfMeasure {
+  Unit
+  Time
+  Energy
+  Weight
+  Volume
+  Area
+  Length
+}
+
+model FeedbackNode {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  path     String         @unique
+  depth    Int
+  numchild Int            @default(0)
+  parent   FeedbackNode?  @relation("Self", fields: [parentId], references: [id])
+  parentId Int
+  children FeedbackNode[] @relation("Self")
+
+  user                User    @relation(fields: [userId], references: [id])
+  userId              String
+  type                Int
+  rating              Int
+  confidence          Int
+  // type                Int // FeedbackType // User, Revision, Request, Interest, RequestNode, Effect, ProposalStep
+  // targetId            String
+  title               String
+  description         String
+  requireCommentOnNeg Boolean // Require a comment for negative feedback unless a related rating is specified
+
+  Revisions RevisionNode[]
+
+  interestNode   InterestNode? @relation(fields: [interestNodeId], references: [id], onDelete: Cascade)
+  interestNodeId Int?
+  RequestNode    RequestNode?  @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
+  requestNodeId  Int?
+  proposalNode   ProposalNode? @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
+  proposalNodeId Int?
+  effect         Effect?       @relation(fields: [effectId], references: [id], onDelete: Cascade)
+  effectId       Int?
+  request        RequestNode?  @relation("RequestFeedback", fields: [requestId], references: [id], onDelete: Cascade)
+  requestId      Int?
+  urgency        RequestNode?  @relation("RequestUrgency", fields: [urgencyId], references: [id], onDelete: Cascade)
+  urgencyId      Int?
+
+  // Omitting userId to allow a user to offer multiple feedbacks to another user
+  @@unique([interestNodeId, requestNodeId, proposalNodeId, effectId, requestId, urgencyId])
+  @@index([path])
+  @@map("Feedback")
+}
+
+// model Todo {
+//   id        String   @id
+//   ownerId   String
+//   label     String
+//   done      Boolean  @default(false)
+//   createdAt DateTime
+//   updatedAt DateTime
+//   User      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+// }
+
+model User {
+  id        String   @id @default(cuid())
   updatedAt DateTime @updatedAt
-  tokens    Token[] // Relación con el modelo de tokens
+  createdAt DateTime @default(now())
+  isActive  Boolean
+
+  firstname         String
+  lastname          String
+  nickname          String
+  email             String    @unique
+  password          String
+  bio               String
+  picture           String?
+  githubId          String?   @unique
+  tokenVersion      Int       @default(0)
+  lastTimelineVisit DateTime?
+  dateOfBirth       DateTime
+  longitude         Int // For delivery cost estimation
+  lattitude         Int
+  preferences       String // Json(no Sqlite support)
+  isVerified        Boolean   @default(false)
+
+  tokens            Token[]
+
+  expertise         ExpertiseNode[]
+  steps             StepNode[]
+  feedback          FeedbackNode[]
+  revisions         RevisionNode[]
+  tags              Tag[]
+  fromRelationships UserRelation[]  @relation(name: "from")
+  toRelationships   UserRelation[]  @relation(name: "to")
+  // todos             Todo[]
 }
 
 model Token {
   id           Int      @id @default(autoincrement())
-  userId       Int // ID del usuario asociado
-  user         User     @relation(fields: [userId], references: [id]) // Relación con el usuario
+  userId       String 
   accessToken  String   @unique
   refreshToken String   @unique
   createdAt    DateTime @default(now())
   expiresAt    DateTime // Fecha de expiración del token
+  user         User     @relation(fields: [userId], references: [id]) 
+}
+
+model UserRelation {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  type String @default("friend")
+
+  from   User   @relation("from", fields: [fromId], references: [id])
+  fromId String
+  to     User   @relation("to", fields: [toId], references: [id])
+  toId   String
+}
+
+// Revision information that are applied to the targeted row 
+// and column after approval
+
+model RevisionNode {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title   String // @unique
+  body    String
+  isDirty Boolean? // Client-server-clients sync flag
+  // revisions   Revision[] 
+
+  path     String         @unique
+  depth    Int
+  numchild Int            @default(0)
+  parent   RevisionNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId Int
+  children RevisionNode[] @relation("Self")
+
+  data          String // Json(no Sqlite support)
+  type          Int // RevisionType // Self, Suggestion, Deduplication, ModeratorFlag
+  isApproved    Boolean // Based on feedback ratings but is not required for self revisions
+  approvedAt    DateTime
+  isLastApplied Boolean // Is the last applied version
+  isRejected    Boolean // Based on feedback ratings
+  rejectedAt    DateTime
+
+  feedback FeedbackNode[]
+
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  interestNode    InterestNode?     @relation(fields: [interestNodeId], references: [id], onDelete: Cascade)
+  interestNodeId  Int?
+  RequestNode     RequestNode?      @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
+  requestNodeId   Int?
+  proposalNode    ProposalNode?     @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
+  proposalNodeId  Int?
+  Step            StepNode?         @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  stepId          Int?
+  stepCost        ProposalStepCost? @relation(fields: [stepCostId], references: [id], onDelete: Cascade)
+  stepCostId      Int?
+  effect          Effect?           @relation(fields: [effectId], references: [id], onDelete: Cascade)
+  effectId        Int?
+  expertiseNode   ExpertiseNode?    @relation(fields: [expertiseNodeId], references: [id], onDelete: Cascade)
+  expertiseNodeId Int?
+  resourceNode    ResourceNode?     @relation(fields: [resourceNodeId], references: [id], onDelete: Cascade)
+  resourceNodeId  Int?
+  effectHook      Hook?             @relation(fields: [effectHookId], references: [id], onDelete: Cascade)
+  effectHookId    Int?
+
+  //@@unique([userId, interestNodeId, requestId, requestNodeId, proposalId, proposalNodeId, stepId, stepCostId, effectId, expertiseNodeId, resourceNodeId, effectHookId])
+  @@index([path])
+}
+
+model CognitiveBias {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title            String  @unique
+  description      String
+  isLogicalFallacy Boolean
+  courseUrl        String
+
+  AssignedCognitiveBias AssignedCognitiveBias[]
+}
+
+model AssignedCognitiveBias {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title      String  @unique
+  body       String
+  isResolved Boolean
+
+  cognitiveBias   CognitiveBias @relation(fields: [cognitiveBiasId], references: [id], onDelete: Cascade)
+  cognitiveBiasId Int
+  proposalNode    ProposalNode  @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
+  proposalNodeId  Int
+  requestNode     RequestNode   @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
+  requestNodeId   Int
+}
+
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  users        User[]
+  interestNode InterestNode[]
+  requestNode  RequestNode[]
+  proposalNode ProposalNode[]
+  step         StepNode[]
+  stepCost     ProposalStepCost[]
+  effect       Effect[]
+  resourceNode ResourceNode[]
+}
+
+// A composable expertise allowing one to make attributions 
+// to specific user requestNodes
+
+model ExpertiseNode {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title     String         @unique
+  body      String
+  isDirty   Boolean? // Client->server->clients sync flag
+  revisions RevisionNode[]
+
+  path     String          @unique
+  depth    Int
+  numchild Int             @default(0)
+  parent   ExpertiseNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId Int
+  children ExpertiseNode[] @relation("Self")
+
+  users     User[]
+  interests InterestNode[]
+  effects   Effect[]
+
+  @@index([path])
+}
+
+// An interest or living standard that can be associated with a request node
+
+model InterestNode {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title     String         @unique
+  body      String
+  isDirty   Boolean? // Client-server-clients sync flag
+  revisions RevisionNode[]
+
+  path     String         @unique
+  depth    Int
+  numchild Int            @default(0)
+  parent   InterestNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId Int
+  children InterestNode[] @relation("Self")
+
+  isConflictual Boolean
+  type          Int // InterestType // Emotional, Observational, Material
+  level         Int // InterestLevel // Safety, Health, Belonging, Esteem, SelfActualization
+
+  requests            RequestNode[]
+  expertise           ExpertiseNode[]
+  feedback            FeedbackNode[]
+  tags                Tag[]
+  conflictingRequests RequestNode[]   @relation("ConflictOfInterest")
+  effects             Effect[]
+
+  @@index([path])
+}
+
+// A request containing proposal nodes each assignable to a step. Each
+// node is weighed in terms of expert-based costs and side-effects
+
+model RequestNode {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title     String         @unique
+  body      String
+  isDirty   Boolean? // Client-to-server synched
+  revisions RevisionNode[]
+
+  path     String        @unique
+  depth    Int
+  numchild Int           @default(0)
+  parent   RequestNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId Int
+  children RequestNode[] @relation("Self")
+
+  requestId      Int
+  interestNode   InterestNode @relation(fields: [interestNodeId], references: [id], onDelete: Cascade)
+  interestNodeId Int
+
+  isTemplate      Boolean // Is an abstract template for new requests
+  isVariantsGroup Boolean // Contains a list of variant nodes requested by different users
+  isNonNegotiable Boolean
+
+  alignedProposalFeedback FeedbackNode[] // Feeback ratings for the level of alignment with a proposal node(could be 'impact' instead of 'alignment')
+  tags                    Tag[]
+  assignedCognitiveBias   AssignedCognitiveBias[]
+
+  relatedProblems  RequestNode[] @relation("RelatedRequests")
+  relatedSolutions RequestNode[] @relation("RelatedRequests") // Already resolved requests dealing with similar problems
+
+  startingAt DateTime?
+  endingAt   DateTime? // Urgency
+
+  conflictingInterests InterestNode[] @relation("ConflictOfInterest") // Can be auto-generated from the requestNodes tree
+  proposals            ProposalNode[] // Auto-generated when adding proposed steps
+
+  // Auto-generated when adding feedback to proposed steps
+  feedback FeedbackNode[] @relation("RequestFeedback")
+  urgency  FeedbackNode[] @relation("RequestUrgency")
+
+  @@index([path])
+}
+
+// A plan, proposal or offer aimed at satisfying a specific request 
+// node which can have both beneficial and detrimental impacts
+
+// User-rated entity relating request nodes with proposals through
+// impact-potential feedback, costs and side-effects.
+
+model ProposalNode {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title     String         @unique
+  body      String
+  isDirty   Boolean? // Client-server-clients sync flag
+  revisions RevisionNode[]
+
+  path     String         @unique
+  depth    Int
+  numchild Int            @default(0)
+  parent   ProposalNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId Int
+  children ProposalNode[] @relation("Self")
+
+  requestNodeId Int
+  step          StepNode @relation(fields: [stepNodeId], references: [id])
+  stepNodeId    Int
+
+  nextId   Int?          @unique
+  next     ProposalNode? @relation("Sibbling", fields: [nextId], references: [id])
+  previous ProposalNode? @relation("Sibbling")
+
+  isEffected      Boolean // Is true upon completion of all children if any
+  stepCount       Int // Determines the amount of resources required depending on associated step
+  startingAt      DateTime?
+  duration        Int // Proposal duration which can be calculated from child nodes if any
+  isSequential    Boolean // Child steps are executed sequentially rather than in parallel
+  priority        Int // Only necessary when isSequential is true on parent node
+  riskFactor      Int
+  isVariantsGroup Boolean // Children are variants 
+
+  approvedAt    DateTime?
+  prepDuration  Int // Proposal preparation time
+  avgRating     Int       @default(0) // Average of the product feedback ratings from proposal step, request nodes and effects
+  minRating     Int
+  maxRating     Int
+  isEstablished Boolean
+
+  isTemplate    Boolean // Is an abstract template for new proposals
+  isDraft       Boolean?
+  isUnavailable Boolean?
+
+  requests RequestNode[]
+
+  requestAlignment      FeedbackNode[] // Voted feedback from experts based on the related interests(could be 'impact' instead of 'alignment')
+  tags                  Tag[]
+  assignedCognitiveBias AssignedCognitiveBias[]
+
+  @@index([path])
+}
+
+// An action item or task which is referenced by proposals to 
+// specific requests 
+
+model StepNode {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title     String         @unique
+  body      String
+  isDirty   Boolean? // Client-server-clients sync flag
+  revisions RevisionNode[]
+
+  path     String     @unique
+  depth    Int
+  numchild Int        @default(0)
+  parent   StepNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId Int
+  children StepNode[] @relation("Self")
+
+  duration         Int
+  durationVariance Int
+
+  proposalNodes  ProposalNode[]
+  costs          ProposalStepCost[]
+  effects        Effect[]
+  assignedTo     User[]
+  tags           Tag[]
+  ResourceNode   ResourceNode?      @relation(fields: [resourceNodeId], references: [id])
+  resourceNodeId Int?
+
+  @@index([path])
+}
+
+// Resource quantity produced or consumed by a specific proposal step
+
+model ProposalStepCost {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title     String         @unique
+  body      String
+  isDirty   Boolean? // Client-server-clients sync flag
+  revisions RevisionNode[]
+
+  resourceNode   ResourceNode? @relation(fields: [resourceNodeId], references: [id])
+  resourceNodeId Int?
+  stepNode       StepNode?     @relation(fields: [stepNodeId], references: [id])
+  stepNodeId     Int?
+
+  duration          Int
+  riskFactor        Int
+  isOpportunistic   Boolean // True when cost is negative 
+  quantity          Float // A negative value denotes a production output rather than a cost
+  quantityMargin    Float
+  costVariationType Int // Linear, Exponential, Custom
+
+  tags Tag[]
+
+  @@unique([resourceNodeId, stepNodeId])
+}
+
+// A impacting side-effect when a request node is enacted upon
+
+model Effect {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title     String         @unique
+  body      String
+  isDirty   Boolean? // Client-server-clients sync flag
+  revisions RevisionNode[]
+
+  InterestNode   InterestNode? @relation(fields: [interestNodeId], references: [id])
+  interestNodeId Int?
+
+  isOpportunistic Boolean // Side-effect is beneficial
+  delay           Int
+  duration        Int
+  relationType    relationType
+  relationFormula String
+
+  steps    StepNode[]
+  feedback FeedbackNode[]
+  tags     Tag[]
+
+  effectorRelations Hook[]          @relation("Effector")
+  effectRelations   Hook[]          @relation("Effect")
+  expertise         ExpertiseNode[]
+}
+
+// A uni-directional linkage between two effects
+
+model Hook {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title     String         @unique
+  body      String
+  isDirty   Boolean? // Client-server-clients sync flag
+  revisions RevisionNode[]
+
+  effector   Effect @relation("Effector", fields: [effectorId], references: [id], onDelete: Cascade)
+  effectorId Int
+  effect     Effect @relation("Effect", fields: [effectId], references: [id], onDelete: Cascade)
+  effectId   Int
+
+  strength Int
+
+  @@unique([effectorId, effectId])
+}
+
+// Availability of a specific resource used or produced through 
+// associated proposal steps
+
+model ResourceNode {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title     String         @unique
+  body      String
+  isDirty   Boolean? // Client-server-clients sync flag
+  revisions RevisionNode[]
+
+  path     String         @unique
+  depth    Int
+  numchild Int            @default(0)
+  parent   ResourceNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId Int
+  children ResourceNode[] @relation("Self")
+
+  type                   Int // ResourceType // ServiceTime, Material, Digital
+  unitOfMeasure          Int // UnitOfMeasure // Unit, Time, Energy, Weight, Volume, Area, Length
+  quantityAvailable      Float
+  renewalCapacity        Float
+  managedRenewalCapacity Float
+  minQuantity            Float
+  reservedQuantity       Float
+  monetaryValue          Float // Per specified unit
+
+  stepsPerAdditionalRenewalCapacity StepNode[] // 
+  stepCosts                         ProposalStepCost[] // Step cost referencing this resource node
+  tags                              Tag[]
+
+  @@index([path])
 }

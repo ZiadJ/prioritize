@@ -9,6 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "generate JWT_SECRET";
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "generate REFRESH_SECRET";
 const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || "15m";
 const REFRESH_TOKEN_TTL = process.env.REFRESH_TOKEN_TTL || "7d";
+const REMEMBER_ME_REFRESH_TOKEN_TTL = process.env.REMEMBER_ME_REFRESH_TOKEN_TTL || "30d";
 
 /**
  * Request sign up user
@@ -18,11 +19,11 @@ const REFRESH_TOKEN_TTL = process.env.REFRESH_TOKEN_TTL || "7d";
  * @throws 401 Invalid email or password
  */
 export const SignInRequest = async (event: H3Event) => {
-  const { email, password } = await validateLoginBody(event);
+  const { email, password, remember } = await validateLoginBody(event);
   const user = await getUserByEmail(email);
   await validatePassword(password, user.password);
-  const { accessToken, refreshToken } = generateTokens(user.id);
-  await clearAndStoreTokens(user.id, accessToken, refreshToken);
+  const { accessToken, refreshToken } = generateTokens(user.id, remember);
+  await clearAndStoreTokens(user.id, accessToken, refreshToken, remember);
 
   // Retorna la respuesta final
   return {
@@ -261,13 +262,15 @@ export const validatePassword = async (password: string, hash: string) => {
 };
 
 // Genera tokens de acceso y de refresco
-export const generateTokens = (userId: number) => {
+export const generateTokens = (userId: number, remember?: boolean) => {
+  const refreshTtl = remember ? REMEMBER_ME_REFRESH_TOKEN_TTL : REFRESH_TOKEN_TTL;
+
   const accessToken = jwt.sign({ id: userId }, JWT_SECRET, {
     expiresIn: ACCESS_TOKEN_TTL,
   });
 
   const refreshToken = jwt.sign({ id: userId }, REFRESH_SECRET, {
-    expiresIn: REFRESH_TOKEN_TTL,
+    expiresIn: refreshTtl,
   });
 
   return { accessToken, refreshToken };
@@ -277,18 +280,23 @@ export const generateTokens = (userId: number) => {
 export const clearAndStoreTokens = async (
   userId: number,
   accessToken: string,
-  refreshToken: string
+  refreshToken: string,
+  remember?: boolean
 ) => {
   await prisma.token.deleteMany({
     where: { userId }, // Elimina todos los tokens anteriores
   });
+
+  const ttl = remember
+    ? 30 * 24 * 60 * 60 * 1000 // 30 días
+    : 7 * 24 * 60 * 60 * 1000; // 7 días
 
   await prisma.token.create({
     data: {
       userId,
       accessToken,
       refreshToken,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 días
+      expiresAt: new Date(Date.now() + ttl),
     },
   });
 };

@@ -135,8 +135,8 @@ export default defineNuxtConfig({
 				type: 'Bearer',
 				cookieName: 'auth.token',
 				headerName: 'Authorization',
-				//15 minutes
-				maxAgeInSeconds: 60 * 10,
+				//30 days - actual duration controlled by server-side refresh token TTL
+				maxAgeInSeconds: 60 * 60 * 24 * 30,
 				sameSiteAttribute: 'lax',
 				cookieDomain: '', //add env variable
 				secureCookieAttribute: false,
@@ -151,7 +151,8 @@ export default defineNuxtConfig({
 					signInResponseRefreshTokenPointer: '/refreshToken',
 					refreshRequestTokenPointer: '/refreshToken',
 					cookieName: 'auth.refresh-token',
-					maxAgeInSeconds: 60 * 60 * 24, // 24 hours
+					//30 days - server sets actual TTL based on remember me
+					maxAgeInSeconds: 60 * 60 * 24 * 30,
 					sameSiteAttribute: 'lax',
 					secureCookieAttribute: false,
 					cookieDomain: '',
