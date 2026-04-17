@@ -14,103 +14,119 @@
                 <p class="text-xl font-bold">Sign up</p>
             </div>
 
-            <div class="flex flex-col gap-4 w-full">
-                <IftaLabel>
-                    <InputText v-model="form.username.value" id="username" type="text" required class="w-full"
-                        autocomplete="name" />
-                    <label for="username">User Name</label>
-                </IftaLabel>
-                <IftaLabel>
-                    <InputText v-model="form.email.value" id="email" type="email" required class="w-full"
-                        autocomplete="email" />
-                    <label for="email">Email</label>
-                </IftaLabel>
-                <IftaLabel>
-                    <InputText v-model="form.password.value" id="password" type="password" required class="w-full" />
-                    <label for="password">Password</label>
-                </IftaLabel>
-                <IftaLabel>
-                    <InputText v-model="form.confirm_password.value" id="confirm_password" type="password" required
-                        class="w-full" />
-                    <label for="confirm_password">Confirm password</label>
-                </IftaLabel>
+            <Form :resolver="resolver" @submit="submit" class="flex flex-col gap-4 w-full">
+                <FormField #="$field" name="username">
+                    <IftaLabel>
+                        <InputText id="username" type="text" required class="w-full" autocomplete="name" v-bind="$field" />
+                        <label for="username">User Name</label>
+                    </IftaLabel>
+                    <Message v-if="$field.invalid" severity="error" size="small" variant="simple">
+                        {{ $field.error?.message }}
+                    </Message>
+                </FormField>
 
-                <Message v-if="error" severity="error">{{ error }}</Message>
-                <div class="flex items-center justify-end mt-4">
-                    <Button class="w-full" :loading="form.processing" @click="submit" type="button"
-                        :disabled="form.processing" label="Sign up" />
-                </div>
-            </div>
-            <div class="flex items-center justify-end mt-4">
-                <div class="flex w-full justify-between">
-                    <NuxtLink to="/login"
-                        class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
-                        Already have an account?
-                    </NuxtLink>
-                </div>
+                <FormField #="$field" name="email">
+                    <IftaLabel>
+                        <InputText id="email" type="email" required class="w-full" autocomplete="email" v-bind="$field" />
+                        <label for="email">Email</label>
+                    </IftaLabel>
+                    <Message v-if="$field.invalid" severity="error" size="small" variant="simple">
+                        {{ $field.error?.message }}
+                    </Message>
+                </FormField>
+
+                <FormField #="$field" name="password">
+                    <IftaLabel>
+                        <InputText id="password" type="password" required class="w-full" v-bind="$field" />
+                        <label for="password">Password</label>
+                    </IftaLabel>
+                    <Message v-if="$field.invalid" severity="error" size="small" variant="simple">
+                        {{ $field.error?.message }}
+                    </Message>
+                </FormField>
+
+                <FormField #="$field" name="confirm_password">
+                    <IftaLabel>
+                        <InputText id="confirm_password" type="password" required class="w-full" v-bind="$field" />
+                        <label for="confirm_password">Confirm password</label>
+                    </IftaLabel>
+                    <Message v-if="$field.invalid" severity="error" size="small" variant="simple">
+                        {{ $field.error?.message }}
+                    </Message>
+                </FormField>
+
+                <Message v-if="serverError" severity="error">{{ serverError }}</Message>
+
+                <Button class="w-full" type="submit" :loading="processing" :disabled="processing" label="Sign up" />
+            </Form>
+
+            <div class="flex w-full justify-between mt-4">
+                <NuxtLink
+                    to="/login"
+                    class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
+                    Already have an account?
+                </NuxtLink>
             </div>
         </template>
     </Card>
 </template>
 
 <script setup lang="ts">
-const { status, signUp,} = useAuth()
+const { status, signUp } = useAuth();
 
 definePageMeta({
     auth: {
         unauthenticatedOnly: true,
         navigateAuthenticatedTo: '/dash'
     }
-})
+});
 
-const error = ref<string | null>(null)
-const form = ref({
-    username: {
-        value: "",
-        error: null,
-    },
-    email: {
-        value: "",
-        error: null,
-    },
-    password: {
-        value: "",
-        error: null,
-    },
-    confirm_password: {
-        value: "",
-        error: null,
-    },
-    processing: false,
-})
+const serverError = ref<string | null>(null);
+const processing = ref(false);
 
-const submit = async () => {
-    if (form.value.password.value !== form.value.confirm_password.value) {
-        error.value = "Password and confirm password do not match"
-        return
+const resolver = ({ values }: { values: Record<string, any> }) => {
+    const errors: Record<string, { message: string }[]> = {};
+
+    if (!values.username) {
+        errors.username = [{ message: 'Username is required.' }];
     }
-    if (!form.value.email.value) {
-        error.value = "Email is required"
-        return
+
+    if (!values.email) {
+        errors.email = [{ message: 'Email is required.' }];
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+        errors.email = [{ message: 'Please enter a valid email address.' }];
     }
-    if (!form.value.username.value) {
-        error.value = "Username is required"
-        return
+
+    if (!values.password) {
+        errors.password = [{ message: 'Password is required.' }];
     }
-    form.value.processing = true
-    error.value = null
+
+    if (!values.confirm_password) {
+        errors.confirm_password = [{ message: 'Confirm password is required.' }];
+    } else if (values.password !== values.confirm_password) {
+        errors.confirm_password = [{ message: 'Passwords do not match.' }];
+    }
+
+    return { values, errors };
+};
+
+const submit = async (e: { valid: boolean; values: Record<string, any> }) => {
+    if (!e.valid) return;
+
+    serverError.value = null;
+    processing.value = true;
 
     try {
         await signUp({
-            username: form.value.username.value,
-            email: form.value.email.value,
-            password: form.value.password.value,
-            confirm_password: form.value.confirm_password.value,
-        }, { callbackUrl: '/dash', redirect: true })
-    } catch (e: any) {
-        error.value = e?.response?._data?.message || e.message || 'Registration failed'
+            username: e.values.username,
+            email: e.values.email,
+            password: e.values.password,
+            confirm_password: e.values.confirm_password,
+        }, { callbackUrl: '/dash', redirect: true });
+    } catch (thrown: any) {
+        serverError.value = thrown.response?._data?.message || thrown.message || 'Registration failed';
     } finally {
-        form.value.processing = false
+        processing.value = false;
     }
-}
+};
 </script>
