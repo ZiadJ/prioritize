@@ -1,6 +1,5 @@
 <template>
-    <div class="sidebar-wrapper" :class="{ collapsed: sidebarCollapsed }" @mouseenter="sidebarCollapsed = false"
-        @mouseleave="sidebarCollapsed = true">
+    <div class="sidebar-wrapper">
         <PanelMenu v-model:expanded-keys="expandedKeys" @update:expanded-keys="expandedKeys = $event" :model="itemsWithIds"
             class="w-full justify-center mx-auto">
             <template #item="{ item }">
@@ -15,15 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-const sidebarCollapsed = inject('sidebarCollapsed') as ReturnType<typeof ref<boolean>>
-
 const expandedKeys = ref<Record<string, boolean>>({})
-
-watch(() => sidebarCollapsed.value, (collapsed) => {
-    if (collapsed) {
-        expandedKeys.value = {}
-    }
-})
 
 // Helper function to slugify labels
 const slugify = (label: string) => {
@@ -52,56 +43,20 @@ const itemsWithIds = ref(addIdsToItems([
         label: 'Requests',
         icon: 'pi pi-chart-bar',
         to: '/dash/reports',
-        // items: [
-        //     {
-        //         label: 'Sales',
-        //         icon: 'pi pi-chart-line',
-        //         badge: 3,
-        //         shortcut: '⌘+R',
-        //     },
-        //     {
-        //         label: 'Products',
-        //         icon: 'pi pi-list',
-        //         badge: 6
-        //     }
-        // ]
     },
     {
         label: 'Proposals',
         icon: 'pi pi-user',
         to: '/dash/profile',
-        // items: [
-        //     {
-        //         label: 'Settings',
-        //         icon: 'pi pi-cog',
-        //         // shortcut: '⌘+O'
-        //     },
-        //     {
-        //         label: 'Privacy',
-        //         icon: 'pi pi-shield',
-        //         // shortcut: '⌘+P'
-        //     }
-        // ]
     }
 ]));
 </script>
 
 <style scoped>
 .sidebar-wrapper {
-    width: 60px;
-    transition: width 0.3s ease;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
-}
-.sidebar-wrapper:not(.collapsed) {
-    width: 240px;
-}
-.sidebar-wrapper :deep(.p-menuitem-link) {
-    justify-content: center;
-    padding: 0.5rem;
-    position: relative;
-}
-.sidebar-wrapper:not(.collapsed) :deep(.p-menuitem-link) {
-    justify-content: flex-start;
 }
 .sidebar-label {
     opacity: 0;
@@ -109,8 +64,5 @@ const itemsWithIds = ref(addIdsToItems([
     white-space: nowrap;
     position: absolute;
     left: 2.5rem;
-}
-.sidebar-wrapper:not(.collapsed) .sidebar-label {
-    opacity: 1;
 }
 </style>
