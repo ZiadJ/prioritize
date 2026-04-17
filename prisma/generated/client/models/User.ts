@@ -43,7 +43,6 @@ export type UserMinAggregateOutputType = {
   updatedAt: Date | null
   createdAt: Date | null
   isActive: boolean | null
-  name: string | null
   firstname: string | null
   lastname: string | null
   username: string | null
@@ -65,7 +64,6 @@ export type UserMaxAggregateOutputType = {
   updatedAt: Date | null
   createdAt: Date | null
   isActive: boolean | null
-  name: string | null
   firstname: string | null
   lastname: string | null
   username: string | null
@@ -87,7 +85,6 @@ export type UserCountAggregateOutputType = {
   updatedAt: number
   createdAt: number
   isActive: number
-  name: number
   firstname: number
   lastname: number
   username: number
@@ -124,7 +121,6 @@ export type UserMinAggregateInputType = {
   updatedAt?: true
   createdAt?: true
   isActive?: true
-  name?: true
   firstname?: true
   lastname?: true
   username?: true
@@ -146,7 +142,6 @@ export type UserMaxAggregateInputType = {
   updatedAt?: true
   createdAt?: true
   isActive?: true
-  name?: true
   firstname?: true
   lastname?: true
   username?: true
@@ -168,7 +163,6 @@ export type UserCountAggregateInputType = {
   updatedAt?: true
   createdAt?: true
   isActive?: true
-  name?: true
   firstname?: true
   lastname?: true
   username?: true
@@ -278,7 +272,6 @@ export type UserGroupByOutputType = {
   updatedAt: Date
   createdAt: Date
   isActive: boolean
-  name: string
   firstname: string
   lastname: string
   username: string
@@ -324,7 +317,6 @@ export type UserWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   isActive?: Prisma.BoolFilter<"User"> | boolean
-  name?: Prisma.StringFilter<"User"> | string
   firstname?: Prisma.StringFilter<"User"> | string
   lastname?: Prisma.StringFilter<"User"> | string
   username?: Prisma.StringFilter<"User"> | string
@@ -355,7 +347,6 @@ export type UserOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
-  name?: Prisma.SortOrder
   firstname?: Prisma.SortOrder
   lastname?: Prisma.SortOrder
   username?: Prisma.SortOrder
@@ -392,7 +383,6 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   isActive?: Prisma.BoolFilter<"User"> | boolean
-  name?: Prisma.StringFilter<"User"> | string
   firstname?: Prisma.StringFilter<"User"> | string
   lastname?: Prisma.StringFilter<"User"> | string
   password?: Prisma.StringFilter<"User"> | string
@@ -420,7 +410,6 @@ export type UserOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
-  name?: Prisma.SortOrder
   firstname?: Prisma.SortOrder
   lastname?: Prisma.SortOrder
   username?: Prisma.SortOrder
@@ -451,7 +440,6 @@ export type UserScalarWhereWithAggregatesInput = {
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   isActive?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
-  name?: Prisma.StringWithAggregatesFilter<"User"> | string
   firstname?: Prisma.StringWithAggregatesFilter<"User"> | string
   lastname?: Prisma.StringWithAggregatesFilter<"User"> | string
   username?: Prisma.StringWithAggregatesFilter<"User"> | string
@@ -474,7 +462,6 @@ export type UserCreateInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -505,7 +492,6 @@ export type UserUncheckedCreateInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -536,7 +522,6 @@ export type UserUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -567,7 +552,6 @@ export type UserUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -598,7 +582,6 @@ export type UserCreateManyInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -621,7 +604,6 @@ export type UserUpdateManyMutationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -644,7 +626,6 @@ export type UserUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -672,7 +653,6 @@ export type UserCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
-  name?: Prisma.SortOrder
   firstname?: Prisma.SortOrder
   lastname?: Prisma.SortOrder
   username?: Prisma.SortOrder
@@ -701,7 +681,6 @@ export type UserMaxOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
-  name?: Prisma.SortOrder
   firstname?: Prisma.SortOrder
   lastname?: Prisma.SortOrder
   username?: Prisma.SortOrder
@@ -723,7 +702,6 @@ export type UserMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
-  name?: Prisma.SortOrder
   firstname?: Prisma.SortOrder
   lastname?: Prisma.SortOrder
   username?: Prisma.SortOrder
@@ -953,7 +931,6 @@ export type UserCreateWithoutFeedbackInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -983,7 +960,6 @@ export type UserUncheckedCreateWithoutFeedbackInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1029,7 +1005,6 @@ export type UserUpdateWithoutFeedbackInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1059,7 +1034,6 @@ export type UserUncheckedUpdateWithoutFeedbackInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1089,7 +1063,6 @@ export type UserCreateWithoutTokensInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1119,7 +1092,6 @@ export type UserUncheckedCreateWithoutTokensInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1165,7 +1137,6 @@ export type UserUpdateWithoutTokensInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1195,7 +1166,6 @@ export type UserUncheckedUpdateWithoutTokensInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1225,7 +1195,6 @@ export type UserCreateWithoutFromRelationshipsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1255,7 +1224,6 @@ export type UserUncheckedCreateWithoutFromRelationshipsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1290,7 +1258,6 @@ export type UserCreateWithoutToRelationshipsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1320,7 +1287,6 @@ export type UserUncheckedCreateWithoutToRelationshipsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1366,7 +1332,6 @@ export type UserUpdateWithoutFromRelationshipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1396,7 +1361,6 @@ export type UserUncheckedUpdateWithoutFromRelationshipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1437,7 +1401,6 @@ export type UserUpdateWithoutToRelationshipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1467,7 +1430,6 @@ export type UserUncheckedUpdateWithoutToRelationshipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1497,7 +1459,6 @@ export type UserCreateWithoutRevisionsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1527,7 +1488,6 @@ export type UserUncheckedCreateWithoutRevisionsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1573,7 +1533,6 @@ export type UserUpdateWithoutRevisionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1603,7 +1562,6 @@ export type UserUncheckedUpdateWithoutRevisionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1633,7 +1591,6 @@ export type UserCreateWithoutTagsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1663,7 +1620,6 @@ export type UserUncheckedCreateWithoutTagsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1717,7 +1673,6 @@ export type UserScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   isActive?: Prisma.BoolFilter<"User"> | boolean
-  name?: Prisma.StringFilter<"User"> | string
   firstname?: Prisma.StringFilter<"User"> | string
   lastname?: Prisma.StringFilter<"User"> | string
   username?: Prisma.StringFilter<"User"> | string
@@ -1740,7 +1695,6 @@ export type UserCreateWithoutExpertiseInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1770,7 +1724,6 @@ export type UserUncheckedCreateWithoutExpertiseInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1821,7 +1774,6 @@ export type UserCreateWithoutStepsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1851,7 +1803,6 @@ export type UserUncheckedCreateWithoutStepsInput = {
   updatedAt?: Date | string
   createdAt?: Date | string
   isActive?: boolean
-  name?: string
   firstname?: string
   lastname?: string
   username: string
@@ -1902,7 +1853,6 @@ export type UserUpdateWithoutTagsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1932,7 +1882,6 @@ export type UserUncheckedUpdateWithoutTagsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1962,7 +1911,6 @@ export type UserUncheckedUpdateManyWithoutTagsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1985,7 +1933,6 @@ export type UserUpdateWithoutExpertiseInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2015,7 +1962,6 @@ export type UserUncheckedUpdateWithoutExpertiseInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2045,7 +1991,6 @@ export type UserUncheckedUpdateManyWithoutExpertiseInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2068,7 +2013,6 @@ export type UserUpdateWithoutStepsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2098,7 +2042,6 @@ export type UserUncheckedUpdateWithoutStepsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2128,7 +2071,6 @@ export type UserUncheckedUpdateManyWithoutStepsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   firstname?: Prisma.StringFieldUpdateOperationsInput | string
   lastname?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2245,7 +2187,6 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   createdAt?: boolean
   isActive?: boolean
-  name?: boolean
   firstname?: boolean
   lastname?: boolean
   username?: boolean
@@ -2277,7 +2218,6 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   updatedAt?: boolean
   createdAt?: boolean
   isActive?: boolean
-  name?: boolean
   firstname?: boolean
   lastname?: boolean
   username?: boolean
@@ -2300,7 +2240,6 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   updatedAt?: boolean
   createdAt?: boolean
   isActive?: boolean
-  name?: boolean
   firstname?: boolean
   lastname?: boolean
   username?: boolean
@@ -2323,7 +2262,6 @@ export type UserSelectScalar = {
   updatedAt?: boolean
   createdAt?: boolean
   isActive?: boolean
-  name?: boolean
   firstname?: boolean
   lastname?: boolean
   username?: boolean
@@ -2341,7 +2279,7 @@ export type UserSelectScalar = {
   isVerified?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "updatedAt" | "createdAt" | "isActive" | "name" | "firstname" | "lastname" | "username" | "email" | "password" | "bio" | "picture" | "githubId" | "tokenVersion" | "lastTimeVisit" | "dateOfBirth" | "longitude" | "lattitude" | "preferences" | "isVerified", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "updatedAt" | "createdAt" | "isActive" | "firstname" | "lastname" | "username" | "email" | "password" | "bio" | "picture" | "githubId" | "tokenVersion" | "lastTimeVisit" | "dateOfBirth" | "longitude" | "lattitude" | "preferences" | "isVerified", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tokens?: boolean | Prisma.User$tokensArgs<ExtArgs>
   expertise?: boolean | Prisma.User$expertiseArgs<ExtArgs>
@@ -2373,7 +2311,6 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     updatedAt: Date
     createdAt: Date
     isActive: boolean
-    name: string
     firstname: string
     lastname: string
     username: string
@@ -2824,7 +2761,6 @@ export interface UserFieldRefs {
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly isActive: Prisma.FieldRef<"User", 'Boolean'>
-  readonly name: Prisma.FieldRef<"User", 'String'>
   readonly firstname: Prisma.FieldRef<"User", 'String'>
   readonly lastname: Prisma.FieldRef<"User", 'String'>
   readonly username: Prisma.FieldRef<"User", 'String'>

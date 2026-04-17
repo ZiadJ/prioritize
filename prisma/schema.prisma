@@ -212,7 +212,6 @@ model User {
   createdAt DateTime @default(now())
   isActive  Boolean  @default(true)
 
-  name              String    @default("") // required by auth
   firstname         String    @default("")
   lastname          String    @default("")
   username          String    @unique

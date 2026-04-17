@@ -93,20 +93,22 @@ const resolver = ({ values }: { values: Record<string, any> }) => {
 	return { values, errors };
 };
 
-const submit = async (e: { valid: boolean; values: Record<string, any> }) => {
-	if (!e.valid) return;
+	const submit = async (e: { valid: boolean; values: Record<string, any> }) => {
+		if (!e.valid) return;
 
-	serverError.value = null;
-	processing.value = true;
+		serverError.value = null;
+		processing.value = true;
 
-	try {
-		await signIn(e.values, { callbackUrl: '/dash' });
-	} catch (thrown: any) {
-		serverError.value = thrown.response?._data?.message || thrown.message || 'Sign in failed';
-	} finally {
-		processing.value = false;
-	}
-};
+		e.values.remember = e.values.remember ?? false;
+
+		try {
+			await signIn(e.values, { callbackUrl: '/dash' });
+		} catch (thrown: any) {
+			serverError.value = thrown.response?._data?.message || thrown.message || 'Sign in failed';
+		} finally {
+			processing.value = false;
+		}
+	};
 
 onBeforeMount(() => {
 	if (status.value === 'authenticated') navigateTo('/dash');

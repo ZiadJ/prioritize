@@ -103,7 +103,7 @@ export const signUpRequest = async (event: H3Event) => {
     user: {
       id: User.id,
       email: User.email,
-      name: User.name,
+      name: User.username,
     },
   };
 };
