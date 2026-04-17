@@ -38,7 +38,7 @@ const MyPreset = definePreset(Aura, {
 });
 
 export default defineNuxtConfig({
-	compatibilityDate: '2024-11-01',
+	compatibilityDate: '2026-04-01',
 	devtools: { enabled: true },
 	devServer: {
 		port: 3000,
@@ -66,10 +66,6 @@ export default defineNuxtConfig({
 	experimental: {
 		scanPageMeta: 'after-resolve',
 		sharedPrerenderData: false,
-		compileTemplate: true,
-		resetAsyncDataToUndefined: true,
-		templateUtils: true,
-		relativeWatchPaths: true,
 		normalizeComponentNames: false,
 		spaLoadingTemplateLocation: 'within',
 		defaults: {
