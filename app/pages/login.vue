@@ -15,66 +15,37 @@
 				<p class="text-xl font-bold">Sign in</p>
 			</div>
 
-			<Form
-				:resolver="resolver"
-				@submit="submit"
-				class="flex flex-col gap-4 w-full">
+			<Form :resolver="resolver" @submit="submit" class="flex flex-col gap-4 w-full">
 				<FormField v-slot="$field" name="email">
 					<IftaLabel>
-						<InputText
-							id="email"
-							type="email"
-							autofocus
-							autocomplete="username"
-							class="w-full"
-							v-bind="$field" />
+						<InputText id="email" type="email" autofocus autocomplete="username" class="w-full" v-bind="$field" />
 						<label for="email">Email</label>
 					</IftaLabel>
-					<Message
-						v-if="$field.invalid"
-						severity="error"
-						size="small"
-						variant="simple">
+					<Message v-if="$field.invalid" severity="error" size="small" variant="simple">
 						{{ $field.error?.message }}
 					</Message>
 				</FormField>
 
 				<FormField v-slot="$field" name="password">
 					<IftaLabel>
-						<InputText
-							id="password"
-							type="password"
-							autocomplete="current-password"
-							class="w-full"
-							v-bind="$field" />
+						<InputText id="password" type="password" autocomplete="current-password" class="w-full" v-bind="$field" />
 						<label for="password">Password</label>
 					</IftaLabel>
-					<Message
-						v-if="$field.invalid"
-						severity="error"
-						size="small"
-						variant="simple">
+					<Message v-if="$field.invalid" severity="error" size="small" variant="simple">
 						{{ $field.error?.message }}
 					</Message>
 				</FormField>
 
 				<FormField v-slot="$field" name="remember">
 					<label class="flex items-center gap-2 cursor-pointer">
-						<Checkbox :binary="true" v-bind="$field" />
-						<span class="text-sm text-gray-600 dark:text-gray-400"
-							>Remember me</span
-						>
+						<Checkbox v-bind="$field" :binary="true" />
+						<span class="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
 					</label>
 				</FormField>
 
 				<Message v-if="serverError" severity="error">{{ serverError }}</Message>
 
-				<Button
-					class="w-full mt-2"
-					type="submit"
-					:loading="processing"
-					:disabled="processing"
-					label="Sign in" />
+				<Button class="w-full mt-2" type="submit" :loading="processing" :disabled="processing" label="Sign in" />
 			</Form>
 
 			<div class="flex w-full justify-between mt-4">
@@ -122,20 +93,16 @@ const resolver = ({ values }: { values: Record<string, any> }) => {
 	return { values, errors };
 };
 
-const submit = async (e: any) => {
-	const { email, password, remember } = e.values;
-
+const submit = async (e: { valid: boolean; values: Record<string, any> }) => {
 	if (!e.valid) return;
-	if (!email || !password) return;
 
 	serverError.value = null;
 	processing.value = true;
 
 	try {
-		await signIn({ email, password, remember }, { callbackUrl: '/dash' });
+		await signIn(e.values, { callbackUrl: '/dash' });
 	} catch (thrown: any) {
-		serverError.value =
-			thrown.response?._data?.message || thrown.message || 'Sign in failed';
+		serverError.value = thrown.response?._data?.message || thrown.message || 'Sign in failed';
 	} finally {
 		processing.value = false;
 	}
