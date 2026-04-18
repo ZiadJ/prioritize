@@ -52,7 +52,7 @@ export default defineNuxtConfig({
 		'@sidebase/nuxt-auth',
 		'@nuxtjs/tailwindcss',
 		'@nuxtjs/color-mode',
-		'@nuxt/icon', 
+		'@nuxt/icon',
 		'@primevue/nuxt-module',
 	],
 	css: [
@@ -135,7 +135,7 @@ export default defineNuxtConfig({
 				type: 'Bearer',
 				cookieName: 'auth.token',
 				headerName: 'Authorization',
-				//30 days - actual duration controlled by server-side refresh token TTL
+				//30 days - actual duration controlled by server-side refresh token TTL - was 15 minutes
 				maxAgeInSeconds: 60 * 60 * 24 * 30,
 				sameSiteAttribute: 'lax',
 				cookieDomain: '', //add env variable

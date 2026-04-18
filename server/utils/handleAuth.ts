@@ -111,33 +111,32 @@ export const signUpRequest = async (event: H3Event) => {
 export const handleRefreshToken = async (event: H3Event) => {
   const body = await readBody(event);
   const { refreshToken } = body;
+
   if (!refreshToken) {
-    return createError({
-      statusCode: 400,
-      message: "Refresh token is required.",
-    });
-  }
+		throw createError({
+			statusCode: 400,
+			message: 'Refresh token is required.',
+		});
+	}
 
-  const tokenData = await prisma.token.findUnique({
-    where: { refreshToken },
-  });
+	const tokenData = await prisma.token.findUnique({ where: { refreshToken } });
+	if (!tokenData) {
+		throw createError({ statusCode: 401, message: 'Invalid refresh token.' });
+	}
 
-  if (!tokenData) {
-    return createError({
-      statusCode: 400,
-      message: "Invalid refresh token.",
-    });
-  }
-  const oldAccessToken = getTokenHeader(event);
-  const decode = (await validateRefreshToken(refreshToken)) as JwtPayload;
-  const newATkn = returnToken(decode.id);
-  await prisma.token.update({
-    where: { accessToken: oldAccessToken },
-    data: {
-      accessToken: newATkn,
-    },
-  });
-  return { accessToken: newATkn };
+	const decode = (await validateRefreshToken(refreshToken)) as JwtPayload;
+	const newAccessToken = returnToken(decode.id);
+
+	// ✅ Use refreshToken as the stable key, not the old accessToken
+	await prisma.token.update({
+		where: { refreshToken },
+		data: {
+			accessToken: newAccessToken,
+			expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+		},
+	});
+
+	return { accessToken: newAccessToken };
 };
 
 /**

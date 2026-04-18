@@ -15,7 +15,7 @@
 				<p class="text-xl font-bold">Sign in</p>
 			</div>
 
-			<Form :resolver="resolver" @submit="submit" class="flex flex-col gap-4 w-full">
+			<Form :resolver="resolver" @submit="submit" validateOnBlur class="flex flex-col gap-4 w-full">
 				<FormField v-slot="$field" name="email">
 					<IftaLabel>
 						<InputText id="email" type="email" autofocus autocomplete="username" class="w-full" v-bind="$field" />
