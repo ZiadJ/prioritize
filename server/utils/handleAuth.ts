@@ -27,7 +27,7 @@ export const SignInRequest = async (event: H3Event) => {
 	const { accessToken, refreshToken } = generateTokens(user.id, remember);
 	await clearAndStoreTokens(user.id, accessToken, refreshToken, remember);
 
-	// Retorna la respuesta final
+	// Return the final response
 	return {
 		message: 'Login successful.',
 		user: {
@@ -242,11 +242,11 @@ export const returnUserJwtPayload = async (
  */
 export const validateLoginBody = async (event: H3Event) => {
 	const body = await readBody(event);
-	loginSchema.parse(body); // Lanza error si no es válido
+	loginSchema.parse(body); // Throws error if not valid
 	return body;
 };
 
-// Busca un usuario por email
+// Search for a user by email
 export const getUserByEmail = async (email: string) => {
 	const user = await prisma.user.findUnique({
 		where: { email },
@@ -260,7 +260,7 @@ export const getUserByEmail = async (email: string) => {
 	return user;
 };
 
-// Valida la contraseña
+// Validate the password
 export const validatePassword = async (password: string, hash: string) => {
 	const isValid = await compare(password, hash);
 	if (!isValid) {
@@ -271,7 +271,7 @@ export const validatePassword = async (password: string, hash: string) => {
 	}
 };
 
-// Genera tokens de acceso y de refresco
+// Generate access and refresh tokens
 export const generateTokens = (userId: string, remember?: boolean) => {
 	const refreshTtl = remember
 		? REMEMBER_ME_REFRESH_TOKEN_TTL
@@ -288,7 +288,7 @@ export const generateTokens = (userId: string, remember?: boolean) => {
 	return { accessToken, refreshToken };
 };
 
-// Limpia tokens antiguos y almacena los nuevos
+// Clear old tokens and store new ones
 export const clearAndStoreTokens = async (
 	userId: string,
 	accessToken: string,
@@ -296,12 +296,12 @@ export const clearAndStoreTokens = async (
 	remember?: boolean,
 ) => {
 	await prisma.token.deleteMany({
-		where: { userId }, // Elimina todos los tokens anteriores
+		where: { userId }, // Delete all previous tokens
 	});
 
 	const ttl = remember
-		? 30 * 24 * 60 * 60 * 1000 // 30 días
-		: 7 * 24 * 60 * 60 * 1000; // 7 días
+		? 30 * 24 * 60 * 60 * 1000 // 30 days
+		: 7 * 24 * 60 * 60 * 1000; // 7 days
 
 	await prisma.token.create({
 		data: {
