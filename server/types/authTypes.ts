@@ -1,7 +1,7 @@
 export type UserSession = {
-  id: number;
-  email: string;
-  username: string;
+	id: string;
+	email: string;
+	username: string;
 };
 
 export type LoginTokens = {

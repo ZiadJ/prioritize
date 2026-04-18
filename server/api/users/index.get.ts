@@ -1,7 +1,5 @@
 import prisma from "../../../lib/prisma";
-import type { UsersResponse } from "../../types/userTypes";
-
-export default defineEventHandler(async (event): Promise<UsersResponse> => {
+export default defineEventHandler(async (event) => {
   try {
     const users = await prisma.user.findMany({
       select: {

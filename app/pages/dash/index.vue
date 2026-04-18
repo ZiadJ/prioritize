@@ -27,8 +27,7 @@ const users = ref<any[]>([]);
 
 onMounted(async () => {
   try {
-    const response = await $fetch("/api/users");
-    users.value = response.users;
+    users.value = (await $fetch("/api/users")).users;
   } catch (error) {
     console.error("Failed to fetch users:", error);
   } finally {
