@@ -1,24 +1,12 @@
 import prisma from "../../../lib/prisma";
+
 export default defineEventHandler(async (event) => {
   try {
     const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        firstname: true,
-        lastname: true,
-        bio: true,
-        picture: true,
-        isActive: true,
-        createdAt: true,
-        lastTimeVisit: true,
-        isVerified: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+			orderBy: {
+				createdAt: 'desc',
+			},
+		});
 
     return {
       users,

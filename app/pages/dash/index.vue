@@ -6,7 +6,8 @@
         <Column field="email" header="Email"></Column>
         <Column field="firstname" header="First Name"></Column>
         <Column field="lastname" header="Last Name"></Column>
-        <Column field="isVerified" header="Verified">
+        <Column field="isVerified" header="Verified"/>
+        <Column field="lastTime" header="Verified">
           <template #body="{ data }">
             <Tag :value="data.isVerified ? 'Verified' : 'Pending'" :severity="data.isVerified ? 'success' : 'warn'" />
           </template>
