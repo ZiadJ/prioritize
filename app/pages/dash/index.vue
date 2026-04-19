@@ -20,13 +20,18 @@
       </DataTable>
     </div>
   </div>
+   test: <p>{{ greeting }}</p>
 </template>
 
 <script lang="ts" setup>
+const { $trpcClient } = useNuxtApp();
+const greeting = ref("");
 const loading = ref(true);
 const users = ref<any[]>([]);
 
 onMounted(async () => {
+  greeting.value = (await $trpcClient.greet.query({ name: "smith", greeting: "hello1" })).greeting;
+
   try {
     users.value = (await $fetch("/api/users")).users;
   } catch (error) {

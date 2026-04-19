@@ -45,7 +45,7 @@ export default defineNuxtConfig({
 	},
 	serverDir: 'server',
 	build: {
-		transpile: ['jsonwebtoken'],
+		transpile: ['jsonwebtoken', 'trpc-nuxt'],
 	},
 	modules: [
 		'@nuxtjs/google-fonts',
