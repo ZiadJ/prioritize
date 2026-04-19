@@ -24,6 +24,11 @@
 //   contextPath    = "../../../../src/context"
 // }
 
+generator typescriptInterfaces {
+  provider = "prisma-generator-typescript-interfaces"
+  output   = "../prisma/generated/interfaces.ts"
+}
+
 generator client {
   provider = "prisma-client"
   output   = "../prisma/generated/client"
@@ -193,7 +198,6 @@ model FeedbackNode {
   // Omitting userId to allow a user to offer multiple feedbacks to another user
   @@unique([interestNodeId, requestNodeId, proposalNodeId, effectId, requestId, urgencyId])
   @@index([path])
-  @@map("Feedback")
 }
 
 // model Todo {
@@ -212,23 +216,23 @@ model User {
   createdAt DateTime @default(now())
   isActive  Boolean  @default(true)
 
-  firstname         String    @default("")
-  lastname          String    @default("")
-  username          String    @unique
-  email             String    @unique
-  password          String
-  bio               String    @default("")
-  picture           String?
-  githubId          String?   @unique
-  tokenVersion      Int       @default(0)
-  lastTimeVisit     DateTime?
-  dateOfBirth       DateTime?
-  longitude         Int       @default(0) // For delivery cost estimation
-  lattitude         Int       @default(0)
-  preferences       Json      @default("{}") // Json(no Sqlite support)
-  isVerified        Boolean   @default(false)
+  firstname     String    @default("")
+  lastname      String    @default("")
+  username      String    @unique
+  email         String    @unique
+  password      String
+  bio           String    @default("")
+  picture       String?
+  githubId      String?   @unique
+  tokenVersion  Int       @default(0)
+  lastTimeVisit DateTime?
+  dateOfBirth   DateTime?
+  longitude     Int       @default(0) // For delivery cost estimation
+  lattitude     Int       @default(0)
+  preferences   Json      @default("{}") // Json(no Sqlite support)
+  isVerified    Boolean   @default(false)
 
-  tokens            Token[]
+  tokens Token[]
 
   expertise         ExpertiseNode[]
   steps             StepNode[]
@@ -246,9 +250,9 @@ model Token {
   refreshToken String   @unique
   createdAt    DateTime @default(now())
   expiresAt    DateTime // Fecha de expiración del token
-  
-  user         User     @relation(fields: [userId], references: [id]) 
-  userId       String 
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 }
 
 model UserRelation {
@@ -314,7 +318,7 @@ model RevisionNode {
   expertiseNodeId Int?
   resourceNode    ResourceNode?     @relation(fields: [resourceNodeId], references: [id], onDelete: Cascade)
   resourceNodeId  Int?
-  effectHook      Hook?             @relation(fields: [effectHookId], references: [id], onDelete: Cascade)
+  effectHook      Effector?         @relation(fields: [effectHookId], references: [id], onDelete: Cascade)
   effectHookId    Int?
 
   //@@unique([userId, interestNodeId, requestId, requestNodeId, proposalId, proposalNodeId, stepId, stepCostId, effectId, expertiseNodeId, resourceNodeId, effectHookId])
@@ -630,14 +634,14 @@ model Effect {
   feedback FeedbackNode[]
   tags     Tag[]
 
-  effectorRelations Hook[]          @relation("Effector")
-  effectRelations   Hook[]          @relation("Effect")
-  expertise         ExpertiseNode[]
+  effectorFrom Effector[]      @relation("from")
+  effectorTo   Effector[]      @relation("to")
+  expertise           ExpertiseNode[]
 }
 
 // A uni-directional linkage between two effects
 
-model Hook {
+model Effector {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
@@ -648,14 +652,14 @@ model Hook {
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
-  effector   Effect @relation("Effector", fields: [effectorId], references: [id], onDelete: Cascade)
-  effectorId Int
-  effect     Effect @relation("Effect", fields: [effectId], references: [id], onDelete: Cascade)
-  effectId   Int
+  from   Effect @relation("from", fields: [fromId], references: [id], onDelete: Cascade)
+  fromId Int
+  to     Effect @relation("to", fields: [toId], references: [id], onDelete: Cascade)
+  toId   Int
 
   strength Int
 
-  @@unique([effectorId, effectId])
+  @@unique([fromId, toId])
 }
 
 // Availability of a specific resource used or produced through 
