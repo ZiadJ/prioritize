@@ -297,8 +297,8 @@ export type EffectWhereInput = {
   steps?: Prisma.StepNodeListRelationFilter
   feedback?: Prisma.FeedbackNodeListRelationFilter
   tags?: Prisma.TagListRelationFilter
-  effectorRelations?: Prisma.HookListRelationFilter
-  effectRelations?: Prisma.HookListRelationFilter
+  effectorFrom?: Prisma.EffectorListRelationFilter
+  effectorTo?: Prisma.EffectorListRelationFilter
   expertise?: Prisma.ExpertiseNodeListRelationFilter
 }
 
@@ -321,8 +321,8 @@ export type EffectOrderByWithRelationInput = {
   steps?: Prisma.StepNodeOrderByRelationAggregateInput
   feedback?: Prisma.FeedbackNodeOrderByRelationAggregateInput
   tags?: Prisma.TagOrderByRelationAggregateInput
-  effectorRelations?: Prisma.HookOrderByRelationAggregateInput
-  effectRelations?: Prisma.HookOrderByRelationAggregateInput
+  effectorFrom?: Prisma.EffectorOrderByRelationAggregateInput
+  effectorTo?: Prisma.EffectorOrderByRelationAggregateInput
   expertise?: Prisma.ExpertiseNodeOrderByRelationAggregateInput
 }
 
@@ -348,8 +348,8 @@ export type EffectWhereUniqueInput = Prisma.AtLeast<{
   steps?: Prisma.StepNodeListRelationFilter
   feedback?: Prisma.FeedbackNodeListRelationFilter
   tags?: Prisma.TagListRelationFilter
-  effectorRelations?: Prisma.HookListRelationFilter
-  effectRelations?: Prisma.HookListRelationFilter
+  effectorFrom?: Prisma.EffectorListRelationFilter
+  effectorTo?: Prisma.EffectorListRelationFilter
   expertise?: Prisma.ExpertiseNodeListRelationFilter
 }, "id" | "title">
 
@@ -410,8 +410,8 @@ export type EffectCreateInput = {
   steps?: Prisma.StepNodeCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutEffectsInput
 }
 
@@ -433,8 +433,8 @@ export type EffectUncheckedCreateInput = {
   steps?: Prisma.StepNodeUncheckedCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeUncheckedCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorUncheckedCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorUncheckedCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutEffectsInput
 }
 
@@ -455,8 +455,8 @@ export type EffectUpdateInput = {
   steps?: Prisma.StepNodeUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutEffectsNestedInput
 }
 
@@ -478,8 +478,8 @@ export type EffectUncheckedUpdateInput = {
   steps?: Prisma.StepNodeUncheckedUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUncheckedUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUncheckedUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUncheckedUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutEffectsNestedInput
 }
 
@@ -803,32 +803,32 @@ export type EnumrelationTypeFieldUpdateOperationsInput = {
   set?: $Enums.relationType
 }
 
-export type EffectCreateNestedOneWithoutEffectorRelationsInput = {
-  create?: Prisma.XOR<Prisma.EffectCreateWithoutEffectorRelationsInput, Prisma.EffectUncheckedCreateWithoutEffectorRelationsInput>
-  connectOrCreate?: Prisma.EffectCreateOrConnectWithoutEffectorRelationsInput
+export type EffectCreateNestedOneWithoutEffectorFromInput = {
+  create?: Prisma.XOR<Prisma.EffectCreateWithoutEffectorFromInput, Prisma.EffectUncheckedCreateWithoutEffectorFromInput>
+  connectOrCreate?: Prisma.EffectCreateOrConnectWithoutEffectorFromInput
   connect?: Prisma.EffectWhereUniqueInput
 }
 
-export type EffectCreateNestedOneWithoutEffectRelationsInput = {
-  create?: Prisma.XOR<Prisma.EffectCreateWithoutEffectRelationsInput, Prisma.EffectUncheckedCreateWithoutEffectRelationsInput>
-  connectOrCreate?: Prisma.EffectCreateOrConnectWithoutEffectRelationsInput
+export type EffectCreateNestedOneWithoutEffectorToInput = {
+  create?: Prisma.XOR<Prisma.EffectCreateWithoutEffectorToInput, Prisma.EffectUncheckedCreateWithoutEffectorToInput>
+  connectOrCreate?: Prisma.EffectCreateOrConnectWithoutEffectorToInput
   connect?: Prisma.EffectWhereUniqueInput
 }
 
-export type EffectUpdateOneRequiredWithoutEffectorRelationsNestedInput = {
-  create?: Prisma.XOR<Prisma.EffectCreateWithoutEffectorRelationsInput, Prisma.EffectUncheckedCreateWithoutEffectorRelationsInput>
-  connectOrCreate?: Prisma.EffectCreateOrConnectWithoutEffectorRelationsInput
-  upsert?: Prisma.EffectUpsertWithoutEffectorRelationsInput
+export type EffectUpdateOneRequiredWithoutEffectorFromNestedInput = {
+  create?: Prisma.XOR<Prisma.EffectCreateWithoutEffectorFromInput, Prisma.EffectUncheckedCreateWithoutEffectorFromInput>
+  connectOrCreate?: Prisma.EffectCreateOrConnectWithoutEffectorFromInput
+  upsert?: Prisma.EffectUpsertWithoutEffectorFromInput
   connect?: Prisma.EffectWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.EffectUpdateToOneWithWhereWithoutEffectorRelationsInput, Prisma.EffectUpdateWithoutEffectorRelationsInput>, Prisma.EffectUncheckedUpdateWithoutEffectorRelationsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EffectUpdateToOneWithWhereWithoutEffectorFromInput, Prisma.EffectUpdateWithoutEffectorFromInput>, Prisma.EffectUncheckedUpdateWithoutEffectorFromInput>
 }
 
-export type EffectUpdateOneRequiredWithoutEffectRelationsNestedInput = {
-  create?: Prisma.XOR<Prisma.EffectCreateWithoutEffectRelationsInput, Prisma.EffectUncheckedCreateWithoutEffectRelationsInput>
-  connectOrCreate?: Prisma.EffectCreateOrConnectWithoutEffectRelationsInput
-  upsert?: Prisma.EffectUpsertWithoutEffectRelationsInput
+export type EffectUpdateOneRequiredWithoutEffectorToNestedInput = {
+  create?: Prisma.XOR<Prisma.EffectCreateWithoutEffectorToInput, Prisma.EffectUncheckedCreateWithoutEffectorToInput>
+  connectOrCreate?: Prisma.EffectCreateOrConnectWithoutEffectorToInput
+  upsert?: Prisma.EffectUpsertWithoutEffectorToInput
   connect?: Prisma.EffectWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.EffectUpdateToOneWithWhereWithoutEffectRelationsInput, Prisma.EffectUpdateWithoutEffectRelationsInput>, Prisma.EffectUncheckedUpdateWithoutEffectRelationsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EffectUpdateToOneWithWhereWithoutEffectorToInput, Prisma.EffectUpdateWithoutEffectorToInput>, Prisma.EffectUncheckedUpdateWithoutEffectorToInput>
 }
 
 export type EffectCreateWithoutFeedbackInput = {
@@ -847,8 +847,8 @@ export type EffectCreateWithoutFeedbackInput = {
   InterestNode?: Prisma.InterestNodeCreateNestedOneWithoutEffectsInput
   steps?: Prisma.StepNodeCreateNestedManyWithoutEffectsInput
   tags?: Prisma.TagCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutEffectsInput
 }
 
@@ -869,8 +869,8 @@ export type EffectUncheckedCreateWithoutFeedbackInput = {
   revisions?: Prisma.RevisionNodeUncheckedCreateNestedManyWithoutEffectInput
   steps?: Prisma.StepNodeUncheckedCreateNestedManyWithoutEffectsInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorUncheckedCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorUncheckedCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutEffectsInput
 }
 
@@ -906,8 +906,8 @@ export type EffectUpdateWithoutFeedbackInput = {
   InterestNode?: Prisma.InterestNodeUpdateOneWithoutEffectsNestedInput
   steps?: Prisma.StepNodeUpdateManyWithoutEffectsNestedInput
   tags?: Prisma.TagUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutEffectsNestedInput
 }
 
@@ -928,8 +928,8 @@ export type EffectUncheckedUpdateWithoutFeedbackInput = {
   revisions?: Prisma.RevisionNodeUncheckedUpdateManyWithoutEffectNestedInput
   steps?: Prisma.StepNodeUncheckedUpdateManyWithoutEffectsNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUncheckedUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUncheckedUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutEffectsNestedInput
 }
 
@@ -949,8 +949,8 @@ export type EffectCreateWithoutRevisionsInput = {
   steps?: Prisma.StepNodeCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutEffectsInput
 }
 
@@ -971,8 +971,8 @@ export type EffectUncheckedCreateWithoutRevisionsInput = {
   steps?: Prisma.StepNodeUncheckedCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeUncheckedCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorUncheckedCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorUncheckedCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutEffectsInput
 }
 
@@ -1008,8 +1008,8 @@ export type EffectUpdateWithoutRevisionsInput = {
   steps?: Prisma.StepNodeUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutEffectsNestedInput
 }
 
@@ -1030,8 +1030,8 @@ export type EffectUncheckedUpdateWithoutRevisionsInput = {
   steps?: Prisma.StepNodeUncheckedUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUncheckedUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUncheckedUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUncheckedUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutEffectsNestedInput
 }
 
@@ -1051,8 +1051,8 @@ export type EffectCreateWithoutTagsInput = {
   InterestNode?: Prisma.InterestNodeCreateNestedOneWithoutEffectsInput
   steps?: Prisma.StepNodeCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutEffectsInput
 }
 
@@ -1073,8 +1073,8 @@ export type EffectUncheckedCreateWithoutTagsInput = {
   revisions?: Prisma.RevisionNodeUncheckedCreateNestedManyWithoutEffectInput
   steps?: Prisma.StepNodeUncheckedCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeUncheckedCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorUncheckedCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorUncheckedCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutEffectsInput
 }
 
@@ -1135,8 +1135,8 @@ export type EffectCreateWithoutExpertiseInput = {
   steps?: Prisma.StepNodeCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorCreateNestedManyWithoutToInput
 }
 
 export type EffectUncheckedCreateWithoutExpertiseInput = {
@@ -1157,8 +1157,8 @@ export type EffectUncheckedCreateWithoutExpertiseInput = {
   steps?: Prisma.StepNodeUncheckedCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeUncheckedCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorUncheckedCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorUncheckedCreateNestedManyWithoutToInput
 }
 
 export type EffectCreateOrConnectWithoutExpertiseInput = {
@@ -1198,8 +1198,8 @@ export type EffectCreateWithoutInterestNodeInput = {
   steps?: Prisma.StepNodeCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutEffectsInput
 }
 
@@ -1220,8 +1220,8 @@ export type EffectUncheckedCreateWithoutInterestNodeInput = {
   steps?: Prisma.StepNodeUncheckedCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeUncheckedCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorUncheckedCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorUncheckedCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutEffectsInput
 }
 
@@ -1267,8 +1267,8 @@ export type EffectCreateWithoutStepsInput = {
   InterestNode?: Prisma.InterestNodeCreateNestedOneWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutEffectsInput
 }
 
@@ -1289,8 +1289,8 @@ export type EffectUncheckedCreateWithoutStepsInput = {
   revisions?: Prisma.RevisionNodeUncheckedCreateNestedManyWithoutEffectInput
   feedback?: Prisma.FeedbackNodeUncheckedCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectorInput
-  effectRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectInput
+  effectorFrom?: Prisma.EffectorUncheckedCreateNestedManyWithoutFromInput
+  effectorTo?: Prisma.EffectorUncheckedCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutEffectsInput
 }
 
@@ -1315,7 +1315,7 @@ export type EffectUpdateManyWithWhereWithoutStepsInput = {
   data: Prisma.XOR<Prisma.EffectUpdateManyMutationInput, Prisma.EffectUncheckedUpdateManyWithoutStepsInput>
 }
 
-export type EffectCreateWithoutEffectorRelationsInput = {
+export type EffectCreateWithoutEffectorFromInput = {
   modifiedAt?: Date | string
   createdAt?: Date | string
   isActive: boolean
@@ -1332,11 +1332,11 @@ export type EffectCreateWithoutEffectorRelationsInput = {
   steps?: Prisma.StepNodeCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagCreateNestedManyWithoutEffectInput
-  effectRelations?: Prisma.HookCreateNestedManyWithoutEffectInput
+  effectorTo?: Prisma.EffectorCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutEffectsInput
 }
 
-export type EffectUncheckedCreateWithoutEffectorRelationsInput = {
+export type EffectUncheckedCreateWithoutEffectorFromInput = {
   id?: number
   modifiedAt?: Date | string
   createdAt?: Date | string
@@ -1354,16 +1354,16 @@ export type EffectUncheckedCreateWithoutEffectorRelationsInput = {
   steps?: Prisma.StepNodeUncheckedCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeUncheckedCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutEffectInput
-  effectRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectInput
+  effectorTo?: Prisma.EffectorUncheckedCreateNestedManyWithoutToInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutEffectsInput
 }
 
-export type EffectCreateOrConnectWithoutEffectorRelationsInput = {
+export type EffectCreateOrConnectWithoutEffectorFromInput = {
   where: Prisma.EffectWhereUniqueInput
-  create: Prisma.XOR<Prisma.EffectCreateWithoutEffectorRelationsInput, Prisma.EffectUncheckedCreateWithoutEffectorRelationsInput>
+  create: Prisma.XOR<Prisma.EffectCreateWithoutEffectorFromInput, Prisma.EffectUncheckedCreateWithoutEffectorFromInput>
 }
 
-export type EffectCreateWithoutEffectRelationsInput = {
+export type EffectCreateWithoutEffectorToInput = {
   modifiedAt?: Date | string
   createdAt?: Date | string
   isActive: boolean
@@ -1380,11 +1380,11 @@ export type EffectCreateWithoutEffectRelationsInput = {
   steps?: Prisma.StepNodeCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookCreateNestedManyWithoutEffectorInput
+  effectorFrom?: Prisma.EffectorCreateNestedManyWithoutFromInput
   expertise?: Prisma.ExpertiseNodeCreateNestedManyWithoutEffectsInput
 }
 
-export type EffectUncheckedCreateWithoutEffectRelationsInput = {
+export type EffectUncheckedCreateWithoutEffectorToInput = {
   id?: number
   modifiedAt?: Date | string
   createdAt?: Date | string
@@ -1402,27 +1402,27 @@ export type EffectUncheckedCreateWithoutEffectRelationsInput = {
   steps?: Prisma.StepNodeUncheckedCreateNestedManyWithoutEffectsInput
   feedback?: Prisma.FeedbackNodeUncheckedCreateNestedManyWithoutEffectInput
   tags?: Prisma.TagUncheckedCreateNestedManyWithoutEffectInput
-  effectorRelations?: Prisma.HookUncheckedCreateNestedManyWithoutEffectorInput
+  effectorFrom?: Prisma.EffectorUncheckedCreateNestedManyWithoutFromInput
   expertise?: Prisma.ExpertiseNodeUncheckedCreateNestedManyWithoutEffectsInput
 }
 
-export type EffectCreateOrConnectWithoutEffectRelationsInput = {
+export type EffectCreateOrConnectWithoutEffectorToInput = {
   where: Prisma.EffectWhereUniqueInput
-  create: Prisma.XOR<Prisma.EffectCreateWithoutEffectRelationsInput, Prisma.EffectUncheckedCreateWithoutEffectRelationsInput>
+  create: Prisma.XOR<Prisma.EffectCreateWithoutEffectorToInput, Prisma.EffectUncheckedCreateWithoutEffectorToInput>
 }
 
-export type EffectUpsertWithoutEffectorRelationsInput = {
-  update: Prisma.XOR<Prisma.EffectUpdateWithoutEffectorRelationsInput, Prisma.EffectUncheckedUpdateWithoutEffectorRelationsInput>
-  create: Prisma.XOR<Prisma.EffectCreateWithoutEffectorRelationsInput, Prisma.EffectUncheckedCreateWithoutEffectorRelationsInput>
+export type EffectUpsertWithoutEffectorFromInput = {
+  update: Prisma.XOR<Prisma.EffectUpdateWithoutEffectorFromInput, Prisma.EffectUncheckedUpdateWithoutEffectorFromInput>
+  create: Prisma.XOR<Prisma.EffectCreateWithoutEffectorFromInput, Prisma.EffectUncheckedCreateWithoutEffectorFromInput>
   where?: Prisma.EffectWhereInput
 }
 
-export type EffectUpdateToOneWithWhereWithoutEffectorRelationsInput = {
+export type EffectUpdateToOneWithWhereWithoutEffectorFromInput = {
   where?: Prisma.EffectWhereInput
-  data: Prisma.XOR<Prisma.EffectUpdateWithoutEffectorRelationsInput, Prisma.EffectUncheckedUpdateWithoutEffectorRelationsInput>
+  data: Prisma.XOR<Prisma.EffectUpdateWithoutEffectorFromInput, Prisma.EffectUncheckedUpdateWithoutEffectorFromInput>
 }
 
-export type EffectUpdateWithoutEffectorRelationsInput = {
+export type EffectUpdateWithoutEffectorFromInput = {
   modifiedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1439,11 +1439,11 @@ export type EffectUpdateWithoutEffectorRelationsInput = {
   steps?: Prisma.StepNodeUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUpdateManyWithoutEffectNestedInput
-  effectRelations?: Prisma.HookUpdateManyWithoutEffectNestedInput
+  effectorTo?: Prisma.EffectorUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutEffectsNestedInput
 }
 
-export type EffectUncheckedUpdateWithoutEffectorRelationsInput = {
+export type EffectUncheckedUpdateWithoutEffectorFromInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   modifiedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1461,22 +1461,22 @@ export type EffectUncheckedUpdateWithoutEffectorRelationsInput = {
   steps?: Prisma.StepNodeUncheckedUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUncheckedUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutEffectNestedInput
-  effectRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectNestedInput
+  effectorTo?: Prisma.EffectorUncheckedUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutEffectsNestedInput
 }
 
-export type EffectUpsertWithoutEffectRelationsInput = {
-  update: Prisma.XOR<Prisma.EffectUpdateWithoutEffectRelationsInput, Prisma.EffectUncheckedUpdateWithoutEffectRelationsInput>
-  create: Prisma.XOR<Prisma.EffectCreateWithoutEffectRelationsInput, Prisma.EffectUncheckedCreateWithoutEffectRelationsInput>
+export type EffectUpsertWithoutEffectorToInput = {
+  update: Prisma.XOR<Prisma.EffectUpdateWithoutEffectorToInput, Prisma.EffectUncheckedUpdateWithoutEffectorToInput>
+  create: Prisma.XOR<Prisma.EffectCreateWithoutEffectorToInput, Prisma.EffectUncheckedCreateWithoutEffectorToInput>
   where?: Prisma.EffectWhereInput
 }
 
-export type EffectUpdateToOneWithWhereWithoutEffectRelationsInput = {
+export type EffectUpdateToOneWithWhereWithoutEffectorToInput = {
   where?: Prisma.EffectWhereInput
-  data: Prisma.XOR<Prisma.EffectUpdateWithoutEffectRelationsInput, Prisma.EffectUncheckedUpdateWithoutEffectRelationsInput>
+  data: Prisma.XOR<Prisma.EffectUpdateWithoutEffectorToInput, Prisma.EffectUncheckedUpdateWithoutEffectorToInput>
 }
 
-export type EffectUpdateWithoutEffectRelationsInput = {
+export type EffectUpdateWithoutEffectorToInput = {
   modifiedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1493,11 +1493,11 @@ export type EffectUpdateWithoutEffectRelationsInput = {
   steps?: Prisma.StepNodeUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUpdateManyWithoutEffectorNestedInput
+  effectorFrom?: Prisma.EffectorUpdateManyWithoutFromNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutEffectsNestedInput
 }
 
-export type EffectUncheckedUpdateWithoutEffectRelationsInput = {
+export type EffectUncheckedUpdateWithoutEffectorToInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   modifiedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1515,7 +1515,7 @@ export type EffectUncheckedUpdateWithoutEffectRelationsInput = {
   steps?: Prisma.StepNodeUncheckedUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUncheckedUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectorNestedInput
+  effectorFrom?: Prisma.EffectorUncheckedUpdateManyWithoutFromNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutEffectsNestedInput
 }
 
@@ -1535,8 +1535,8 @@ export type EffectUpdateWithoutTagsInput = {
   InterestNode?: Prisma.InterestNodeUpdateOneWithoutEffectsNestedInput
   steps?: Prisma.StepNodeUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutEffectsNestedInput
 }
 
@@ -1557,8 +1557,8 @@ export type EffectUncheckedUpdateWithoutTagsInput = {
   revisions?: Prisma.RevisionNodeUncheckedUpdateManyWithoutEffectNestedInput
   steps?: Prisma.StepNodeUncheckedUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUncheckedUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUncheckedUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUncheckedUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutEffectsNestedInput
 }
 
@@ -1595,8 +1595,8 @@ export type EffectUpdateWithoutExpertiseInput = {
   steps?: Prisma.StepNodeUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUpdateManyWithoutToNestedInput
 }
 
 export type EffectUncheckedUpdateWithoutExpertiseInput = {
@@ -1617,8 +1617,8 @@ export type EffectUncheckedUpdateWithoutExpertiseInput = {
   steps?: Prisma.StepNodeUncheckedUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUncheckedUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUncheckedUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUncheckedUpdateManyWithoutToNestedInput
 }
 
 export type EffectUncheckedUpdateManyWithoutExpertiseInput = {
@@ -1668,8 +1668,8 @@ export type EffectUpdateWithoutInterestNodeInput = {
   steps?: Prisma.StepNodeUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutEffectsNestedInput
 }
 
@@ -1690,8 +1690,8 @@ export type EffectUncheckedUpdateWithoutInterestNodeInput = {
   steps?: Prisma.StepNodeUncheckedUpdateManyWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUncheckedUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUncheckedUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUncheckedUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutEffectsNestedInput
 }
 
@@ -1726,8 +1726,8 @@ export type EffectUpdateWithoutStepsInput = {
   InterestNode?: Prisma.InterestNodeUpdateOneWithoutEffectsNestedInput
   feedback?: Prisma.FeedbackNodeUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUpdateManyWithoutEffectsNestedInput
 }
 
@@ -1748,8 +1748,8 @@ export type EffectUncheckedUpdateWithoutStepsInput = {
   revisions?: Prisma.RevisionNodeUncheckedUpdateManyWithoutEffectNestedInput
   feedback?: Prisma.FeedbackNodeUncheckedUpdateManyWithoutEffectNestedInput
   tags?: Prisma.TagUncheckedUpdateManyWithoutEffectNestedInput
-  effectorRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectorNestedInput
-  effectRelations?: Prisma.HookUncheckedUpdateManyWithoutEffectNestedInput
+  effectorFrom?: Prisma.EffectorUncheckedUpdateManyWithoutFromNestedInput
+  effectorTo?: Prisma.EffectorUncheckedUpdateManyWithoutToNestedInput
   expertise?: Prisma.ExpertiseNodeUncheckedUpdateManyWithoutEffectsNestedInput
 }
 
@@ -1779,8 +1779,8 @@ export type EffectCountOutputType = {
   steps: number
   feedback: number
   tags: number
-  effectorRelations: number
-  effectRelations: number
+  effectorFrom: number
+  effectorTo: number
   expertise: number
 }
 
@@ -1789,8 +1789,8 @@ export type EffectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   steps?: boolean | EffectCountOutputTypeCountStepsArgs
   feedback?: boolean | EffectCountOutputTypeCountFeedbackArgs
   tags?: boolean | EffectCountOutputTypeCountTagsArgs
-  effectorRelations?: boolean | EffectCountOutputTypeCountEffectorRelationsArgs
-  effectRelations?: boolean | EffectCountOutputTypeCountEffectRelationsArgs
+  effectorFrom?: boolean | EffectCountOutputTypeCountEffectorFromArgs
+  effectorTo?: boolean | EffectCountOutputTypeCountEffectorToArgs
   expertise?: boolean | EffectCountOutputTypeCountExpertiseArgs
 }
 
@@ -1835,15 +1835,15 @@ export type EffectCountOutputTypeCountTagsArgs<ExtArgs extends runtime.Types.Ext
 /**
  * EffectCountOutputType without action
  */
-export type EffectCountOutputTypeCountEffectorRelationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.HookWhereInput
+export type EffectCountOutputTypeCountEffectorFromArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EffectorWhereInput
 }
 
 /**
  * EffectCountOutputType without action
  */
-export type EffectCountOutputTypeCountEffectRelationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.HookWhereInput
+export type EffectCountOutputTypeCountEffectorToArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EffectorWhereInput
 }
 
 /**
@@ -1873,8 +1873,8 @@ export type EffectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   steps?: boolean | Prisma.Effect$stepsArgs<ExtArgs>
   feedback?: boolean | Prisma.Effect$feedbackArgs<ExtArgs>
   tags?: boolean | Prisma.Effect$tagsArgs<ExtArgs>
-  effectorRelations?: boolean | Prisma.Effect$effectorRelationsArgs<ExtArgs>
-  effectRelations?: boolean | Prisma.Effect$effectRelationsArgs<ExtArgs>
+  effectorFrom?: boolean | Prisma.Effect$effectorFromArgs<ExtArgs>
+  effectorTo?: boolean | Prisma.Effect$effectorToArgs<ExtArgs>
   expertise?: boolean | Prisma.Effect$expertiseArgs<ExtArgs>
   _count?: boolean | Prisma.EffectCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["effect"]>
@@ -1936,8 +1936,8 @@ export type EffectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   steps?: boolean | Prisma.Effect$stepsArgs<ExtArgs>
   feedback?: boolean | Prisma.Effect$feedbackArgs<ExtArgs>
   tags?: boolean | Prisma.Effect$tagsArgs<ExtArgs>
-  effectorRelations?: boolean | Prisma.Effect$effectorRelationsArgs<ExtArgs>
-  effectRelations?: boolean | Prisma.Effect$effectRelationsArgs<ExtArgs>
+  effectorFrom?: boolean | Prisma.Effect$effectorFromArgs<ExtArgs>
+  effectorTo?: boolean | Prisma.Effect$effectorToArgs<ExtArgs>
   expertise?: boolean | Prisma.Effect$expertiseArgs<ExtArgs>
   _count?: boolean | Prisma.EffectCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1956,8 +1956,8 @@ export type $EffectPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     steps: Prisma.$StepNodePayload<ExtArgs>[]
     feedback: Prisma.$FeedbackNodePayload<ExtArgs>[]
     tags: Prisma.$TagPayload<ExtArgs>[]
-    effectorRelations: Prisma.$HookPayload<ExtArgs>[]
-    effectRelations: Prisma.$HookPayload<ExtArgs>[]
+    effectorFrom: Prisma.$EffectorPayload<ExtArgs>[]
+    effectorTo: Prisma.$EffectorPayload<ExtArgs>[]
     expertise: Prisma.$ExpertiseNodePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -2373,8 +2373,8 @@ export interface Prisma__EffectClient<T, Null = never, ExtArgs extends runtime.T
   steps<T extends Prisma.Effect$stepsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Effect$stepsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StepNodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   feedback<T extends Prisma.Effect$feedbackArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Effect$feedbackArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FeedbackNodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tags<T extends Prisma.Effect$tagsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Effect$tagsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  effectorRelations<T extends Prisma.Effect$effectorRelationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Effect$effectorRelationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HookPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  effectRelations<T extends Prisma.Effect$effectRelationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Effect$effectRelationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HookPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  effectorFrom<T extends Prisma.Effect$effectorFromArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Effect$effectorFromArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EffectorPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  effectorTo<T extends Prisma.Effect$effectorToArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Effect$effectorToArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EffectorPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   expertise<T extends Prisma.Effect$expertiseArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Effect$expertiseArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpertiseNodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2934,51 +2934,51 @@ export type Effect$tagsArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 }
 
 /**
- * Effect.effectorRelations
+ * Effect.effectorFrom
  */
-export type Effect$effectorRelationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Effect$effectorFromArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Hook
+   * Select specific fields to fetch from the Effector
    */
-  select?: Prisma.HookSelect<ExtArgs> | null
+  select?: Prisma.EffectorSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Hook
+   * Omit specific fields from the Effector
    */
-  omit?: Prisma.HookOmit<ExtArgs> | null
+  omit?: Prisma.EffectorOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.HookInclude<ExtArgs> | null
-  where?: Prisma.HookWhereInput
-  orderBy?: Prisma.HookOrderByWithRelationInput | Prisma.HookOrderByWithRelationInput[]
-  cursor?: Prisma.HookWhereUniqueInput
+  include?: Prisma.EffectorInclude<ExtArgs> | null
+  where?: Prisma.EffectorWhereInput
+  orderBy?: Prisma.EffectorOrderByWithRelationInput | Prisma.EffectorOrderByWithRelationInput[]
+  cursor?: Prisma.EffectorWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.HookScalarFieldEnum | Prisma.HookScalarFieldEnum[]
+  distinct?: Prisma.EffectorScalarFieldEnum | Prisma.EffectorScalarFieldEnum[]
 }
 
 /**
- * Effect.effectRelations
+ * Effect.effectorTo
  */
-export type Effect$effectRelationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Effect$effectorToArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Hook
+   * Select specific fields to fetch from the Effector
    */
-  select?: Prisma.HookSelect<ExtArgs> | null
+  select?: Prisma.EffectorSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Hook
+   * Omit specific fields from the Effector
    */
-  omit?: Prisma.HookOmit<ExtArgs> | null
+  omit?: Prisma.EffectorOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.HookInclude<ExtArgs> | null
-  where?: Prisma.HookWhereInput
-  orderBy?: Prisma.HookOrderByWithRelationInput | Prisma.HookOrderByWithRelationInput[]
-  cursor?: Prisma.HookWhereUniqueInput
+  include?: Prisma.EffectorInclude<ExtArgs> | null
+  where?: Prisma.EffectorWhereInput
+  orderBy?: Prisma.EffectorOrderByWithRelationInput | Prisma.EffectorOrderByWithRelationInput[]
+  cursor?: Prisma.EffectorWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.HookScalarFieldEnum | Prisma.HookScalarFieldEnum[]
+  distinct?: Prisma.EffectorScalarFieldEnum | Prisma.EffectorScalarFieldEnum[]
 }
 
 /**

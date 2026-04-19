@@ -400,7 +400,7 @@ export const ModelName = {
   StepNode: 'StepNode',
   ProposalStepCost: 'ProposalStepCost',
   Effect: 'Effect',
-  Hook: 'Hook',
+  Effector: 'Effector',
   ResourceNode: 'ResourceNode'
 } as const
 
@@ -417,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "composableNode" | "feedbackNode" | "user" | "token" | "userRelation" | "revisionNode" | "cognitiveBias" | "assignedCognitiveBias" | "tag" | "expertiseNode" | "interestNode" | "requestNode" | "proposalNode" | "stepNode" | "proposalStepCost" | "effect" | "hook" | "resourceNode"
+    modelProps: "composableNode" | "feedbackNode" | "user" | "token" | "userRelation" | "revisionNode" | "cognitiveBias" | "assignedCognitiveBias" | "tag" | "expertiseNode" | "interestNode" | "requestNode" | "proposalNode" | "stepNode" | "proposalStepCost" | "effect" | "effector" | "resourceNode"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1605,77 +1605,77 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Hook: {
-      payload: Prisma.$HookPayload<ExtArgs>
-      fields: Prisma.HookFieldRefs
+    Effector: {
+      payload: Prisma.$EffectorPayload<ExtArgs>
+      fields: Prisma.EffectorFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.HookFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$HookPayload> | null
+          args: Prisma.EffectorFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EffectorPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.HookFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$HookPayload>
+          args: Prisma.EffectorFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EffectorPayload>
         }
         findFirst: {
-          args: Prisma.HookFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$HookPayload> | null
+          args: Prisma.EffectorFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EffectorPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.HookFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$HookPayload>
+          args: Prisma.EffectorFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EffectorPayload>
         }
         findMany: {
-          args: Prisma.HookFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$HookPayload>[]
+          args: Prisma.EffectorFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EffectorPayload>[]
         }
         create: {
-          args: Prisma.HookCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$HookPayload>
+          args: Prisma.EffectorCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EffectorPayload>
         }
         createMany: {
-          args: Prisma.HookCreateManyArgs<ExtArgs>
+          args: Prisma.EffectorCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.HookCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$HookPayload>[]
+          args: Prisma.EffectorCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EffectorPayload>[]
         }
         delete: {
-          args: Prisma.HookDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$HookPayload>
+          args: Prisma.EffectorDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EffectorPayload>
         }
         update: {
-          args: Prisma.HookUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$HookPayload>
+          args: Prisma.EffectorUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EffectorPayload>
         }
         deleteMany: {
-          args: Prisma.HookDeleteManyArgs<ExtArgs>
+          args: Prisma.EffectorDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.HookUpdateManyArgs<ExtArgs>
+          args: Prisma.EffectorUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.HookUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$HookPayload>[]
+          args: Prisma.EffectorUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EffectorPayload>[]
         }
         upsert: {
-          args: Prisma.HookUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$HookPayload>
+          args: Prisma.EffectorUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EffectorPayload>
         }
         aggregate: {
-          args: Prisma.HookAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateHook>
+          args: Prisma.EffectorAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEffector>
         }
         groupBy: {
-          args: Prisma.HookGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.HookGroupByOutputType>[]
+          args: Prisma.EffectorGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EffectorGroupByOutputType>[]
         }
         count: {
-          args: Prisma.HookCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.HookCountAggregateOutputType> | number
+          args: Prisma.EffectorCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EffectorCountAggregateOutputType> | number
         }
       }
     }
@@ -2113,7 +2113,7 @@ export const EffectScalarFieldEnum = {
 export type EffectScalarFieldEnum = (typeof EffectScalarFieldEnum)[keyof typeof EffectScalarFieldEnum]
 
 
-export const HookScalarFieldEnum = {
+export const EffectorScalarFieldEnum = {
   id: 'id',
   modifiedAt: 'modifiedAt',
   createdAt: 'createdAt',
@@ -2121,12 +2121,12 @@ export const HookScalarFieldEnum = {
   title: 'title',
   body: 'body',
   isDirty: 'isDirty',
-  effectorId: 'effectorId',
-  effectId: 'effectId',
+  fromId: 'fromId',
+  toId: 'toId',
   strength: 'strength'
 } as const
 
-export type HookScalarFieldEnum = (typeof HookScalarFieldEnum)[keyof typeof HookScalarFieldEnum]
+export type EffectorScalarFieldEnum = (typeof EffectorScalarFieldEnum)[keyof typeof EffectorScalarFieldEnum]
 
 
 export const ResourceNodeScalarFieldEnum = {
@@ -2401,7 +2401,7 @@ export type GlobalOmitConfig = {
   stepNode?: Prisma.StepNodeOmit
   proposalStepCost?: Prisma.ProposalStepCostOmit
   effect?: Prisma.EffectOmit
-  hook?: Prisma.HookOmit
+  effector?: Prisma.EffectorOmit
   resourceNode?: Prisma.ResourceNodeOmit
 }
 

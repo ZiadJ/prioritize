@@ -67,7 +67,7 @@ export const ModelName = {
   StepNode: 'StepNode',
   ProposalStepCost: 'ProposalStepCost',
   Effect: 'Effect',
-  Hook: 'Hook',
+  Effector: 'Effector',
   ResourceNode: 'ResourceNode'
 } as const
 
@@ -408,7 +408,7 @@ export const EffectScalarFieldEnum = {
 export type EffectScalarFieldEnum = (typeof EffectScalarFieldEnum)[keyof typeof EffectScalarFieldEnum]
 
 
-export const HookScalarFieldEnum = {
+export const EffectorScalarFieldEnum = {
   id: 'id',
   modifiedAt: 'modifiedAt',
   createdAt: 'createdAt',
@@ -416,12 +416,12 @@ export const HookScalarFieldEnum = {
   title: 'title',
   body: 'body',
   isDirty: 'isDirty',
-  effectorId: 'effectorId',
-  effectId: 'effectId',
+  fromId: 'fromId',
+  toId: 'toId',
   strength: 'strength'
 } as const
 
-export type HookScalarFieldEnum = (typeof HookScalarFieldEnum)[keyof typeof HookScalarFieldEnum]
+export type EffectorScalarFieldEnum = (typeof EffectorScalarFieldEnum)[keyof typeof EffectorScalarFieldEnum]
 
 
 export const ResourceNodeScalarFieldEnum = {

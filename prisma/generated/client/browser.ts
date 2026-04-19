@@ -98,10 +98,10 @@ export type ProposalStepCost = Prisma.ProposalStepCostModel
  */
 export type Effect = Prisma.EffectModel
 /**
- * Model Hook
+ * Model Effector
  * 
  */
-export type Hook = Prisma.HookModel
+export type Effector = Prisma.EffectorModel
 /**
  * Model ResourceNode
  * 

@@ -464,7 +464,7 @@ export type RevisionNodeWhereInput = {
   effect?: Prisma.XOR<Prisma.EffectNullableScalarRelationFilter, Prisma.EffectWhereInput> | null
   expertiseNode?: Prisma.XOR<Prisma.ExpertiseNodeNullableScalarRelationFilter, Prisma.ExpertiseNodeWhereInput> | null
   resourceNode?: Prisma.XOR<Prisma.ResourceNodeNullableScalarRelationFilter, Prisma.ResourceNodeWhereInput> | null
-  effectHook?: Prisma.XOR<Prisma.HookNullableScalarRelationFilter, Prisma.HookWhereInput> | null
+  effectHook?: Prisma.XOR<Prisma.EffectorNullableScalarRelationFilter, Prisma.EffectorWhereInput> | null
 }
 
 export type RevisionNodeOrderByWithRelationInput = {
@@ -508,7 +508,7 @@ export type RevisionNodeOrderByWithRelationInput = {
   effect?: Prisma.EffectOrderByWithRelationInput
   expertiseNode?: Prisma.ExpertiseNodeOrderByWithRelationInput
   resourceNode?: Prisma.ResourceNodeOrderByWithRelationInput
-  effectHook?: Prisma.HookOrderByWithRelationInput
+  effectHook?: Prisma.EffectorOrderByWithRelationInput
 }
 
 export type RevisionNodeWhereUniqueInput = Prisma.AtLeast<{
@@ -555,7 +555,7 @@ export type RevisionNodeWhereUniqueInput = Prisma.AtLeast<{
   effect?: Prisma.XOR<Prisma.EffectNullableScalarRelationFilter, Prisma.EffectWhereInput> | null
   expertiseNode?: Prisma.XOR<Prisma.ExpertiseNodeNullableScalarRelationFilter, Prisma.ExpertiseNodeWhereInput> | null
   resourceNode?: Prisma.XOR<Prisma.ResourceNodeNullableScalarRelationFilter, Prisma.ResourceNodeWhereInput> | null
-  effectHook?: Prisma.XOR<Prisma.HookNullableScalarRelationFilter, Prisma.HookWhereInput> | null
+  effectHook?: Prisma.XOR<Prisma.EffectorNullableScalarRelationFilter, Prisma.EffectorWhereInput> | null
 }, "id" | "path">
 
 export type RevisionNodeOrderByWithAggregationInput = {
@@ -657,7 +657,7 @@ export type RevisionNodeCreateInput = {
   effect?: Prisma.EffectCreateNestedOneWithoutRevisionsInput
   expertiseNode?: Prisma.ExpertiseNodeCreateNestedOneWithoutRevisionsInput
   resourceNode?: Prisma.ResourceNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateInput = {
@@ -722,7 +722,7 @@ export type RevisionNodeUpdateInput = {
   effect?: Prisma.EffectUpdateOneWithoutRevisionsNestedInput
   expertiseNode?: Prisma.ExpertiseNodeUpdateOneWithoutRevisionsNestedInput
   resourceNode?: Prisma.ResourceNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateInput = {
@@ -1529,7 +1529,7 @@ export type RevisionNodeCreateWithoutFeedbackInput = {
   effect?: Prisma.EffectCreateNestedOneWithoutRevisionsInput
   expertiseNode?: Prisma.ExpertiseNodeCreateNestedOneWithoutRevisionsInput
   resourceNode?: Prisma.ResourceNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateWithoutFeedbackInput = {
@@ -1647,7 +1647,7 @@ export type RevisionNodeCreateWithoutUserInput = {
   effect?: Prisma.EffectCreateNestedOneWithoutRevisionsInput
   expertiseNode?: Prisma.ExpertiseNodeCreateNestedOneWithoutRevisionsInput
   resourceNode?: Prisma.ResourceNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateWithoutUserInput = {
@@ -1736,7 +1736,7 @@ export type RevisionNodeCreateWithoutChildrenInput = {
   effect?: Prisma.EffectCreateNestedOneWithoutRevisionsInput
   expertiseNode?: Prisma.ExpertiseNodeCreateNestedOneWithoutRevisionsInput
   resourceNode?: Prisma.ResourceNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateWithoutChildrenInput = {
@@ -1804,7 +1804,7 @@ export type RevisionNodeCreateWithoutParentInput = {
   effect?: Prisma.EffectCreateNestedOneWithoutRevisionsInput
   expertiseNode?: Prisma.ExpertiseNodeCreateNestedOneWithoutRevisionsInput
   resourceNode?: Prisma.ResourceNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateWithoutParentInput = {
@@ -1888,7 +1888,7 @@ export type RevisionNodeUpdateWithoutChildrenInput = {
   effect?: Prisma.EffectUpdateOneWithoutRevisionsNestedInput
   expertiseNode?: Prisma.ExpertiseNodeUpdateOneWithoutRevisionsNestedInput
   resourceNode?: Prisma.ResourceNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateWithoutChildrenInput = {
@@ -1967,7 +1967,7 @@ export type RevisionNodeCreateWithoutExpertiseNodeInput = {
   stepCost?: Prisma.ProposalStepCostCreateNestedOneWithoutRevisionsInput
   effect?: Prisma.EffectCreateNestedOneWithoutRevisionsInput
   resourceNode?: Prisma.ResourceNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateWithoutExpertiseNodeInput = {
@@ -2056,7 +2056,7 @@ export type RevisionNodeCreateWithoutInterestNodeInput = {
   effect?: Prisma.EffectCreateNestedOneWithoutRevisionsInput
   expertiseNode?: Prisma.ExpertiseNodeCreateNestedOneWithoutRevisionsInput
   resourceNode?: Prisma.ResourceNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateWithoutInterestNodeInput = {
@@ -2145,7 +2145,7 @@ export type RevisionNodeCreateWithoutRequestNodeInput = {
   effect?: Prisma.EffectCreateNestedOneWithoutRevisionsInput
   expertiseNode?: Prisma.ExpertiseNodeCreateNestedOneWithoutRevisionsInput
   resourceNode?: Prisma.ResourceNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateWithoutRequestNodeInput = {
@@ -2234,7 +2234,7 @@ export type RevisionNodeCreateWithoutProposalNodeInput = {
   effect?: Prisma.EffectCreateNestedOneWithoutRevisionsInput
   expertiseNode?: Prisma.ExpertiseNodeCreateNestedOneWithoutRevisionsInput
   resourceNode?: Prisma.ResourceNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateWithoutProposalNodeInput = {
@@ -2323,7 +2323,7 @@ export type RevisionNodeCreateWithoutStepInput = {
   effect?: Prisma.EffectCreateNestedOneWithoutRevisionsInput
   expertiseNode?: Prisma.ExpertiseNodeCreateNestedOneWithoutRevisionsInput
   resourceNode?: Prisma.ResourceNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateWithoutStepInput = {
@@ -2412,7 +2412,7 @@ export type RevisionNodeCreateWithoutStepCostInput = {
   effect?: Prisma.EffectCreateNestedOneWithoutRevisionsInput
   expertiseNode?: Prisma.ExpertiseNodeCreateNestedOneWithoutRevisionsInput
   resourceNode?: Prisma.ResourceNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateWithoutStepCostInput = {
@@ -2501,7 +2501,7 @@ export type RevisionNodeCreateWithoutEffectInput = {
   stepCost?: Prisma.ProposalStepCostCreateNestedOneWithoutRevisionsInput
   expertiseNode?: Prisma.ExpertiseNodeCreateNestedOneWithoutRevisionsInput
   resourceNode?: Prisma.ResourceNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateWithoutEffectInput = {
@@ -2679,7 +2679,7 @@ export type RevisionNodeCreateWithoutResourceNodeInput = {
   stepCost?: Prisma.ProposalStepCostCreateNestedOneWithoutRevisionsInput
   effect?: Prisma.EffectCreateNestedOneWithoutRevisionsInput
   expertiseNode?: Prisma.ExpertiseNodeCreateNestedOneWithoutRevisionsInput
-  effectHook?: Prisma.HookCreateNestedOneWithoutRevisionsInput
+  effectHook?: Prisma.EffectorCreateNestedOneWithoutRevisionsInput
 }
 
 export type RevisionNodeUncheckedCreateWithoutResourceNodeInput = {
@@ -2768,7 +2768,7 @@ export type RevisionNodeUpdateWithoutFeedbackInput = {
   effect?: Prisma.EffectUpdateOneWithoutRevisionsNestedInput
   expertiseNode?: Prisma.ExpertiseNodeUpdateOneWithoutRevisionsNestedInput
   resourceNode?: Prisma.ResourceNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateWithoutFeedbackInput = {
@@ -2892,7 +2892,7 @@ export type RevisionNodeUpdateWithoutUserInput = {
   effect?: Prisma.EffectUpdateOneWithoutRevisionsNestedInput
   expertiseNode?: Prisma.ExpertiseNodeUpdateOneWithoutRevisionsNestedInput
   resourceNode?: Prisma.ResourceNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateWithoutUserInput = {
@@ -3015,7 +3015,7 @@ export type RevisionNodeUpdateWithoutParentInput = {
   effect?: Prisma.EffectUpdateOneWithoutRevisionsNestedInput
   expertiseNode?: Prisma.ExpertiseNodeUpdateOneWithoutRevisionsNestedInput
   resourceNode?: Prisma.ResourceNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateWithoutParentInput = {
@@ -3138,7 +3138,7 @@ export type RevisionNodeUpdateWithoutExpertiseNodeInput = {
   stepCost?: Prisma.ProposalStepCostUpdateOneWithoutRevisionsNestedInput
   effect?: Prisma.EffectUpdateOneWithoutRevisionsNestedInput
   resourceNode?: Prisma.ResourceNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateWithoutExpertiseNodeInput = {
@@ -3261,7 +3261,7 @@ export type RevisionNodeUpdateWithoutInterestNodeInput = {
   effect?: Prisma.EffectUpdateOneWithoutRevisionsNestedInput
   expertiseNode?: Prisma.ExpertiseNodeUpdateOneWithoutRevisionsNestedInput
   resourceNode?: Prisma.ResourceNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateWithoutInterestNodeInput = {
@@ -3384,7 +3384,7 @@ export type RevisionNodeUpdateWithoutRequestNodeInput = {
   effect?: Prisma.EffectUpdateOneWithoutRevisionsNestedInput
   expertiseNode?: Prisma.ExpertiseNodeUpdateOneWithoutRevisionsNestedInput
   resourceNode?: Prisma.ResourceNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateWithoutRequestNodeInput = {
@@ -3507,7 +3507,7 @@ export type RevisionNodeUpdateWithoutProposalNodeInput = {
   effect?: Prisma.EffectUpdateOneWithoutRevisionsNestedInput
   expertiseNode?: Prisma.ExpertiseNodeUpdateOneWithoutRevisionsNestedInput
   resourceNode?: Prisma.ResourceNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateWithoutProposalNodeInput = {
@@ -3630,7 +3630,7 @@ export type RevisionNodeUpdateWithoutStepInput = {
   effect?: Prisma.EffectUpdateOneWithoutRevisionsNestedInput
   expertiseNode?: Prisma.ExpertiseNodeUpdateOneWithoutRevisionsNestedInput
   resourceNode?: Prisma.ResourceNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateWithoutStepInput = {
@@ -3753,7 +3753,7 @@ export type RevisionNodeUpdateWithoutStepCostInput = {
   effect?: Prisma.EffectUpdateOneWithoutRevisionsNestedInput
   expertiseNode?: Prisma.ExpertiseNodeUpdateOneWithoutRevisionsNestedInput
   resourceNode?: Prisma.ResourceNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateWithoutStepCostInput = {
@@ -3876,7 +3876,7 @@ export type RevisionNodeUpdateWithoutEffectInput = {
   stepCost?: Prisma.ProposalStepCostUpdateOneWithoutRevisionsNestedInput
   expertiseNode?: Prisma.ExpertiseNodeUpdateOneWithoutRevisionsNestedInput
   resourceNode?: Prisma.ResourceNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateWithoutEffectInput = {
@@ -4122,7 +4122,7 @@ export type RevisionNodeUpdateWithoutResourceNodeInput = {
   stepCost?: Prisma.ProposalStepCostUpdateOneWithoutRevisionsNestedInput
   effect?: Prisma.EffectUpdateOneWithoutRevisionsNestedInput
   expertiseNode?: Prisma.ExpertiseNodeUpdateOneWithoutRevisionsNestedInput
-  effectHook?: Prisma.HookUpdateOneWithoutRevisionsNestedInput
+  effectHook?: Prisma.EffectorUpdateOneWithoutRevisionsNestedInput
 }
 
 export type RevisionNodeUncheckedUpdateWithoutResourceNodeInput = {
@@ -4446,7 +4446,7 @@ export type $RevisionNodePayload<ExtArgs extends runtime.Types.Extensions.Intern
     effect: Prisma.$EffectPayload<ExtArgs> | null
     expertiseNode: Prisma.$ExpertiseNodePayload<ExtArgs> | null
     resourceNode: Prisma.$ResourceNodePayload<ExtArgs> | null
-    effectHook: Prisma.$HookPayload<ExtArgs> | null
+    effectHook: Prisma.$EffectorPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -4883,7 +4883,7 @@ export interface Prisma__RevisionNodeClient<T, Null = never, ExtArgs extends run
   effect<T extends Prisma.RevisionNode$effectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RevisionNode$effectArgs<ExtArgs>>): Prisma.Prisma__EffectClient<runtime.Types.Result.GetResult<Prisma.$EffectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   expertiseNode<T extends Prisma.RevisionNode$expertiseNodeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RevisionNode$expertiseNodeArgs<ExtArgs>>): Prisma.Prisma__ExpertiseNodeClient<runtime.Types.Result.GetResult<Prisma.$ExpertiseNodePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   resourceNode<T extends Prisma.RevisionNode$resourceNodeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RevisionNode$resourceNodeArgs<ExtArgs>>): Prisma.Prisma__ResourceNodeClient<runtime.Types.Result.GetResult<Prisma.$ResourceNodePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  effectHook<T extends Prisma.RevisionNode$effectHookArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RevisionNode$effectHookArgs<ExtArgs>>): Prisma.Prisma__HookClient<runtime.Types.Result.GetResult<Prisma.$HookPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  effectHook<T extends Prisma.RevisionNode$effectHookArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RevisionNode$effectHookArgs<ExtArgs>>): Prisma.Prisma__EffectorClient<runtime.Types.Result.GetResult<Prisma.$EffectorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5565,18 +5565,18 @@ export type RevisionNode$resourceNodeArgs<ExtArgs extends runtime.Types.Extensio
  */
 export type RevisionNode$effectHookArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Hook
+   * Select specific fields to fetch from the Effector
    */
-  select?: Prisma.HookSelect<ExtArgs> | null
+  select?: Prisma.EffectorSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Hook
+   * Omit specific fields from the Effector
    */
-  omit?: Prisma.HookOmit<ExtArgs> | null
+  omit?: Prisma.EffectorOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.HookInclude<ExtArgs> | null
-  where?: Prisma.HookWhereInput
+  include?: Prisma.EffectorInclude<ExtArgs> | null
+  where?: Prisma.EffectorWhereInput
 }
 
 /**
