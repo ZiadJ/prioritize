@@ -34,6 +34,11 @@ generator client {
   output   = "../prisma/generated/client"
 }
 
+generator zod {
+  provider = "prisma-zod-generator"
+  output   = "../prisma/generated/zod"
+}
+
 datasource db {
   provider = "postgresql"
 }
@@ -119,11 +124,13 @@ enum RevisionType {
   ModeratorFlag
 }
 
-enum relationType {
+enum RelationType {
   Enabler
   Disabler
   Multiplier
   Incrementor
+
+  @@map("relationType")
 }
 
 enum ResourceType {
@@ -182,21 +189,17 @@ model FeedbackNode {
 
   Revisions RevisionNode[]
 
-  interestNode   InterestNode? @relation(fields: [interestNodeId], references: [id], onDelete: Cascade)
-  interestNodeId Int?
+  request        Request?      @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId      Int?
   RequestNode    RequestNode?  @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
   requestNodeId  Int?
   proposalNode   ProposalNode? @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
   proposalNodeId Int?
   effect         Effect?       @relation(fields: [effectId], references: [id], onDelete: Cascade)
   effectId       Int?
-  request        RequestNode?  @relation("RequestFeedback", fields: [requestId], references: [id], onDelete: Cascade)
-  requestId      Int?
-  urgency        RequestNode?  @relation("RequestUrgency", fields: [urgencyId], references: [id], onDelete: Cascade)
-  urgencyId      Int?
 
   // Omitting userId to allow a user to offer multiple feedbacks to another user
-  @@unique([interestNodeId, requestNodeId, proposalNodeId, effectId, requestId, urgencyId])
+  @@unique([requestId, requestNodeId, proposalNodeId, effectId])
   @@index([path])
 }
 
@@ -300,28 +303,28 @@ model RevisionNode {
 
   feedback FeedbackNode[]
 
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId          String
-  interestNode    InterestNode?     @relation(fields: [interestNodeId], references: [id], onDelete: Cascade)
-  interestNodeId  Int?
-  RequestNode     RequestNode?      @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
+  request         Request?       @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId       Int?
+  RequestNode     RequestNode?   @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
   requestNodeId   Int?
-  proposalNode    ProposalNode?     @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
+  proposalNode    ProposalNode?  @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
   proposalNodeId  Int?
-  Step            StepNode?         @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  Step            StepNode?      @relation(fields: [stepId], references: [id], onDelete: Cascade)
   stepId          Int?
-  stepCost        ProposalStepCost? @relation(fields: [stepCostId], references: [id], onDelete: Cascade)
+  stepCost        StepCost?      @relation(fields: [stepCostId], references: [id], onDelete: Cascade)
   stepCostId      Int?
-  effect          Effect?           @relation(fields: [effectId], references: [id], onDelete: Cascade)
+  effect          Effect?        @relation(fields: [effectId], references: [id], onDelete: Cascade)
   effectId        Int?
-  expertiseNode   ExpertiseNode?    @relation(fields: [expertiseNodeId], references: [id], onDelete: Cascade)
+  expertiseNode   ExpertiseNode? @relation(fields: [expertiseNodeId], references: [id], onDelete: Cascade)
   expertiseNodeId Int?
-  resourceNode    ResourceNode?     @relation(fields: [resourceNodeId], references: [id], onDelete: Cascade)
+  resourceNode    ResourceNode?  @relation(fields: [resourceNodeId], references: [id], onDelete: Cascade)
   resourceNodeId  Int?
-  effectHook      Effector?         @relation(fields: [effectHookId], references: [id], onDelete: Cascade)
+  effectHook      Effector?      @relation(fields: [effectHookId], references: [id], onDelete: Cascade)
   effectHookId    Int?
 
-  //@@unique([userId, interestNodeId, requestId, requestNodeId, proposalId, proposalNodeId, stepId, stepCostId, effectId, expertiseNodeId, resourceNodeId, effectHookId])
+  //@@unique([userId, requestId, requestId, requestNodeId, proposalId, proposalNodeId, stepId, stepCostId, effectId, expertiseNodeId, resourceNodeId, effectHookId])
   @@index([path])
 }
 
@@ -362,11 +365,11 @@ model Tag {
   name String @unique
 
   users        User[]
-  interestNode InterestNode[]
+  request      Request[]
   requestNode  RequestNode[]
   proposalNode ProposalNode[]
   step         StepNode[]
-  stepCost     ProposalStepCost[]
+  stepCost     StepCost[]
   effect       Effect[]
   resourceNode ResourceNode[]
 }
@@ -393,15 +396,13 @@ model ExpertiseNode {
   children ExpertiseNode[] @relation("Self")
 
   users     User[]
-  interests InterestNode[]
+  interests Request[]
   effects   Effect[]
 
   @@index([path])
 }
 
-// An interest or living standard that can be associated with a request node
-
-model InterestNode {
+model Request {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
@@ -412,23 +413,23 @@ model InterestNode {
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
-  path     String         @unique
+  path     String    @unique
   depth    Int
-  numchild Int            @default(0)
-  parent   InterestNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  numchild Int       @default(0)
+  parent   Request?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
   parentId Int
-  children InterestNode[] @relation("Self")
+  children Request[] @relation("Self")
 
-  isConflictual Boolean
-  type          Int // InterestType // Emotional, Observational, Material
-  level         Int // InterestLevel // Safety, Health, Belonging, Esteem, SelfActualization
+  type  Int // InterestType // Emotional, Observational, Material
+  level Int // InterestLevel // Safety, Health, Belonging, Esteem, SelfActualization
 
-  requests            RequestNode[]
-  expertise           ExpertiseNode[]
-  feedback            FeedbackNode[]
-  tags                Tag[]
-  conflictingRequests RequestNode[]   @relation("ConflictOfInterest")
-  effects             Effect[]
+  recurrencePeriod Int // For reccurring requests such as daily water intake or weekly social interactions
+
+  requests  RequestNode[]
+  expertise ExpertiseNode[]
+  feedback  FeedbackNode[]
+  tags      Tag[]
+  effects   Effect[]
 
   @@index([path])
 }
@@ -454,30 +455,28 @@ model RequestNode {
   parentId Int
   children RequestNode[] @relation("Self")
 
-  requestId      Int
-  interestNode   InterestNode @relation(fields: [interestNodeId], references: [id], onDelete: Cascade)
-  interestNodeId Int
+  request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId Int
 
   isTemplate      Boolean // Is an abstract template for new requests
   isVariantsGroup Boolean // Contains a list of variant nodes requested by different users
   isNonNegotiable Boolean
 
-  alignedProposalFeedback FeedbackNode[] // Feeback ratings for the level of alignment with a proposal node(could be 'impact' instead of 'alignment')
-  tags                    Tag[]
-  assignedCognitiveBias   AssignedCognitiveBias[]
+  // alignedProposalFeedback FeedbackNode[] // Feeback ratings for the level of alignment with a proposal node(could be 'impact' instead of 'alignment')
+  tags                  Tag[]
+  assignedCognitiveBias AssignedCognitiveBias[]
 
   relatedProblems  RequestNode[] @relation("RelatedRequests")
   relatedSolutions RequestNode[] @relation("RelatedRequests") // Already resolved requests dealing with similar problems
 
-  startingAt DateTime?
-  endingAt   DateTime? // Urgency
+  requestedAt DateTime? @default(now())
+  deliveryAt  DateTime? // Urgency
 
-  conflictingInterests InterestNode[] @relation("ConflictOfInterest") // Can be auto-generated from the requestNodes tree
-  proposals            ProposalNode[] // Auto-generated when adding proposed steps
+  // conflictingInterests Request[]      @relation("ConflictOfInterest") // Can be auto-generated from the requestNodes tree
+  proposals ProposalNode[] // Auto-generated when adding proposed steps
 
   // Auto-generated when adding feedback to proposed steps
-  feedback FeedbackNode[] @relation("RequestFeedback")
-  urgency  FeedbackNode[] @relation("RequestUrgency")
+  feedback FeedbackNode[]
 
   @@index([path])
 }
@@ -510,10 +509,6 @@ model ProposalNode {
   step          StepNode @relation(fields: [stepNodeId], references: [id])
   stepNodeId    Int
 
-  nextId   Int?          @unique
-  next     ProposalNode? @relation("Sibbling", fields: [nextId], references: [id])
-  previous ProposalNode? @relation("Sibbling")
-
   isEffected      Boolean // Is true upon completion of all children if any
   stepCount       Int // Determines the amount of resources required depending on associated step
   startingAt      DateTime?
@@ -534,9 +529,8 @@ model ProposalNode {
   isDraft       Boolean?
   isUnavailable Boolean?
 
-  requests RequestNode[]
-
-  requestAlignment      FeedbackNode[] // Voted feedback from experts based on the related interests(could be 'impact' instead of 'alignment')
+  requestImpact         FeedbackNode[] // Voted feedback from experts based on the related interests
+  requests              RequestNode[]
   tags                  Tag[]
   assignedCognitiveBias AssignedCognitiveBias[]
 
@@ -564,23 +558,28 @@ model StepNode {
   parentId Int
   children StepNode[] @relation("Self")
 
+  ResourceNode   ResourceNode? @relation(fields: [resourceNodeId], references: [id])
+  resourceNodeId Int?
+
+  nextId   Int?      @unique
+  next     StepNode? @relation("Sibbling", fields: [nextId], references: [id])
+  previous StepNode? @relation("Sibbling")
+
   duration         Int
   durationVariance Int
 
-  proposalNodes  ProposalNode[]
-  costs          ProposalStepCost[]
-  effects        Effect[]
-  assignedTo     User[]
-  tags           Tag[]
-  ResourceNode   ResourceNode?      @relation(fields: [resourceNodeId], references: [id])
-  resourceNodeId Int?
+  proposalNodes ProposalNode[]
+  costs         StepCost[]
+  effects       Effect[]
+  assignedTo    User[]
+  tags          Tag[]
 
   @@index([path])
 }
 
 // Resource quantity produced or consumed by a specific proposal step
 
-model ProposalStepCost {
+model StepCost {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
@@ -606,6 +605,7 @@ model ProposalStepCost {
   tags Tag[]
 
   @@unique([resourceNodeId, stepNodeId])
+  @@map("ProposalStepCost")
 }
 
 // A impacting side-effect when a request node is enacted upon
@@ -621,13 +621,13 @@ model Effect {
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
-  InterestNode   InterestNode? @relation(fields: [interestNodeId], references: [id])
-  interestNodeId Int?
+  request   Request? @relation(fields: [requestId], references: [id])
+  requestId Int?
 
   isOpportunistic Boolean // Side-effect is beneficial
   delay           Int
   duration        Int
-  relationType    relationType
+  relationType    RelationType
   relationFormula String
 
   steps    StepNode[]
@@ -636,7 +636,7 @@ model Effect {
 
   effectorFrom Effector[]      @relation("from")
   effectorTo   Effector[]      @relation("to")
-  expertise           ExpertiseNode[]
+  expertise    ExpertiseNode[]
 }
 
 // A uni-directional linkage between two effects
@@ -693,7 +693,7 @@ model ResourceNode {
   monetaryValue          Float // Per specified unit
 
   stepsPerAdditionalRenewalCapacity StepNode[] // 
-  stepCosts                         ProposalStepCost[] // Step cost referencing this resource node
+  stepCosts                         StepCost[] // Step cost referencing this resource node
   tags                              Tag[]
 
   @@index([path])

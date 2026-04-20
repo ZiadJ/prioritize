@@ -5,6 +5,7 @@
 .nitro
 .cache
 dist
+prisma/generated
 
 # Node dependencies
 node_modules
@@ -23,3 +24,4 @@ logs
 .env.*
 !.env.example
 .vscode
+tsconfig.tsbuildinfo

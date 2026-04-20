@@ -1,6 +1,6 @@
 import { H3Event, createError } from "h3";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import prisma from "../../lib/prisma";
+import prisma from '~~/lib/prisma';
 import { loginSchema, registerSchema } from "../validation/schemas";
 import { UserSession } from "../types/authTypes";
 import { compare, hash } from "bcrypt";
