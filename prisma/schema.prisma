@@ -76,23 +76,23 @@ datasource db {
 //   isActive   Boolean
 // }
 
-model ComposableNode {
-  id        Int      @id @default(autoincrement())
-  updateAt  DateTime @updatedAt
-  createdAt DateTime @default(now())
-  isActive  Boolean
+// model ComposableNode {
+//   id        Int      @id @default(autoincrement())
+//   updateAt  DateTime @updatedAt
+//   createdAt DateTime @default(now())
+//   isActive  Boolean
 
-  path     String           @unique // An auto-generated list of ids alllowing quick access to parents
-  depth    Int
-  numchild Int              @default(0)
-  parent   ComposableNode?  @relation("Self", fields: [parentId], references: [id])
-  parentId Int
-  children ComposableNode[] @relation("Self")
+//   path     String           @unique // An auto-generated list of ids alllowing quick access to parents
+//   depth    Int              @default(0)
+//   numchild Int              @default(0)
+//   parent   ComposableNode?  @relation("Self", fields: [parentId], references: [id])
+//   parentId Int?
+//   children ComposableNode[] @relation("Self")
 
-  //composableNodeId Int
+//   //composableNodeId Int
 
-  @@index([path])
-}
+//   @@index([path])
+// }
 
 // model PublicEntity {
 //   id           Int      @id @default(autoincrement())
@@ -139,13 +139,13 @@ enum ResourceType {
   Digital
 }
 
-enum InterestType {
+enum RequestType {
   Emotional
   Observational
   Material
 }
 
-enum InterestLevel {
+enum RequestLevel {
   Safety
   Health
   Belonging
@@ -170,10 +170,10 @@ model FeedbackNode {
   isActive   Boolean
 
   path     String         @unique
-  depth    Int
+  depth    Int            @default(0)
   numchild Int            @default(0)
   parent   FeedbackNode?  @relation("Self", fields: [parentId], references: [id])
-  parentId Int
+  parentId Int?
   children FeedbackNode[] @relation("Self")
 
   user                User    @relation(fields: [userId], references: [id])
@@ -287,10 +287,10 @@ model RevisionNode {
   // revisions   Revision[] 
 
   path     String         @unique
-  depth    Int
+  depth    Int            @default(0)
   numchild Int            @default(0)
   parent   RevisionNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  parentId Int
+  parentId Int?
   children RevisionNode[] @relation("Self")
 
   data          String // Json(no Sqlite support)
@@ -389,10 +389,10 @@ model ExpertiseNode {
   revisions RevisionNode[]
 
   path     String          @unique
-  depth    Int
+  depth    Int             @default(0)
   numchild Int             @default(0)
   parent   ExpertiseNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  parentId Int
+  parentId Int?
   children ExpertiseNode[] @relation("Self")
 
   users     User[]
@@ -413,15 +413,16 @@ model Request {
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
-  path     String    @unique
-  depth    Int
+  // Variant hierarchy for similar requests with different parameters
+  path     String    @unique @default("")
+  depth    Int       @default(0)
   numchild Int       @default(0)
   parent   Request?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  parentId Int
+  parentId Int?
   children Request[] @relation("Self")
 
-  type  Int // InterestType // Emotional, Observational, Material
-  level Int // InterestLevel // Safety, Health, Belonging, Esteem, SelfActualization
+  type  Int // RequestType // Verbal, Material
+  level Int // RequestLevel // Safety, Health, Belonging, Esteem, SelfActualization
 
   recurrencePeriod Int // For reccurring requests such as daily water intake or weekly social interactions
 
@@ -449,10 +450,10 @@ model RequestNode {
   revisions RevisionNode[]
 
   path     String        @unique
-  depth    Int
+  depth    Int           @default(0)
   numchild Int           @default(0)
   parent   RequestNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  parentId Int
+  parentId Int?
   children RequestNode[] @relation("Self")
 
   request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
@@ -499,10 +500,10 @@ model ProposalNode {
   revisions RevisionNode[]
 
   path     String         @unique
-  depth    Int
+  depth    Int            @default(0)
   numchild Int            @default(0)
   parent   ProposalNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  parentId Int
+  parentId Int?
   children ProposalNode[] @relation("Self")
 
   requestNodeId Int
@@ -551,10 +552,10 @@ model StepNode {
 
   // Parallel steps
   path     String     @unique
-  depth    Int
+  depth    Int        @default(0)
   numchild Int        @default(0)
   parent   StepNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  parentId Int
+  parentId Int?
   children StepNode[] @relation("Self")
 
   // Sequential steps
@@ -677,10 +678,10 @@ model ResourceNode {
   revisions RevisionNode[]
 
   path     String         @unique
-  depth    Int
+  depth    Int            @default(0)
   numchild Int            @default(0)
   parent   ResourceNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  parentId Int
+  parentId Int?
   children ResourceNode[] @relation("Self")
 
   type                   Int // ResourceType // ServiceTime, Material, Digital

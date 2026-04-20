@@ -9,7 +9,7 @@
                     <HeaderSideBarDash />
                 </div>
                 <div class="content-inner transition-all duration-300">
-                    <div class="body-content-dash">
+                    <div class="body-content-dash" :class="{ 'fade-enter-active': isNavigating }">
                         <slot />
                     </div>
                 </div>
@@ -17,6 +17,18 @@
         </div>
     </div>
 </template>
+
+<script setup>
+const route = useRoute()
+const isNavigating = ref(false)
+
+watch(() => route.path, () => {
+  isNavigating.value = true
+  setTimeout(() => {
+    isNavigating.value = false
+  }, 300)
+})
+</script>
 
 <style>
 /* Default collapsed */
@@ -58,5 +70,14 @@
 /* Body content styling */
 .body-content-dash {
     @apply bg-white dark:bg-zinc-900 h-full rounded-lg shadow-md p-1 px-3;
+}
+
+.fade-enter-active {
+    animation: pageIn 0.3s ease-out;
+}
+
+@keyframes pageIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 </style>

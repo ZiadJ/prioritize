@@ -168,8 +168,7 @@ export default defineNuxtConfig({
 			isEnabled: true,
 		},
 	},
-	app: {
-		pageTransition: { name: 'page', mode: 'out-in' },
+app: {
 		head: {
 			title: 'Prioritize',
 			meta: [

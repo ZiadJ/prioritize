@@ -1,0 +1,353 @@
+<script lang="ts" setup>
+definePageMeta({
+  layout: 'dashboard',
+});
+
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
+import InputText from 'primevue/inputtext';
+import Textarea from 'primevue/textarea';
+import Dropdown from 'primevue/dropdown';
+import InputNumber from 'primevue/inputnumber';
+import Tag from 'primevue/tag';
+import Toast from 'primevue/toast';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import { useToast } from 'primevue/usetoast';
+
+const { $trpcClient } = useNuxtApp();
+const toast = useToast();
+
+const requests = ref<any[]>([]);
+const loading = ref(true);
+const saving = ref(false);
+const deleting = ref(false);
+const searchQuery = ref('');
+const selectedRequests = ref<any[]>([]);
+
+const dialogVisible = ref(false);
+const dialogMode = ref<'create' | 'update' | 'view'>('create');
+const requestToDelete = ref<any>(null);
+const deleteDialogVisible = ref(false);
+
+const formData = ref({
+  title: '',
+  body: '',
+  type: 0,
+  level: 0,
+  recurrencePeriod: 0,
+  isActive: true,
+});
+
+const typeOptions = [
+  { label: 'Emotional', value: 0 },
+  { label: 'Observational', value: 1 },
+  { label: 'Material', value: 2 },
+];
+
+const levelOptions = [
+  { label: 'Safety', value: 0 },
+  { label: 'Health', value: 1 },
+  { label: 'Belonging', value: 2 },
+  { label: 'Esteem', value: 3 },
+  { label: 'Self-Actualization', value: 4 },
+];
+
+const getTypeLabel = (type: number) => typeOptions[type]?.label || 'Unknown';
+const getTypeSeverity = (type: number) => {
+  const severities = ['warn', 'info', 'success'];
+  return severities[type] || 'secondary';
+};
+
+const getLevelLabel = (level: number) => levelOptions[level]?.label || 'Unknown';
+const getLevelSeverity = (level: number) => {
+  if (level <= 1) return 'danger';
+  if (level <= 2) return 'warn';
+  return 'success';
+};
+
+const fetchRequests = async () => {
+  loading.value = true;
+  try {
+    const result = await $trpcClient.requests.list.query({
+      search: searchQuery.value || undefined,
+    });
+    requests.value = result || [];
+  } catch (error) {
+    console.error('Failed to fetch requests:', error);
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch requests', life: 3000 });
+  } finally {
+    loading.value = false;
+  }
+};
+
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+const debouncedSearch = () => {
+  if (searchTimeout) clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    fetchRequests();
+  }, 300);
+};
+
+const openNewDialog = () => {
+  formData.value = {
+    title: '',
+    body: '',
+    type: 0,
+    level: 0,
+    recurrencePeriod: 0,
+    isActive: true,
+  };
+  dialogMode.value = 'create';
+  dialogVisible.value = true;
+};
+
+const viewRequest = (request: any) => {
+  formData.value = {
+    title: request.title,
+    body: request.body,
+    type: request.type,
+    level: request.level,
+    recurrencePeriod: request.recurrencePeriod,
+    isActive: request.isActive,
+  };
+  dialogMode.value = 'view';
+  dialogVisible.value = true;
+};
+
+const editRequest = (request: any) => {
+  formData.value = {
+    title: request.title,
+    body: request.body,
+    type: request.type,
+    level: request.level,
+    recurrencePeriod: request.recurrencePeriod,
+    isActive: request.isActive,
+  };
+  dialogMode.value = 'update';
+  currentRequestId.value = request.id;
+  dialogVisible.value = true;
+};
+
+const currentRequestId = ref<number | null>(null);
+
+const saveRequest = async () => {
+  if (!formData.value.title) {
+    toast.add({ severity: 'warn', summary: 'Warning', detail: 'Title is required', life: 3000 });
+    return;
+  }
+
+  saving.value = true;
+  try {
+    if (dialogMode.value === 'create') {
+      await $trpcClient.requests.create.mutate({
+        title: formData.value.title,
+        body: formData.value.body,
+        type: formData.value.type,
+        level: formData.value.level,
+        recurrencePeriod: formData.value.recurrencePeriod,
+      });
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Request created successfully', life: 3000 });
+    } else if (dialogMode.value === 'update' && currentRequestId.value) {
+      await $trpcClient.requests.update.mutate({
+        id: currentRequestId.value,
+        title: formData.value.title,
+        body: formData.value.body,
+        type: formData.value.type,
+        level: formData.value.level,
+        recurrencePeriod: formData.value.recurrencePeriod,
+        isActive: formData.value.isActive,
+      });
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Request updated successfully', life: 3000 });
+    }
+    dialogVisible.value = false;
+    fetchRequests();
+  } catch (error) {
+    console.error('Failed to save request:', error);
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to save request', life: 3000 });
+  } finally {
+    saving.value = false;
+  }
+};
+
+const confirmDelete = (request: any) => {
+  requestToDelete.value = request;
+  deleteDialogVisible.value = true;
+};
+
+const deleteRequest = async () => {
+  if (!requestToDelete.value) return;
+
+  deleting.value = true;
+  try {
+    await $trpcClient.requests.delete.mutate({ id: requestToDelete.value.id });
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Request deleted successfully', life: 3000 });
+    deleteDialogVisible.value = false;
+    fetchRequests();
+  } catch (error) {
+    console.error('Failed to delete request:', error);
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete request', life: 3000 });
+  } finally {
+    deleting.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchRequests();
+});
+</script>
+
+<template>
+  <div class="requests-page">
+    <div class="header-actions flex justify-content-between align-items-center mb-4">
+      <h2 class="text-xl font-semibold m-0">Requests</h2>
+      <div class="flex gap-2">
+        <IconField>
+          <InputIcon>
+            <i class="pi pi-search" />
+          </InputIcon>
+          <InputText v-model="searchQuery" placeholder="Search requests..." @input="debouncedSearch" class="w-full" />
+        </IconField>
+        <Button label="New Request" icon="pi pi-plus" @click="openNewDialog" />
+      </div>
+    </div>
+
+    <DataTable 
+      :value="requests" 
+      :loading="loading" 
+      :paginator="true" 
+      :rows="10"
+      v-model:selection="selectedRequests"
+      dataKey="id"
+      :rowHover="true"
+      stripedRows
+      tableStyle="min-width: 50rem"
+      class="p-datatable-sm"
+    >
+      <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+      <Column field="title" header="Title" sortable>
+        <template #body="{ data }">
+          <span class="font-semibold">{{ data.title }}</span>
+        </template>
+      </Column>
+      <Column field="body" header="Description">
+        <template #body="{ data }">
+          <span class="line-clamp-2">{{ data.body || '-' }}</span>
+        </template>
+      </Column>
+      <Column field="type" header="Type" sortable>
+        <template #body="{ data }">
+          <Tag :value="getTypeLabel(data.type)" :severity="getTypeSeverity(data.type)" />
+        </template>
+      </Column>
+      <Column field="level" header="Level" sortable>
+        <template #body="{ data }">
+          <Tag :value="getLevelLabel(data.level)" :severity="getLevelSeverity(data.level)" />
+        </template>
+      </Column>
+      <Column field="tags" header="Tags">
+        <template #body="{ data }">
+          <div class="flex flex-wrap gap-1">
+            <Tag v-for="tag in data.tags" :key="tag.id" :value="tag.name" severity="info" />
+          </div>
+        </template>
+      </Column>
+      <Column field="_count" header="Children">
+        <template #body="{ data }">
+          <span>{{ data._count?.children || 0 }}</span>
+        </template>
+      </Column>
+      <Column field="isActive" header="Status">
+        <template #body="{ data }">
+          <Tag :value="data.isActive ? 'Active' : 'Inactive'" :severity="data.isActive ? 'success' : 'danger'" />
+        </template>
+      </Column>
+      <Column header="Actions" :exportable="false" style="min-width: 8rem">
+        <template #body="{ data }">
+          <div class="flex gap-1">
+            <Button icon="pi pi-eye" text rounded severity="info" @click="viewRequest(data)" v-tooltip.top="'View'" />
+            <Button icon="pi pi-pencil" text rounded severity="success" @click="editRequest(data)" v-tooltip.top="'Edit'" />
+            <Button icon="pi pi-trash" text rounded severity="danger" @click="confirmDelete(data)" v-tooltip.top="'Delete'" />
+          </div>
+        </template>
+      </Column>
+      <template #empty>
+        <div class="flex justify-content-center align-items-center p-4">
+          <span class="text-zinc-500">No requests found.</span>
+        </div>
+      </template>
+    </DataTable>
+
+    <Dialog v-model:visible="dialogVisible" :header="dialogMode === 'create' ? 'New Request' : dialogMode === 'update' ? 'Edit Request' : 'View Request'" :modal="true" class="w-full md:w-6">
+      <div class="flex flex-column gap-3">
+        <div class="flex flex-column gap-1">
+          <label for="title" class="font-semibold">Title *</label>
+          <InputText id="title" v-model="formData.title" :disabled="dialogMode === 'view'" class="w-full" />
+        </div>
+        <div class="flex flex-column gap-1">
+          <label for="body" class="font-semibold">Description</label>
+          <Textarea id="body" v-model="formData.body" :disabled="dialogMode === 'view'" rows="3" class="w-full" />
+        </div>
+        <div class="flex gap-3">
+          <div class="flex flex-column gap-1 flex-1">
+            <label for="type" class="font-semibold">Type</label>
+            <Dropdown id="type" v-model="formData.type" :options="typeOptions" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" class="w-full" />
+          </div>
+          <div class="flex flex-column gap-1 flex-1">
+            <label for="level" class="font-semibold">Level</label>
+            <Dropdown id="level" v-model="formData.level" :options="levelOptions" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" class="w-full" />
+          </div>
+        </div>
+        <div class="flex flex-column gap-1">
+          <label for="recurrence" class="font-semibold">Recurrence Period (days)</label>
+          <InputNumber id="recurrence" v-model="formData.recurrencePeriod" :disabled="dialogMode === 'view'" class="w-full" />
+        </div>
+      </div>
+      <template #footer>
+        <div class="flex justify-content-end gap-2">
+          <Button label="Cancel" text @click="dialogVisible = false" />
+          <Button v-if="dialogMode !== 'view'" :label="dialogMode === 'create' ? 'Create' : 'Update'" @click="saveRequest" :loading="saving" />
+        </div>
+      </template>
+    </Dialog>
+
+    <Dialog v-model:visible="deleteDialogVisible" header="Confirm Delete" :modal="true" class="w-full md:w-4">
+      <div class="flex align-items-center gap-2">
+        <i class="pi pi-exclamation-triangle text-3xl text-primary" />
+        <span>Are you sure you want to delete <strong>{{ requestToDelete?.title }}</strong>?</span>
+      </div>
+      <template #footer>
+        <div class="flex justify-content-end gap-2">
+          <Button label="Cancel" text @click="deleteDialogVisible = false" />
+          <Button label="Delete" severity="danger" @click="deleteRequest" :loading="deleting" />
+        </div>
+      </template>
+    </Dialog>
+
+    <Toast ref="toast" />
+  </div>
+</template>
+
+<style scoped>
+.requests-page {
+  padding: 1rem;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+:deep(.p-datatable .p-datatable-thead > tr > th) {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr:hover) {
+  background: #f8f9fa;
+}
+</style>

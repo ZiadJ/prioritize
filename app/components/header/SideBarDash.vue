@@ -41,11 +41,16 @@ const itemsWithIds = ref(addIdsToItems([
     },
     {
         label: 'Requests',
+        icon: 'pi pi-list',
+        to: '/dash/requests',
+    },
+    {
+        label: 'Reports',
         icon: 'pi pi-chart-bar',
         to: '/dash/reports',
     },
     {
-        label: 'Proposals',
+        label: 'Profile',
         icon: 'pi pi-user',
         to: '/dash/profile',
     }
