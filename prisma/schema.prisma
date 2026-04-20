@@ -509,21 +509,19 @@ model ProposalNode {
   step          StepNode @relation(fields: [stepNodeId], references: [id])
   stepNodeId    Int
 
-  isEffected      Boolean // Is true upon completion of all children if any
+  isComplete      Boolean // Is true upon completion of all children if any
   stepCount       Int // Determines the amount of resources required depending on associated step
   startingAt      DateTime?
   duration        Int // Proposal duration which can be calculated from child nodes if any
-  isSequential    Boolean // Child steps are executed sequentially rather than in parallel
   priority        Int // Only necessary when isSequential is true on parent node
   riskFactor      Int
   isVariantsGroup Boolean // Children are variants 
 
-  approvedAt    DateTime?
-  prepDuration  Int // Proposal preparation time
-  avgRating     Int       @default(0) // Average of the product feedback ratings from proposal step, request nodes and effects
-  minRating     Int
-  maxRating     Int
-  isEstablished Boolean
+  approvedAt   DateTime?
+  deliveryDays Int // Proposal preparation time
+  avgRating    Int       @default(0) // Average of the product feedback ratings from proposal step, request nodes and effects
+  minRating    Int
+  maxRating    Int
 
   isTemplate    Boolean // Is an abstract template for new proposals
   isDraft       Boolean?
@@ -551,6 +549,7 @@ model StepNode {
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
+  // Parallel steps
   path     String     @unique
   depth    Int
   numchild Int        @default(0)
@@ -558,12 +557,13 @@ model StepNode {
   parentId Int
   children StepNode[] @relation("Self")
 
-  ResourceNode   ResourceNode? @relation(fields: [resourceNodeId], references: [id])
-  resourceNodeId Int?
-
+  // Sequential steps
   nextId   Int?      @unique
   next     StepNode? @relation("Sibbling", fields: [nextId], references: [id])
   previous StepNode? @relation("Sibbling")
+
+  ResourceNode   ResourceNode? @relation(fields: [resourceNodeId], references: [id])
+  resourceNodeId Int?
 
   duration         Int
   durationVariance Int
