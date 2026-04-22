@@ -129,8 +129,6 @@ enum RelationType {
   Disabler
   Multiplier
   Incrementor
-
-  @@map("relationType")
 }
 
 enum ResourceType {
@@ -189,13 +187,13 @@ model FeedbackNode {
 
   Revisions RevisionNode[]
 
-  request        Request?      @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  request        Request?     @relation(fields: [requestId], references: [id], onDelete: Cascade)
   requestId      Int?
-  RequestNode    RequestNode?  @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
+  RequestNode    RequestNode? @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
   requestNodeId  Int?
-  proposalNode   ProposalNode? @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
+  proposalNode   Proposal?    @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
   proposalNodeId Int?
-  effect         Effect?       @relation(fields: [effectId], references: [id], onDelete: Cascade)
+  effect         Effect?      @relation(fields: [effectId], references: [id], onDelete: Cascade)
   effectId       Int?
 
   // Omitting userId to allow a user to offer multiple feedbacks to another user
@@ -309,7 +307,7 @@ model RevisionNode {
   requestId       Int?
   RequestNode     RequestNode?   @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
   requestNodeId   Int?
-  proposalNode    ProposalNode?  @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
+  proposalNode    Proposal?      @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
   proposalNodeId  Int?
   Step            StepNode?      @relation(fields: [stepId], references: [id], onDelete: Cascade)
   stepId          Int?
@@ -354,7 +352,7 @@ model AssignedCognitiveBias {
 
   cognitiveBias   CognitiveBias @relation(fields: [cognitiveBiasId], references: [id], onDelete: Cascade)
   cognitiveBiasId Int
-  proposalNode    ProposalNode  @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
+  proposalNode    Proposal      @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
   proposalNodeId  Int
   requestNode     RequestNode   @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
   requestNodeId   Int
@@ -367,7 +365,7 @@ model Tag {
   users        User[]
   request      Request[]
   requestNode  RequestNode[]
-  proposalNode ProposalNode[]
+  proposalNode Proposal[]
   step         StepNode[]
   stepCost     StepCost[]
   effect       Effect[]
@@ -406,7 +404,7 @@ model Request {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
   title     String         @unique
   body      String
@@ -459,6 +457,9 @@ model RequestNode {
   request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
   requestId Int
 
+  position Int // For ordering within a parent node
+  ppp Int
+
   isTemplate      Boolean // Is an abstract template for new requests
   isVariantsGroup Boolean // Contains a list of variant nodes requested by different users
   isNonNegotiable Boolean
@@ -474,7 +475,7 @@ model RequestNode {
   deliveryAt  DateTime? // Urgency
 
   // conflictingInterests Request[]      @relation("ConflictOfInterest") // Can be auto-generated from the requestNodes tree
-  proposals ProposalNode[] // Auto-generated when adding proposed steps
+  proposals Proposal[] // Auto-generated when adding proposed steps
 
   // Auto-generated when adding feedback to proposed steps
   feedback FeedbackNode[]
@@ -483,12 +484,12 @@ model RequestNode {
 }
 
 // A plan, proposal or offer aimed at satisfying a specific request 
-// node which can have both beneficial and detrimental impacts
+// which can have both beneficial and detrimental impacts
 
 // User-rated entity relating request nodes with proposals through
 // impact-potential feedback, costs and side-effects.
 
-model ProposalNode {
+model Proposal {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
@@ -499,12 +500,13 @@ model ProposalNode {
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
-  path     String         @unique
-  depth    Int            @default(0)
-  numchild Int            @default(0)
-  parent   ProposalNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  // Variants
+  path     String     @unique
+  depth    Int        @default(0)
+  numchild Int        @default(0)
+  parent   Proposal?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
   parentId Int?
-  children ProposalNode[] @relation("Self")
+  children Proposal[] @relation("Self")
 
   requestNodeId Int
   step          StepNode @relation(fields: [stepNodeId], references: [id])
@@ -512,11 +514,11 @@ model ProposalNode {
 
   isComplete      Boolean // Is true upon completion of all children if any
   stepCount       Int // Determines the amount of resources required depending on associated step
-  startingAt      DateTime?
+  startsAt        DateTime?
   duration        Int // Proposal duration which can be calculated from child nodes if any
   priority        Int // Only necessary when isSequential is true on parent node
   riskFactor      Int
-  isVariantsGroup Boolean // Children are variants 
+  // isVariantsGroup Boolean // Children are variants 
 
   approvedAt   DateTime?
   deliveryDays Int // Proposal preparation time
@@ -528,7 +530,7 @@ model ProposalNode {
   isDraft       Boolean?
   isUnavailable Boolean?
 
-  requestImpact         FeedbackNode[] // Voted feedback from experts based on the related interests
+  requestNodeImpact     FeedbackNode[] // Voted feedback from experts based on the related interests
   requests              RequestNode[]
   tags                  Tag[]
   assignedCognitiveBias AssignedCognitiveBias[]
@@ -569,7 +571,7 @@ model StepNode {
   duration         Int
   durationVariance Int
 
-  proposalNodes ProposalNode[]
+  proposalNodes Proposal[]
   costs         StepCost[]
   effects       Effect[]
   assignedTo    User[]
@@ -606,7 +608,6 @@ model StepCost {
   tags Tag[]
 
   @@unique([resourceNodeId, stepNodeId])
-  @@map("ProposalStepCost")
 }
 
 // A impacting side-effect when a request node is enacted upon

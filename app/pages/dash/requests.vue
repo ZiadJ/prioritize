@@ -3,18 +3,6 @@ definePageMeta({
   layout: 'dashboard',
 });
 
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import Button from 'primevue/button';
-import Dialog from 'primevue/dialog';
-import InputText from 'primevue/inputtext';
-import Textarea from 'primevue/textarea';
-import Dropdown from 'primevue/dropdown';
-import InputNumber from 'primevue/inputnumber';
-import Tag from 'primevue/tag';
-import Toast from 'primevue/toast';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
 import { useToast } from 'primevue/usetoast';
 
 const { $trpcClient } = useNuxtApp();
@@ -164,9 +152,10 @@ const saveRequest = async () => {
     }
     dialogVisible.value = false;
     fetchRequests();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to save request:', error);
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to save request', life: 3000 });
+    const message = error?.message || error?.cause?.message || JSON.stringify(error) || 'Failed to save request';
+    toast.add({ severity: 'error', summary: 'Error', detail: message, life: 0 });
   } finally {
     saving.value = false;
   }
@@ -188,7 +177,7 @@ const deleteRequest = async () => {
     fetchRequests();
   } catch (error) {
     console.error('Failed to delete request:', error);
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete request', life: 3000 });
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete request', life: 0 });
   } finally {
     deleting.value = false;
   }
@@ -280,8 +269,8 @@ onMounted(() => {
       </template>
     </DataTable>
 
-    <Dialog v-model:visible="dialogVisible" :header="dialogMode === 'create' ? 'New Request' : dialogMode === 'update' ? 'Edit Request' : 'View Request'" :modal="true" class="w-full md:w-6">
-      <div class="flex flex-column gap-3">
+    <Dialog v-model:visible="dialogVisible" :header="dialogMode === 'create' ? 'New Request' : dialogMode === 'update' ? 'Edit Request' : 'View Request'" :modal="true" :style="{ width: '500px' }" :breakpoints="{ '960px': '90vw', '640px': '95vw' }">
+      <div class="form-content flex flex-column gap-3">
         <div class="flex flex-column gap-1">
           <label for="title" class="font-semibold">Title *</label>
           <InputText id="title" v-model="formData.title" :disabled="dialogMode === 'view'" class="w-full" />
@@ -290,7 +279,7 @@ onMounted(() => {
           <label for="body" class="font-semibold">Description</label>
           <Textarea id="body" v-model="formData.body" :disabled="dialogMode === 'view'" rows="3" class="w-full" />
         </div>
-        <div class="flex gap-3">
+        <div class="form-row flex gap-3">
           <div class="flex flex-column gap-1 flex-1">
             <label for="type" class="font-semibold">Type</label>
             <Dropdown id="type" v-model="formData.type" :options="typeOptions" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" class="w-full" />
@@ -335,6 +324,25 @@ onMounted(() => {
   padding: 1rem;
 }
 
+.form-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-content > *:not(.form-row) {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-row > * {
+  flex: 1;
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -343,11 +351,19 @@ onMounted(() => {
 }
 
 :deep(.p-datatable .p-datatable-thead > tr > th) {
-  background: #f8f9fa;
   font-weight: 600;
 }
 
 :deep(.p-datatable .p-datatable-tbody > tr:hover) {
   background: #f8f9fa;
+}
+
+:deep(.p-toast-message) {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+:deep(.p-toast-message:hover) {
+  opacity: 1;
 }
 </style>
