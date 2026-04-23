@@ -70,8 +70,9 @@ export function usePausableToast() {
 
 	return {
 		add,
+		addObject,
 		remove: (msg: ToastMessageOptions) => toast.remove(msg),
 		removeGroup: (group: string) => toast.removeGroup(group),
 		removeAllGroups: () => toast.removeAllGroups(),
-	};
+	}
 }

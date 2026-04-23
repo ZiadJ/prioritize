@@ -3,12 +3,8 @@ definePageMeta({
 	layout: 'dashboard',
 })
 
-import { useToast } from 'primevue/usetoast'
-import { nextTick } from 'vue'
-import AutoComplete from 'primevue/autocomplete'
-
 const { $trpcClient } = useNuxtApp()
-const toast = useToast()
+const toast = usePausableToast()
 const { data: session } = useAuth()
 
 const requests = ref<any[]>([])
@@ -84,7 +80,7 @@ const addNewTag = async () => {
 		(tagAutocomplete.value as any).hide()
 	} catch (error) {
 		console.error('Failed to create tag:', error)
-		toast.add({
+		toast.addObject({
 			severity: 'error',
 			summary: 'Error',
 			detail: 'Failed to create tag',
@@ -129,7 +125,7 @@ const fetchRequests = async () => {
 		requests.value = result || []
 	} catch (error) {
 		console.error('Failed to fetch requests:', error)
-		toast.add({
+		toast.addObject({
 			severity: 'error',
 			summary: 'Error',
 			detail: 'Failed to fetch requests',
@@ -205,7 +201,7 @@ const currentRequestId = ref<number | null>(null)
 
 const saveRequest = async () => {
 	if (!formData.value.title) {
-		toast.add({
+		toast.addObject({
 			severity: 'warn',
 			summary: 'Warning',
 			detail: 'Title is required',
@@ -230,7 +226,7 @@ const saveRequest = async () => {
 				recurrencePeriod: formData.value.recurrencePeriod,
 				tagIds,
 			})
-			toast.add({
+			toast.addObject({
 				severity: 'success',
 				summary: 'Success',
 				detail: 'Request created successfully',
@@ -247,7 +243,7 @@ const saveRequest = async () => {
 				isActive: formData.value.isActive,
 				tagIds,
 			})
-			toast.add({
+			toast.addObject({
 				severity: 'success',
 				summary: 'Success',
 				detail: 'Request updated successfully',
@@ -263,7 +259,7 @@ const saveRequest = async () => {
 			error?.cause?.message ||
 			JSON.stringify(error) ||
 			'Failed to save request'
-		toast.add({ severity: 'error', summary: 'Error', detail: message, life: 0 })
+		toast.addObject({ severity: 'error', summary: 'Error', detail: message, life: 0 })
 	} finally {
 		saving.value = false
 	}
@@ -280,7 +276,7 @@ const deleteRequest = async () => {
 	deleting.value = true
 	try {
 		await $trpcClient.requests.delete.mutate({ id: requestToDelete.value.id })
-		toast.add({
+		toast.addObject({
 			severity: 'success',
 			summary: 'Success',
 			detail: 'Request deleted successfully',
@@ -290,7 +286,7 @@ const deleteRequest = async () => {
 		fetchRequests()
 	} catch (error) {
 		console.error('Failed to delete request:', error)
-		toast.add({
+		toast.addObject({
 			severity: 'error',
 			summary: 'Error',
 			detail: 'Failed to delete request',
