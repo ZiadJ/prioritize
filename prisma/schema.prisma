@@ -434,10 +434,6 @@ model Request {
   parentId Int?
   children Request[] @relation("Self")
 
-  user    User   @relation("RequestOwner", fields: [userId], references: [id], onDelete: Cascade)
-  userId  String
-  editors User[] @relation("requestEditors")
-
   type  Int // RequestType // Verbal, Material
   level Int // RequestLevel // Safety, Health, Belonging, Esteem, SelfActualization
 
@@ -448,6 +444,10 @@ model Request {
   feedback  FeedbackNode[]
   tags      Tag[]
   effects   Effect[]
+
+  owner   User   @relation("RequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
+  editors User[] @relation("requestEditors")
 
   @@index([path])
 }
@@ -498,8 +498,8 @@ model RequestNode {
   // Auto-generated when adding feedback to proposed steps
   feedback FeedbackNode[]
 
-  user    User   @relation("RequestNodeOwner", fields: [userId], references: [id], onDelete: Cascade)
-  userId  String
+  owner   User   @relation("RequestNodeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
   editors User[] @relation("RequestNodeEditors")
 
   @@index([path])
@@ -557,8 +557,8 @@ model Proposal {
   tags                  Tag[]
   assignedCognitiveBias AssignedCognitiveBias[]
 
-  user    User   @relation("ProposalOwner", fields: [userId], references: [id], onDelete: Cascade)
-  userId  String
+  owner   User   @relation("ProposalOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
   editors User[] @relation("ProposalEditors")
 
   @@index([path])
@@ -603,8 +603,8 @@ model StepNode {
   assignedTo    User[]     @relation("AssignedSteps")
   tags          Tag[]
 
-  user    User   @relation("StepNodeOwner", fields: [userId], references: [id], onDelete: Cascade)
-  userId  String
+  owner   User   @relation("StepNodeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
   editors User[] @relation("StepNodeEditors")
 
   @@index([path])
@@ -637,8 +637,8 @@ model StepCost {
 
   tags Tag[]
 
-  user    User   @relation("StepCostOwner", fields: [userId], references: [id], onDelete: Cascade)
-  userId  String
+  owner   User   @relation("StepCostOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
   editors User[] @relation("StepCostEditors")
 
   @@unique([resourceNodeId, stepNodeId])
@@ -732,8 +732,8 @@ model ResourceNode {
   stepCosts                         StepCost[] // Step cost referencing this resource node
   tags                              Tag[]
 
-  user    User   @relation("ResourceNodeOwner", fields: [userId], references: [id], onDelete: Cascade)
-  userId  String
+  owner   User   @relation("ResourceNodeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
   editors User[] @relation("ResourceNodeEditors")
 
   @@index([path])
