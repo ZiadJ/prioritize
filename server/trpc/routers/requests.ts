@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { publicProcedure, router } from '../trpc'
+import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
 import { createTreeNode } from '~~/lib/tree'
 // import {
@@ -72,7 +72,7 @@ export const requestsRouter = router({
 			})
 		}),
 
-	create: publicProcedure
+	create: protectedProcedure
 		.input(
 			z.object({
 				title: z.string().min(1),
@@ -84,7 +84,7 @@ export const requestsRouter = router({
 				recurrencePeriod: z.number().optional().default(0),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ ctx, input }) => {
 			const { tagIds, parentId, ...data } = input
 
 			try {
@@ -92,6 +92,7 @@ export const requestsRouter = router({
 					...data,
 					isActive: true,
 					parentId,
+					ownerId: ctx.user!.id,
 					tags: tagIds?.length
 						? {
 								connect: tagIds.map(id => ({ id })),
@@ -105,7 +106,7 @@ export const requestsRouter = router({
 			}
 		}),
 
-	update: publicProcedure
+	update: protectedProcedure
 		.input(
 			z.object({
 				id: z.number(),
@@ -118,7 +119,7 @@ export const requestsRouter = router({
 				recurrencePeriod: z.number().optional(),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ ctx, input }) => {
 			const { id, tagIds, ...data } = input
 			const updateData: Prisma.RequestUpdateInput = { ...data }
 
@@ -128,17 +129,19 @@ export const requestsRouter = router({
 				}
 			}
 
+			// Ensure user can only update their own request
 			return prisma.request.update({
-				where: { id },
+				where: { id, ownerId: ctx.user!.id },
 				data: updateData,
 			})
 		}),
 
-	delete: publicProcedure
+	delete: protectedProcedure
 		.input(z.object({ id: z.number() }))
-		.mutation(async ({ input }) => {
+		.mutation(async ({ ctx, input }) => {
+			// Ensure user can only delete their own request
 			return prisma.request.delete({
-				where: { id: input.id },
+				where: { id: input.id, ownerId: ctx.user!.id },
 			})
 		}),
 
