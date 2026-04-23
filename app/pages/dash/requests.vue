@@ -4,6 +4,8 @@ definePageMeta({
 })
 
 import { useToast } from 'primevue/usetoast'
+import { nextTick } from 'vue'
+import AutoComplete from 'primevue/autocomplete'
 
 const { $trpcClient } = useNuxtApp()
 const toast = useToast()
@@ -35,6 +37,7 @@ const formData = ref({
 const availableTags = ref<any[]>([])
 const tagSuggestions = ref<any[]>([])
 const tagSearch = ref('')
+const tagAutocomplete = useTemplateRef('tagAutocomplete')
 
 const searchTags = (event: { query: string }) => {
 	const query = event.query || ''
@@ -71,28 +74,21 @@ const addNewTag = async () => {
 			name: tagName,
 		})
 
-		// // createTag uses upsert which returns existing or created tag - add if not already selected
-		// if (!formData.value.selectedTags.some((t: any) => t.id === newTag.id)) {
-		//   formData.value.selectedTags = [...formData.value.selectedTags, newTag]
-		// }
-
-		// // Update available tags list (avoid duplicates)
-		// const existsInList = availableTags.value.some(t => t.id === newTag.id)
-		// if (!existsInList) {
-		availableTags.value = [...availableTags.value, newTag].sort((a, b) =>
-			a.name.localeCompare(b.name),
-		)
-		//}
+		formData.value.selectedTags = [...formData.value.selectedTags, newTag]
 
 		tagSearch.value = ''
-		tagSuggestions.value = [...availableTags.value]
+		tagSuggestions.value = [...availableTags.value];
+
+		// Clear the AutoComplete input
+		(tagAutocomplete.value as any).$el.querySelector('input').value = '';
+		(tagAutocomplete.value as any).hide()
 	} catch (error) {
 		console.error('Failed to create tag:', error)
 		toast.add({
 			severity: 'error',
 			summary: 'Error',
 			detail: 'Failed to create tag',
-			life: 3000,
+			life: 0,
 		})
 	}
 }
@@ -405,22 +401,22 @@ onMounted(async () => {
 							severity="info"
 							@click="viewRequest(data)"
 							v-tooltip.top="'View'" />
-		<Button
-			v-if="session?.id === data.userId"
-			icon="pi pi-pencil"
-			text
-			rounded
-			severity="success"
-			@click="editRequest(data)"
-			v-tooltip.top="'Edit'" />
-		<Button
-			v-if="session?.id === data.userId"
-			icon="pi pi-trash"
-			text
-			rounded
-			severity="danger"
-			@click="confirmDelete(data)"
-			v-tooltip.top="'Delete'" />
+						<Button
+							v-if="session?.id === data.userId"
+							icon="pi pi-pencil"
+							text
+							rounded
+							severity="success"
+							@click="editRequest(data)"
+							v-tooltip.top="'Edit'" />
+						<Button
+							v-if="session?.id === data.userId"
+							icon="pi pi-trash"
+							text
+							rounded
+							severity="danger"
+							@click="confirmDelete(data)"
+							v-tooltip.top="'Delete'" />
 					</div>
 				</template>
 			</Column>
@@ -491,6 +487,7 @@ onMounted(async () => {
 				<div class="form-field">
 					<label for="tags">Tags</label>
 					<AutoComplete
+						ref="tagAutocomplete"
 						v-model="formData.selectedTags"
 						:suggestions="tagSuggestions"
 						@complete="searchTags"
