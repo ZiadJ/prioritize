@@ -44,28 +44,20 @@ const searchTags = (event: { query: string }) => {
     return
   }
   const filtered = availableTags.value.filter(tag =>
-    tag.name.toLowerCase().includes(query.toLowerCase())
+    tag.name.toLowerCase().startsWith(query.toLowerCase())
   )
   tagSuggestions.value = filtered
-}
-
-const handleTagSelect = (event: any) => {
-  const selectedTag = event.value
-  if (selectedTag && !formData.value.selectedTags.find((t: any) => t.id === selectedTag.id)) {
-    formData.value.selectedTags = [...formData.value.selectedTags, selectedTag]
-  }
-}
-
-const handleTagRemove = (event: any) => {
-  formData.value.selectedTags = formData.value.selectedTags.filter(
-    (t: any) => t.id !== event.value.id
-  )
 }
 
 const addNewTag = async () => {
   const tagName = tagSearch.value.trim()
   if (!tagName) return
-  
+
+  // If autocomplete has suggestions, user is selecting from the list → don't create a new tag
+  if (tagSuggestions.value.length > 0) {
+    return
+  }
+
   const existing = availableTags.value.find(
     t => t.name.toLowerCase() === tagName.toLowerCase()
   )
@@ -86,7 +78,7 @@ const addNewTag = async () => {
       toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to create tag', life: 3000 })
     }
   }
-  
+
   if (newTagAdded) {
     tagSearch.value = ''
     tagSuggestions.value = [...availableTags.value]
@@ -388,28 +380,25 @@ onMounted(async () => {
             v-model="formData.selectedTags"
             :suggestions="tagSuggestions"
             @complete="searchTags"
-            @item-select="handleTagSelect"
-            @item-unselect="handleTagRemove"
             optionLabel="name"
             :multiple="true"
             :dropdown="true"
             :disabled="dialogMode === 'view'"
             placeholder="Search or create tags"
             class="w-full"
+            @keydown.enter.stop="addNewTag"
           >
             <template #option="{ option }">
               <div>{{ option.name }}</div>
             </template>
             <template #empty>
-              <div class="flex align-items-center gap-2 p-2">
-                <Button
-                  v-if="tagSearch && tagSearch.trim()"
-                  label="Create tag"
-                  size="small"
-                  text
-                  @click="addNewTag"
-                />
-              </div>
+              <Button
+                v-if="tagSearch && tagSearch.trim()"
+                label="Create tag"
+                size="small"
+                text
+                @click="addNewTag"
+              />
             </template>
           </AutoComplete>
         </div>
