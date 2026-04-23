@@ -396,7 +396,6 @@ onMounted(async () => {
             :disabled="dialogMode === 'view'"
             placeholder="Search or create tags"
             class="w-full"
-            @keydown.enter.stop="addNewTag"
           >
             <template #option="{ option }">
               <div>{{ option.name }}</div>
