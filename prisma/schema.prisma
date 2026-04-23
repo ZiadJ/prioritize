@@ -34,10 +34,10 @@ generator client {
   output   = "../prisma/generated/client"
 }
 
-generator zod {
-  provider = "prisma-zod-generator"
-  output   = "../prisma/generated/zod"
-}
+// generator zod {
+//   provider = "prisma-zod-generator"
+//   output   = "../prisma/generated/zod"
+// }
 
 datasource db {
   provider = "postgresql"
@@ -361,6 +361,7 @@ model AssignedCognitiveBias {
 model Tag {
   id   Int    @id @default(autoincrement())
   name String @unique
+  type String @default("request")
 
   users        User[]
   request      Request[]
@@ -370,6 +371,8 @@ model Tag {
   stepCost     StepCost[]
   effect       Effect[]
   resourceNode ResourceNode[]
+
+  @@unique([name, type])
 }
 
 // A composable expertise allowing one to make attributions 

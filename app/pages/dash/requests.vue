@@ -1,24 +1,24 @@
 <script lang="ts" setup>
 definePageMeta({
   layout: 'dashboard',
-});
+})
 
-import { useToast } from 'primevue/usetoast';
+import { useToast } from 'primevue/usetoast'
 
-const { $trpcClient } = useNuxtApp();
-const toast = useToast();
+const { $trpcClient } = useNuxtApp()
+const toast = useToast()
 
-const requests = ref<any[]>([]);
-const loading = ref(true);
-const saving = ref(false);
-const deleting = ref(false);
-const searchQuery = ref('');
-const selectedRequests = ref<any[]>([]);
+const requests = ref<any[]>([])
+const loading = ref(true)
+const saving = ref(false)
+const deleting = ref(false)
+const searchQuery = ref('')
+const selectedRequests = ref<any[]>([])
 
-const dialogVisible = ref(false);
-const dialogMode = ref<'create' | 'update' | 'view'>('create');
-const requestToDelete = ref<any>(null);
-const deleteDialogVisible = ref(false);
+const dialogVisible = ref(false)
+const dialogMode = ref<'create' | 'update' | 'view'>('create')
+const requestToDelete = ref<any>(null)
+const deleteDialogVisible = ref(false)
 
 const formData = ref({
   title: '',
@@ -27,13 +27,78 @@ const formData = ref({
   level: 0,
   recurrencePeriod: 0,
   isActive: true,
-});
+  tagIds: [] as number[],
+  selectedTags: [] as any[],
+})
+
+const availableTags = ref<any[]>([])
+const tagSuggestions = ref<any[]>([])
+const tagSearch = ref('')
+const autocompleteKey = ref(0)
+
+const searchTags = (event: { query: string }) => {
+  const query = event.query || ''
+  tagSearch.value = query
+  if (!query) {
+    tagSuggestions.value = [...availableTags.value]
+    return
+  }
+  const filtered = availableTags.value.filter(tag =>
+    tag.name.toLowerCase().includes(query.toLowerCase())
+  )
+  tagSuggestions.value = filtered
+}
+
+const handleTagSelect = (event: any) => {
+  const selectedTag = event.value
+  if (selectedTag && !formData.value.selectedTags.find((t: any) => t.id === selectedTag.id)) {
+    formData.value.selectedTags = [...formData.value.selectedTags, selectedTag]
+  }
+}
+
+const handleTagRemove = (event: any) => {
+  formData.value.selectedTags = formData.value.selectedTags.filter(
+    (t: any) => t.id !== event.value.id
+  )
+}
+
+const addNewTag = async () => {
+  const tagName = tagSearch.value.trim()
+  if (!tagName) return
+  
+  const existing = availableTags.value.find(
+    t => t.name.toLowerCase() === tagName.toLowerCase()
+  )
+  let newTagAdded = false
+  if (existing) {
+    if (!formData.value.selectedTags.find((t: any) => t.id === existing.id)) {
+      formData.value.selectedTags = [...formData.value.selectedTags, existing]
+      newTagAdded = true
+    }
+  } else {
+    try {
+      const newTag = await $trpcClient.requests.createTag.mutate({ name: tagName })
+      availableTags.value = [...availableTags.value, newTag].sort((a, b) => a.name.localeCompare(b.name))
+      formData.value.selectedTags = [...formData.value.selectedTags, newTag]
+      newTagAdded = true
+    } catch (error) {
+      console.error('Failed to create tag:', error)
+      toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to create tag', life: 3000 })
+    }
+  }
+  
+  if (newTagAdded) {
+    tagSearch.value = ''
+    tagSuggestions.value = [...availableTags.value]
+    autocompleteKey.value++
+  }
+}
 
 const typeOptions = [
   { label: 'Emotional', value: 0 },
   { label: 'Observational', value: 1 },
   { label: 'Material', value: 2 },
-];
+]
 
 const levelOptions = [
   { label: 'Safety', value: 0 },
@@ -41,43 +106,43 @@ const levelOptions = [
   { label: 'Belonging', value: 2 },
   { label: 'Esteem', value: 3 },
   { label: 'Self-Actualization', value: 4 },
-];
+]
 
-const getTypeLabel = (type: number) => typeOptions[type]?.label || 'Unknown';
+const getTypeLabel = (type: number) => typeOptions[type]?.label || 'Unknown'
 const getTypeSeverity = (type: number) => {
-  const severities = ['warn', 'info', 'success'];
-  return severities[type] || 'secondary';
-};
+  const severities = ['warn', 'info', 'success']
+  return severities[type] || 'secondary'
+}
 
-const getLevelLabel = (level: number) => levelOptions[level]?.label || 'Unknown';
+const getLevelLabel = (level: number) => levelOptions[level]?.label || 'Unknown'
 const getLevelSeverity = (level: number) => {
-  if (level <= 1) return 'danger';
-  if (level <= 2) return 'warn';
-  return 'success';
-};
+  if (level <= 1) return 'danger'
+  if (level <= 2) return 'warn'
+  return 'success'
+}
 
 const fetchRequests = async () => {
-  loading.value = true;
+  loading.value = true
   try {
     const result = await $trpcClient.requests.list.query({
       search: searchQuery.value || undefined,
-    });
-    requests.value = result || [];
+    })
+    requests.value = result || []
   } catch (error) {
-    console.error('Failed to fetch requests:', error);
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch requests', life: 3000 });
+    console.error('Failed to fetch requests:', error)
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch requests', life: 3000 })
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
-let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
 const debouncedSearch = () => {
-  if (searchTimeout) clearTimeout(searchTimeout);
+  if (searchTimeout) clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
-    fetchRequests();
-  }, 300);
-};
+    fetchRequests()
+  }, 300)
+}
 
 const openNewDialog = () => {
   formData.value = {
@@ -87,12 +152,18 @@ const openNewDialog = () => {
     level: 0,
     recurrencePeriod: 0,
     isActive: true,
-  };
-  dialogMode.value = 'create';
-  dialogVisible.value = true;
-};
+    tagIds: [],
+    selectedTags: [],
+  }
+  tagSearch.value = ''
+  tagSuggestions.value = availableTags.value
+  dialogMode.value = 'create'
+  dialogVisible.value = true
+}
 
 const viewRequest = (request: any) => {
+  const tags = request.tags || []
+  tagSearch.value = ''
   formData.value = {
     title: request.title,
     body: request.body,
@@ -100,12 +171,16 @@ const viewRequest = (request: any) => {
     level: request.level,
     recurrencePeriod: request.recurrencePeriod,
     isActive: request.isActive,
-  };
-  dialogMode.value = 'view';
-  dialogVisible.value = true;
-};
+    tagIds: tags.map((t: any) => t.id) || [],
+    selectedTags: tags,
+  }
+  dialogMode.value = 'view'
+  dialogVisible.value = true
+}
 
 const editRequest = (request: any) => {
+  const tags = request.tags || []
+  tagSearch.value = ''
   formData.value = {
     title: request.title,
     body: request.body,
@@ -113,21 +188,26 @@ const editRequest = (request: any) => {
     level: request.level,
     recurrencePeriod: request.recurrencePeriod,
     isActive: request.isActive,
-  };
-  dialogMode.value = 'update';
-  currentRequestId.value = request.id;
-  dialogVisible.value = true;
-};
+    tagIds: tags.map((t: any) => t.id) || [],
+    selectedTags: tags,
+  }
+  tagSuggestions.value = availableTags.value
+  dialogMode.value = 'update'
+  currentRequestId.value = request.id
+  dialogVisible.value = true
+}
 
-const currentRequestId = ref<number | null>(null);
+const currentRequestId = ref<number | null>(null)
 
 const saveRequest = async () => {
   if (!formData.value.title) {
-    toast.add({ severity: 'warn', summary: 'Warning', detail: 'Title is required', life: 3000 });
-    return;
+    toast.add({ severity: 'warn', summary: 'Warning', detail: 'Title is required', life: 3000 })
+    return
   }
 
-  saving.value = true;
+  const tagIds = formData.value.selectedTags?.map((t: any) => t.id) || formData.value.tagIds || []
+
+  saving.value = true
   try {
     if (dialogMode.value === 'create') {
       await $trpcClient.requests.create.mutate({
@@ -136,8 +216,9 @@ const saveRequest = async () => {
         type: formData.value.type,
         level: formData.value.level,
         recurrencePeriod: formData.value.recurrencePeriod,
-      });
-      toast.add({ severity: 'success', summary: 'Success', detail: 'Request created successfully', life: 3000 });
+        tagIds,
+      })
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Request created successfully', life: 3000 })
     } else if (dialogMode.value === 'update' && currentRequestId.value) {
       await $trpcClient.requests.update.mutate({
         id: currentRequestId.value,
@@ -147,45 +228,52 @@ const saveRequest = async () => {
         level: formData.value.level,
         recurrencePeriod: formData.value.recurrencePeriod,
         isActive: formData.value.isActive,
-      });
-      toast.add({ severity: 'success', summary: 'Success', detail: 'Request updated successfully', life: 3000 });
+        tagIds,
+      })
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Request updated successfully', life: 3000 })
     }
-    dialogVisible.value = false;
-    fetchRequests();
+    dialogVisible.value = false
+    fetchRequests()
   } catch (error: any) {
-    console.error('Failed to save request:', error);
-    const message = error?.message || error?.cause?.message || JSON.stringify(error) || 'Failed to save request';
-    toast.add({ severity: 'error', summary: 'Error', detail: message, life: 0 });
+    console.error('Failed to save request:', error)
+    const message = error?.message || error?.cause?.message || JSON.stringify(error) || 'Failed to save request'
+    toast.add({ severity: 'error', summary: 'Error', detail: message, life: 0 })
   } finally {
-    saving.value = false;
+    saving.value = false
   }
-};
+}
 
 const confirmDelete = (request: any) => {
-  requestToDelete.value = request;
-  deleteDialogVisible.value = true;
-};
+  requestToDelete.value = request
+  deleteDialogVisible.value = true
+}
 
 const deleteRequest = async () => {
-  if (!requestToDelete.value) return;
+  if (!requestToDelete.value) return
 
-  deleting.value = true;
+  deleting.value = true
   try {
-    await $trpcClient.requests.delete.mutate({ id: requestToDelete.value.id });
-    toast.add({ severity: 'success', summary: 'Success', detail: 'Request deleted successfully', life: 3000 });
-    deleteDialogVisible.value = false;
-    fetchRequests();
+    await $trpcClient.requests.delete.mutate({ id: requestToDelete.value.id })
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Request deleted successfully', life: 3000 })
+    deleteDialogVisible.value = false
+    fetchRequests()
   } catch (error) {
-    console.error('Failed to delete request:', error);
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete request', life: 0 });
+    console.error('Failed to delete request:', error)
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete request', life: 0 })
   } finally {
-    deleting.value = false;
+    deleting.value = false
   }
-};
+}
 
-onMounted(() => {
-  fetchRequests();
-});
+onMounted(async () => {
+  fetchRequests()
+  try {
+    availableTags.value = await $trpcClient.requests.listTags.query() || []
+    tagSuggestions.value = availableTags.value
+  } catch (error) {
+    console.error('Failed to fetch tags:', error)
+  }
+})
 </script>
 
 <template>
@@ -270,28 +358,71 @@ onMounted(() => {
     </DataTable>
 
     <Dialog v-model:visible="dialogVisible" :header="dialogMode === 'create' ? 'New Request' : dialogMode === 'update' ? 'Edit Request' : 'View Request'" :modal="true" :style="{ width: '500px' }" :breakpoints="{ '960px': '90vw', '640px': '95vw' }">
-      <div class="form-content flex flex-column gap-3">
-        <div class="flex flex-column gap-1">
-          <label for="title" class="font-semibold">Title *</label>
-          <InputText id="title" v-model="formData.title" :disabled="dialogMode === 'view'" class="w-full" />
+      <div class="form-content gap-3">
+        <div class="form-field">
+          <label for="title">Title *</label>
+          <InputText id="title" v-model="formData.title" :disabled="dialogMode === 'view'" />
         </div>
-        <div class="flex flex-column gap-1">
-          <label for="body" class="font-semibold">Description</label>
-          <Textarea id="body" v-model="formData.body" :disabled="dialogMode === 'view'" rows="3" class="w-full" />
+        <div class="form-field">
+          <label for="body">Description</label>
+          <Textarea id="body" v-model="formData.body" :disabled="dialogMode === 'view'" rows="3" />
         </div>
-        <div class="form-row flex gap-3">
-          <div class="flex flex-column gap-1 flex-1">
-            <label for="type" class="font-semibold">Type</label>
-            <Dropdown id="type" v-model="formData.type" :options="typeOptions" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" class="w-full" />
+        <div class="form-row gap-3">
+          <div class="form-field flex-1">
+            <label for="type">Type</label>
+            <Dropdown id="type" v-model="formData.type" :options="typeOptions" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" />
           </div>
-          <div class="flex flex-column gap-1 flex-1">
-            <label for="level" class="font-semibold">Level</label>
-            <Dropdown id="level" v-model="formData.level" :options="levelOptions" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" class="w-full" />
+          <div class="form-field flex-1">
+            <label for="level">Level</label>
+            <Dropdown id="level" v-model="formData.level" :options="levelOptions" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" />
           </div>
         </div>
-        <div class="flex flex-column gap-1">
-          <label for="recurrence" class="font-semibold">Recurrence Period (days)</label>
-          <InputNumber id="recurrence" v-model="formData.recurrencePeriod" :disabled="dialogMode === 'view'" class="w-full" />
+        <div class="form-field">
+          <label for="recurrence">Recurrence Period (days)</label>
+          <InputNumber id="recurrence" v-model="formData.recurrencePeriod" :disabled="dialogMode === 'view'" />
+        </div>
+        <div class="form-field">
+          <label for="tags">Tags</label>
+          <AutoComplete
+            :key="autocompleteKey"
+            v-model="formData.selectedTags"
+            :suggestions="tagSuggestions"
+            @complete="searchTags"
+            @item-select="handleTagSelect"
+            @item-unselect="handleTagRemove"
+            optionLabel="name"
+            :multiple="true"
+            :dropdown="true"
+            :disabled="dialogMode === 'view'"
+            placeholder="Search or create tags"
+            class="w-full"
+            @keydown.enter.stop="addNewTag"
+          >
+            <template #option="{ option }">
+              <div>{{ option.name }}</div>
+            </template>
+            <template #empty>
+              <div class="flex align-items-center gap-2 p-2">
+                <Button
+                  v-if="tagSearch && tagSearch.trim()"
+                  label="Create tag"
+                  size="small"
+                  text
+                  @click="addNewTag"
+                />
+              </div>
+            </template>
+          </AutoComplete>
+        </div>
+        <div v-if="dialogMode === 'update'" class="form-field">
+          <label for="isActive">Status</label>
+          <SelectButton
+            id="isActive"
+            v-model="formData.isActive"
+            :options="[{ label: 'Active', value: true }, { label: 'Inactive', value: false }]"
+            optionLabel="label"
+            optionValue="value"
+          />
         </div>
       </div>
       <template #footer>
@@ -341,6 +472,28 @@ onMounted(() => {
 
 .form-row > * {
   flex: 1;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.form-field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.form-field :deep(.p-inputtext),
+.form-field :deep(.p-dropdown),
+.form-field :deep(.p-inputnumber),
+.form-field :deep(.p-textarea),
+.form-field :deep(.p-multiselect),
+.form-field :deep(.p-selectbutton),
+.form-field :deep(.p-autocomplete) {
+  width: 100%;
 }
 
 .line-clamp-2 {

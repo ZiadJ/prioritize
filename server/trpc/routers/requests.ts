@@ -1,7 +1,13 @@
-import { z } from 'zod';
-import { publicProcedure, router } from '../trpc';
-import prisma, { Prisma } from '~~/lib/prisma';
-import { createTreeNode } from '~~/lib/tree';
+import { z } from 'zod'
+import { publicProcedure, router } from '../trpc'
+import prisma, { Prisma } from '~~/lib/prisma'
+import { createTreeNode } from '~~/lib/tree'
+// import {
+// 	RequestWhereInputObjectSchema,
+// 	RequestUncheckedCreateInputObjectZodSchema,
+// 	RequestUncheckedUpdateInputObjectZodSchema,
+// 	RequestWhereUniqueInputObjectSchema,
+// } from '~~/prisma/generated/zod/schemas'
 
 export const requestsRouter = router({
 	list: publicProcedure
@@ -35,7 +41,7 @@ export const requestsRouter = router({
 						select: { children: true, requests: true, feedback: true },
 					},
 				},
-			});
+			})
 		}),
 
 	byId: publicProcedure
@@ -63,7 +69,7 @@ export const requestsRouter = router({
 						},
 					},
 				},
-			});
+			})
 		}),
 
 	create: publicProcedure
@@ -79,7 +85,7 @@ export const requestsRouter = router({
 			}),
 		)
 		.mutation(async ({ input }) => {
-			const { tagIds, parentId, ...data } = input;
+			const { tagIds, parentId, ...data } = input
 
 			try {
 				const node = await createTreeNode(prisma.request, {
@@ -91,11 +97,11 @@ export const requestsRouter = router({
 								connect: tagIds.map(id => ({ id })),
 							}
 						: undefined,
-				});
-				return node;
+				})
+				return node
 			} catch (e) {
-				console.error('Prisma create error:', e);
-				throw e;
+				console.error('Prisma create error:', e)
+				throw e
 			}
 		}),
 
@@ -113,19 +119,19 @@ export const requestsRouter = router({
 			}),
 		)
 		.mutation(async ({ input }) => {
-			const { id, tagIds, ...data } = input;
-			const updateData: Prisma.RequestUpdateInput = { ...data };
+			const { id, tagIds, ...data } = input
+			const updateData: Prisma.RequestUpdateInput = { ...data }
 
 			if (tagIds !== undefined) {
 				updateData.tags = {
 					set: tagIds.map(tagId => ({ id: tagId })),
-				};
+				}
 			}
 
 			return prisma.request.update({
 				where: { id },
 				data: updateData,
-			});
+			})
 		}),
 
 	delete: publicProcedure
@@ -133,6 +139,30 @@ export const requestsRouter = router({
 		.mutation(async ({ input }) => {
 			return prisma.request.delete({
 				where: { id: input.id },
-			});
+			})
 		}),
-});
+
+	listTags: publicProcedure.query(async () => {
+		return prisma.tag.findMany({
+			where: { type: 'request' },
+			include: {
+				_count: {
+					select: { request: true },
+				},
+			},
+			orderBy: {
+				request: { _count: 'desc' },
+			},
+		})
+	}),
+
+	createTag: publicProcedure
+		.input(z.object({ name: z.string().min(1) }))
+		.mutation(async ({ input }) => {
+return prisma.tag.upsert({
+				where: { name_type: { name: input.name, type: 'request' } },
+				update: {},
+				create: { name: input.name, type: 'request' },
+			})
+		}),
+})
