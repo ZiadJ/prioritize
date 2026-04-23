@@ -34,7 +34,6 @@ const formData = ref({
 const availableTags = ref<any[]>([])
 const tagSuggestions = ref<any[]>([])
 const tagSearch = ref('')
-const autocompleteKey = ref(0)
 
 const searchTags = (event: { query: string }) => {
   const query = event.query || ''
@@ -82,7 +81,6 @@ const addNewTag = async () => {
   if (newTagAdded) {
     tagSearch.value = ''
     tagSuggestions.value = [...availableTags.value]
-    autocompleteKey.value++
   }
 }
 
@@ -376,7 +374,6 @@ onMounted(async () => {
         <div class="form-field">
           <label for="tags">Tags</label>
           <AutoComplete
-            :key="autocompleteKey"
             v-model="formData.selectedTags"
             :suggestions="tagSuggestions"
             @complete="searchTags"
