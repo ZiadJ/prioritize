@@ -243,18 +243,20 @@ model User {
   fromRelationships UserRelation[]  @relation("from")
   toRelationships   UserRelation[]  @relation("to")
 
-  editableRequests      Request[]      @relation("requestEditors")
-  ownedRequests         Request[]      @relation("RequestOwner")
-  editableRequestNodes  RequestNode[]  @relation("RequestNodeEditors")
-  ownedRequestNodes     RequestNode[]  @relation("RequestNodeOwner")
-  editableProposals     Proposal[]     @relation("ProposalEditors")
-  ownedProposals        Proposal[]     @relation("ProposalOwner")
-  editableStepNodes     StepNode[]     @relation("StepNodeEditors")
-  ownedStepNodes        StepNode[]     @relation("StepNodeOwner")
-  editableStepCosts     StepCost[]     @relation("StepCostEditors")
-  ownedStepCosts        StepCost[]     @relation("StepCostOwner")
-  editableResourceNodes ResourceNode[] @relation("ResourceNodeEditors")
-  ownedResourceNodes    ResourceNode[] @relation("ResourceNodeOwner")
+  editableRequests      Request[]         @relation("requestEditors")
+  ownedRequests         Request[]         @relation("RequestOwner")
+  editableRequestNodes  RequestNode[]     @relation("RequestNodeEditors")
+  ownedRequestNodes     RequestNode[]     @relation("RequestNodeOwner")
+  editableProposals     Proposal[]        @relation("ProposalEditors")
+  ownedProposals        Proposal[]        @relation("ProposalOwner")
+  editableStepNodes     StepNode[]        @relation("StepNodeEditors")
+  ownedStepNodes        StepNode[]        @relation("StepNodeOwner")
+  editableStepCosts     StepCost[]        @relation("StepCostEditors")
+  ownedStepCosts        StepCost[]        @relation("StepCostOwner")
+  editableResourceNodes ResourceNode[]    @relation("ResourceNodeEditors")
+  ownedResourceNodes    ResourceNode[]    @relation("ResourceNodeOwner")
+  
+  requestQuantities     RequestQuantity[]
 }
 
 model Token {
@@ -385,6 +387,7 @@ model Tag {
   resourceNode ResourceNode[]
 
   @@unique([name, type])
+  @@index([name])
 }
 
 // A composable expertise allowing one to make attributions 
@@ -439,17 +442,39 @@ model Request {
 
   recurrencePeriod Int // For reccurring requests such as daily water intake or weekly social interactions
 
-  requests  RequestNode[]
-  expertise ExpertiseNode[]
-  feedback  FeedbackNode[]
-  tags      Tag[]
-  effects   Effect[]
+  requests   RequestNode[]
+  expertise  ExpertiseNode[]
+  feedback   FeedbackNode[]
+  tags       Tag[]
+  effects    Effect[]
+  quantities RequestQuantity[]
 
   owner   User   @relation("RequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId String
   editors User[] @relation("requestEditors")
 
   @@index([path])
+}
+
+// Tracks the quantity of material requested by a user for a material-type request
+model RequestQuantity {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean  @default(true)
+
+  request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  quantity      Float
+  unitOfMeasure Int? // UnitOfMeasure, null when using custom units
+  customUnit    String? // e.g. "pizzas", "meetings", "trees"
+
+  @@unique([requestId, userId])
+  @@index([requestId])
+  @@index([userId])
 }
 
 // A request containing proposal nodes each assignable to a step. Each
