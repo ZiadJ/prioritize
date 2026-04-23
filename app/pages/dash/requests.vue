@@ -7,6 +7,7 @@ import { useToast } from 'primevue/usetoast'
 
 const { $trpcClient } = useNuxtApp()
 const toast = useToast()
+const { data: session } = useAuth()
 
 const requests = ref<any[]>([])
 const loading = ref(true)
@@ -404,20 +405,22 @@ onMounted(async () => {
 							severity="info"
 							@click="viewRequest(data)"
 							v-tooltip.top="'View'" />
-						<Button
-							icon="pi pi-pencil"
-							text
-							rounded
-							severity="success"
-							@click="editRequest(data)"
-							v-tooltip.top="'Edit'" />
-						<Button
-							icon="pi pi-trash"
-							text
-							rounded
-							severity="danger"
-							@click="confirmDelete(data)"
-							v-tooltip.top="'Delete'" />
+		<Button
+			v-if="session?.id === data.userId"
+			icon="pi pi-pencil"
+			text
+			rounded
+			severity="success"
+			@click="editRequest(data)"
+			v-tooltip.top="'Edit'" />
+		<Button
+			v-if="session?.id === data.userId"
+			icon="pi pi-trash"
+			text
+			rounded
+			severity="danger"
+			@click="confirmDelete(data)"
+			v-tooltip.top="'Delete'" />
 					</div>
 				</template>
 			</Column>

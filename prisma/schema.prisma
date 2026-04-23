@@ -236,13 +236,25 @@ model User {
   tokens Token[]
 
   expertise         ExpertiseNode[]
-  steps             StepNode[]
+  steps             StepNode[]      @relation("AssignedSteps")
   feedback          FeedbackNode[]
   revisions         RevisionNode[]
   tags              Tag[]
-  fromRelationships UserRelation[]  @relation(name: "from")
-  toRelationships   UserRelation[]  @relation(name: "to")
-  // todos             Todo[]
+  fromRelationships UserRelation[]  @relation("from")
+  toRelationships   UserRelation[]  @relation("to")
+
+  editableRequests      Request[]      @relation("requestEditors")
+  ownedRequests         Request[]      @relation("RequestOwner")
+  editableRequestNodes  RequestNode[]  @relation("RequestNodeEditors")
+  ownedRequestNodes     RequestNode[]  @relation("RequestNodeOwner")
+  editableProposals     Proposal[]     @relation("ProposalEditors")
+  ownedProposals        Proposal[]     @relation("ProposalOwner")
+  editableStepNodes     StepNode[]     @relation("StepNodeEditors")
+  ownedStepNodes        StepNode[]     @relation("StepNodeOwner")
+  editableStepCosts     StepCost[]     @relation("StepCostEditors")
+  ownedStepCosts        StepCost[]     @relation("StepCostOwner")
+  editableResourceNodes ResourceNode[] @relation("ResourceNodeEditors")
+  ownedResourceNodes    ResourceNode[] @relation("ResourceNodeOwner")
 }
 
 model Token {
@@ -422,6 +434,10 @@ model Request {
   parentId Int?
   children Request[] @relation("Self")
 
+  user    User   @relation("RequestOwner", fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  editors User[] @relation("requestEditors")
+
   type  Int // RequestType // Verbal, Material
   level Int // RequestLevel // Safety, Health, Belonging, Esteem, SelfActualization
 
@@ -461,7 +477,6 @@ model RequestNode {
   requestId Int
 
   position Int // For ordering within a parent node
-  ppp Int
 
   isTemplate      Boolean // Is an abstract template for new requests
   isVariantsGroup Boolean // Contains a list of variant nodes requested by different users
@@ -482,6 +497,10 @@ model RequestNode {
 
   // Auto-generated when adding feedback to proposed steps
   feedback FeedbackNode[]
+
+  user    User   @relation("RequestNodeOwner", fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  editors User[] @relation("RequestNodeEditors")
 
   @@index([path])
 }
@@ -515,12 +534,12 @@ model Proposal {
   step          StepNode @relation(fields: [stepNodeId], references: [id])
   stepNodeId    Int
 
-  isComplete      Boolean // Is true upon completion of all children if any
-  stepCount       Int // Determines the amount of resources required depending on associated step
-  startsAt        DateTime?
-  duration        Int // Proposal duration which can be calculated from child nodes if any
-  priority        Int // Only necessary when isSequential is true on parent node
-  riskFactor      Int
+  isComplete Boolean // Is true upon completion of all children if any
+  stepCount  Int // Determines the amount of resources required depending on associated step
+  startsAt   DateTime?
+  duration   Int // Proposal duration which can be calculated from child nodes if any
+  priority   Int // Only necessary when isSequential is true on parent node
+  riskFactor Int
   // isVariantsGroup Boolean // Children are variants 
 
   approvedAt   DateTime?
@@ -537,6 +556,10 @@ model Proposal {
   requests              RequestNode[]
   tags                  Tag[]
   assignedCognitiveBias AssignedCognitiveBias[]
+
+  user    User   @relation("ProposalOwner", fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  editors User[] @relation("ProposalEditors")
 
   @@index([path])
 }
@@ -577,8 +600,12 @@ model StepNode {
   proposalNodes Proposal[]
   costs         StepCost[]
   effects       Effect[]
-  assignedTo    User[]
+  assignedTo    User[]     @relation("AssignedSteps")
   tags          Tag[]
+
+  user    User   @relation("StepNodeOwner", fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  editors User[] @relation("StepNodeEditors")
 
   @@index([path])
 }
@@ -609,6 +636,10 @@ model StepCost {
   costVariationType Int // Linear, Exponential, Custom
 
   tags Tag[]
+
+  user    User   @relation("StepCostOwner", fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  editors User[] @relation("StepCostEditors")
 
   @@unique([resourceNodeId, stepNodeId])
 }
@@ -700,6 +731,10 @@ model ResourceNode {
   stepsPerAdditionalRenewalCapacity StepNode[] // 
   stepCosts                         StepCost[] // Step cost referencing this resource node
   tags                              Tag[]
+
+  user    User   @relation("ResourceNodeOwner", fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  editors User[] @relation("ResourceNodeEditors")
 
   @@index([path])
 }
