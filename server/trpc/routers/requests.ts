@@ -53,6 +53,8 @@ export const requestsRouter = router({
 					tags: true,
 					expertise: true,
 					effects: true,
+					owner: true,
+					editors: true,
 					feedback: {
 						include: {
 							user: {
@@ -129,9 +131,15 @@ export const requestsRouter = router({
 				}
 			}
 
-			// Ensure user can only update their own request
+			// Ensure user can update their own request or if they are listed as an editor
 			return prisma.request.update({
-				where: { id, ownerId: ctx.user!.id },
+				where: { 
+					id,
+					OR: [
+						{ ownerId: ctx.user!.id },
+						{ editors: { some: { id: ctx.user!.id } } }
+					]
+				},
 				data: updateData,
 			})
 		}),
@@ -139,9 +147,15 @@ export const requestsRouter = router({
 	delete: protectedProcedure
 		.input(z.object({ id: z.number() }))
 		.mutation(async ({ ctx, input }) => {
-			// Ensure user can only delete their own request
+			// Ensure user can delete their own request or if they are listed as an editor
 			return prisma.request.delete({
-				where: { id: input.id, ownerId: ctx.user!.id },
+				where: { 
+					id: input.id,
+					OR: [
+						{ ownerId: ctx.user!.id },
+						{ editors: { some: { id: ctx.user!.id } } }
+					]
+				},
 			})
 		}),
 
