@@ -9,7 +9,7 @@ import { UserSession } from '../types/authTypes';
 function getCookieFromHeader(cookieHeader: string | null | undefined, name: string): string | null {
   if (!cookieHeader) return null;
   const match = cookieHeader.match(new RegExp(`${name}=([^;]+)`));
-  return match ? match[1] : null;
+  return match?.[1] ?? null;
 }
 
 /**
@@ -18,7 +18,7 @@ function getCookieFromHeader(cookieHeader: string | null | undefined, name: stri
  */
 export const createContext = async (opts: { req?: { headers?: { cookie?: string } } }) => {
   // Try to get token from cookie (set by @sidebase/nuxt-auth)
-  const cookieHeader = opts?.req?.headers?.cookie;
+  const cookieHeader = opts?.req?.headers?.cookie ?? null;
   const token = getCookieFromHeader(cookieHeader, 'auth.token');
 
   if (!token) return { user: null };

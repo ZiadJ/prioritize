@@ -7,22 +7,26 @@ export function usePausableToast() {
 	const toast = useToast();
 
 	function add(
-		severity: 'success' | 'info' | 'warn' | 'error',
-		summary: string,
+		severityOrMessage: 'success' | 'info' | 'warn' | 'error' | ToastMessageOptions,
+		summary?: string,
 		detail?: string,
 		life?: number,
 	) {
-		addObject({ severity, summary, detail, life });
-	}
+		let message: ToastMessageOptions;
 
-	function addObject(message: ToastMessageOptions, ) {
+		if (typeof severityOrMessage === 'object') {
+			message = severityOrMessage;
+		} else {
+			message = { severity: severityOrMessage, summary: summary!, detail, life };
+		}
+
 		if (!message.life) {
 			// No life set — add normally (sticky)
 			toast.add(message);
 			return;
 		}
 
-		const life = message.life;
+		const lifeTime = message.life;
 		// Spread so we keep a stable reference; strip `life` so PrimeVue never
 		// auto-removes it — we manage the timer ourselves.
 		const managed = { ...message, life: undefined };
@@ -35,7 +39,7 @@ export function usePausableToast() {
 			const el = all[all.length - 1];
 			if (!el) return;
 
-			let remaining = life;
+			let remaining = lifeTime;
 			let startTime = Date.now();
 			let timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -64,15 +68,26 @@ export function usePausableToast() {
 
 			el!.addEventListener('mouseenter', onEnter);
 			el!.addEventListener('mouseleave', onLeave);
-			start(life);
+			start(lifeTime);
 		});
+	}
+
+	function remove(message: ToastMessageOptions) {
+		return toast.remove(message);
+	}
+
+	function removeGroup(group: string) {
+		return toast.removeGroup(group);
+	}
+
+	function removeAllGroups() {
+		return toast.removeAllGroups();
 	}
 
 	return {
 		add,
-		addObject,
-		remove: (msg: ToastMessageOptions) => toast.remove(msg),
-		removeGroup: (group: string) => toast.removeGroup(group),
-		removeAllGroups: () => toast.removeAllGroups(),
+		remove,
+		removeGroup,
+		removeAllGroups,
 	}
 }

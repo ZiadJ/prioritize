@@ -78,15 +78,10 @@ const addNewTag = async () => {
 		// Clear the AutoComplete input
 		(tagAutocomplete.value as any).$el.querySelector('input').value = '';
 		(tagAutocomplete.value as any).hide()
-	} catch (error) {
-		console.error('Failed to create tag:', error)
-		toast.addObject({
-			severity: 'error',
-			summary: 'Error',
-			detail: 'Failed to create tag',
-			life: 0,
-		})
-	}
+    } catch (error) {
+      console.error('Failed to create tag:', error)
+      toast.add('error', 'Error', 'Failed to create tag', 0)
+    }
 }
 
 const typeOptions = [
@@ -123,15 +118,10 @@ const fetchRequests = async () => {
 			search: searchQuery.value || undefined,
 		})
 		requests.value = result || []
-	} catch (error) {
-		console.error('Failed to fetch requests:', error)
-		toast.addObject({
-			severity: 'error',
-			summary: 'Error',
-			detail: 'Failed to fetch requests',
-			life: 3000,
-		})
-	} finally {
+  } catch (error) {
+    console.error('Failed to fetch requests:', error)
+    toast.add('error', 'Error', 'Failed to fetch requests', 0)
+  } finally {
 		loading.value = false
 	}
 }
@@ -200,15 +190,10 @@ const editRequest = (request: any) => {
 const currentRequestId = ref<number | null>(null)
 
 const saveRequest = async () => {
-	if (!formData.value.title) {
-		toast.addObject({
-			severity: 'warn',
-			summary: 'Warning',
-			detail: 'Title is required',
-			life: 3000,
-		})
-		return
-	}
+  if (!formData.value.title) {
+    toast.add('warn', 'Warning', 'Title is required', 3000)
+    return
+  }
 
 	const tagIds =
 		formData.value.selectedTags?.map((t: any) => t.id) ||
@@ -226,12 +211,7 @@ const saveRequest = async () => {
 				recurrencePeriod: formData.value.recurrencePeriod,
 				tagIds,
 			})
-			toast.addObject({
-				severity: 'success',
-				summary: 'Success',
-				detail: 'Request created successfully',
-				life: 3000,
-			})
+        toast.add('success', 'Success', 'Request created successfully', 3000)
 		} else if (dialogMode.value === 'update' && currentRequestId.value) {
 			await $trpcClient.requests.update.mutate({
 				id: currentRequestId.value,
@@ -243,23 +223,18 @@ const saveRequest = async () => {
 				isActive: formData.value.isActive,
 				tagIds,
 			})
-			toast.addObject({
-				severity: 'success',
-				summary: 'Success',
-				detail: 'Request updated successfully',
-				life: 3000,
-			})
+          toast.add('success', 'Success', 'Request updated successfully', 3000)
 		}
 		dialogVisible.value = false
 		fetchRequests()
 	} catch (error: any) {
 		console.error('Failed to save request:', error)
-		const message =
-			error?.message ||
-			error?.cause?.message ||
-			JSON.stringify(error) ||
-			'Failed to save request'
-		toast.addObject({ severity: 'error', summary: 'Error', detail: message, life: 0 })
+        const message =
+          error?.message ||
+          error?.cause?.message ||
+          JSON.stringify(error) ||
+          'Failed to save request'
+        toast.add('error', 'Error', message, 0)
 	} finally {
 		saving.value = false
 	}
@@ -276,22 +251,12 @@ const deleteRequest = async () => {
 	deleting.value = true
 	try {
 		await $trpcClient.requests.delete.mutate({ id: requestToDelete.value.id })
-		toast.addObject({
-			severity: 'success',
-			summary: 'Success',
-			detail: 'Request deleted successfully',
-			life: 3000,
-		})
+      toast.add('success', 'Success', 'Request deleted successfully', 3000)
 		deleteDialogVisible.value = false
 		fetchRequests()
 	} catch (error) {
 		console.error('Failed to delete request:', error)
-		toast.addObject({
-			severity: 'error',
-			summary: 'Error',
-			detail: 'Failed to delete request',
-			life: 0,
-		})
+      toast.add('error', 'Error', 'Failed to delete request', 0)
 	} finally {
 		deleting.value = false
 	}
