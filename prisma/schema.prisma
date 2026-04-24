@@ -233,7 +233,8 @@ model User {
   preferences   Json      @default("{}") // Json(no Sqlite support)
   isVerified    Boolean   @default(false)
 
-  tokens Token[]
+  community   CommunityNode? @relation(fields: [communityId], references: [id])
+  communityId Int?
 
   expertise         ExpertiseNode[]
   steps             StepNode[]      @relation("AssignedSteps")
@@ -256,7 +257,8 @@ model User {
   editableResourceNodes ResourceNode[] @relation("ResourceNodeEditors")
   ownedResourceNodes    ResourceNode[] @relation("ResourceNodeOwner")
 
-  requestQuantities Order[]
+  orders Order[]
+  tokens Token[]
 }
 
 model Token {
@@ -447,15 +449,15 @@ model Request {
   effects      Effect[]
   orders       Order[]
 
-  communityNode   CommunityNode @relation(fields: [communityNodeId], references: [id])
-  communityNodeId Int
+  communityNode CommunityNode? @relation(fields: [communityId], references: [id])
+  communityId   Int?
 
   owner   User   @relation("RequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId String
   editors User[] @relation("requestEditors")
 
   @@index([path])
-  @@index([communityNodeId])
+  @@index([communityId])
 }
 
 // Tracks the quantity of material requested by a user 
@@ -474,10 +476,10 @@ model Order {
   unitOfMeasure Int? // UnitOfMeasure, null when using custom units
   customUnit    String? // e.g. "pizzas", "meetings", "trees"
 
-  recurrencePeriod     Int // Daily, Weekly, Monthly, Quaterly, Semi-anually, Anually
-  expectedDeliveryDate DateTime  @default(now())
-  deliveryDate         DateTime? // Is reset based on the recurrence period using a cron job
-  missedDeliveryDate   DateTime? // For tracking missed deliveries and adjusting the next delivery date accordingly
+  recurrencePeriod   Int // Daily, Weekly, Monthly, Quaterly, Semi-anually, Anually
+  dueDeliveryDate    DateTime  @default(now())
+  deliveryDate       DateTime? // Is reset based on the recurrence period using a cron job
+  missedDeliveryDate DateTime? // For tracking missed deliveries and adjusting the next delivery date accordingly
 
   @@unique([requestId, userId])
   @@index([requestId])
@@ -796,6 +798,7 @@ model CommunityNode {
   latitude  Float
 
   requests Request[]
+  members  User[]
 
   @@index([path])
 }

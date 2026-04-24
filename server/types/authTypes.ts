@@ -1,8 +1,9 @@
 export type UserSession = {
-	id: string;
-	email: string;
-	username: string;
-};
+	id: string
+	email: string
+	username: string
+	communityId: number | null
+}
 
 export type LoginTokens = {
   accessToken: string;

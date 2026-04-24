@@ -29,27 +29,12 @@ const formData = ref({
 	isBasicNeed: false,
 	tagIds: [] as number[],
 	selectedTags: [] as any[],
-	communityNodeId: null as number | null,
-	selectedCommunity: null as string | null,
 })
 
 const availableTags = ref<any[]>([])
 const tagSuggestions = ref<any[]>([])
 const tagSearch = ref('')
 const tagAutocomplete = useTemplateRef('tagAutocomplete')
-
-const recurrenceOptions = [
-	{ label: 'None', value: 0 },
-	{ label: 'Daily', value: 1 },
-	{ label: 'Weekly', value: 7 },
-	{ label: 'Monthly', value: 30 },
-	{ label: 'Quarterly', value: 90 },
-	{ label: 'Semi-annually', value: 180 },
-	{ label: 'Annually', value: 365 },
-]
-
-const communityTree = ref<any[]>([])
-const loadingCommunities = ref(false)
 
 const searchTags = (event: { query: string }) => {
 	const query = event.query || ''
@@ -72,37 +57,7 @@ const searchTags = (event: { query: string }) => {
 	tagSuggestions.value = filtered
 }
 
-const fetchCommunityTree = async () => {
-	loadingCommunities.value = true
-	try {
-		communityTree.value = await $trpcClient.requests.getCommunityTree.query()
-	} catch (error: any) {
-		console.error('Failed to fetch community tree:', error)
-	} finally {
-		loadingCommunities.value = false
-	}
-}
-
-const onCommunitySelect = (node: any) => {
-	formData.value.communityNodeId = parseInt(node.key)
-}
-
-const onCommunityUnselect = () => {
-	formData.value.communityNodeId = null
-	formData.value.selectedCommunity = null
-}
-
-watch(
-	() => formData.value.selectedCommunity,
-	(newVal) => {
-		if (newVal) {
-			formData.value.communityNodeId = parseInt(newVal)
-		} else {
-			formData.value.communityNodeId = null
-		}
-	}
-)
-
+	
 const addNewTag = async () => {
 	const tagName = tagSearch.value.trim()
 	if (!tagName) return
@@ -164,8 +119,6 @@ const openNewDialog = () => {
 		isBasicNeed: false,
 		tagIds: [],
 		selectedTags: [],
-		communityNodeId: null,
-		selectedCommunity: null,
 	}
 	tagSearch.value = ''
 	tagSuggestions.value = availableTags.value
@@ -176,7 +129,6 @@ const openNewDialog = () => {
 const viewRequest = (request: any) => {
 	const tags = request.tags || []
 	tagSearch.value = ''
-	const communityNode = request.communityNode
 	const order = request.orders?.[0]
 	formData.value = {
 		title: request.title,
@@ -187,8 +139,6 @@ const viewRequest = (request: any) => {
 		isBasicNeed: request.isBasicNeed || false,
 		tagIds: tags.map((t: any) => t.id) || [],
 		selectedTags: tags,
-		communityNodeId: communityNode?.id || null,
-		selectedCommunity: communityNode ? String(communityNode.id) : null,
 	}
 	dialogMode.value = 'view'
 	dialogVisible.value = true
@@ -197,7 +147,6 @@ const viewRequest = (request: any) => {
 const editRequest = (request: any) => {
 	const tags = request.tags || []
 	tagSearch.value = ''
-	const communityNode = request.communityNode
 	const order = request.orders?.[0]
 	formData.value = {
 		title: request.title,
@@ -208,8 +157,6 @@ const editRequest = (request: any) => {
 		isBasicNeed: request.isBasicNeed || false,
 		tagIds: tags.map((t: any) => t.id) || [],
 		selectedTags: tags,
-		communityNodeId: communityNode?.id || null,
-		selectedCommunity: communityNode ? String(communityNode.id) : null,
 	}
 	tagSuggestions.value = availableTags.value
 	dialogMode.value = 'update'
@@ -239,7 +186,6 @@ const saveRequest = async () => {
 				recurrencePeriod: formData.value.recurrencePeriod,
 				quantity: formData.value.quantity,
 				tagIds,
-				communityNodeId: formData.value.communityNodeId!,
 				isBasicNeed: formData.value.isBasicNeed,
 			})
         toast.add('success', 'Success', 'Request created successfully', 3000)
@@ -252,7 +198,6 @@ const saveRequest = async () => {
 				quantity: formData.value.quantity,
 				isActive: formData.value.isActive,
 				tagIds,
-				communityNodeId: formData.value.communityNodeId!,
 				isBasicNeed: formData.value.isBasicNeed,
 			})
           toast.add('success', 'Success', 'Request updated successfully', 3000)
@@ -297,7 +242,6 @@ onMounted(async () => {
 	} catch (error: any) {
 		console.error('Failed to fetch tags:', error)
 	}
-	fetchCommunityTree()
 })
 </script>
 
@@ -443,44 +387,41 @@ onMounted(async () => {
 						rows="3" />
 				</div>
 			<div class="form-field">
-				<label for="recurrence">Recurrence Period</label>
+				<label for="recurrence">Recurrence</label>
 				<Dropdown
 					id="recurrence"
 					v-model="formData.recurrencePeriod"
-					:options="recurrenceOptions"
+					:options="[
+						{ label: 'None', value: 0 },
+						{ label: 'Daily', value: 1 },
+						{ label: 'Weekly', value: 7 },
+						{ label: 'Monthly', value: 30 },
+						{ label: 'Quarterly', value: 90 },
+						{ label: 'Semi-annually', value: 180 },
+						{ label: 'Annually', value: 365 },
+					]"
 					optionLabel="label"
 					optionValue="value"
 					:disabled="dialogMode === 'view'"
 					placeholder="Select recurrence" />
-			</div>
-			<div class="form-field">
+		</div>
+		<div class="flex gap-4">
+			<div class="form-field flex-1">
 				<label for="quantity">Quantity</label>
 				<InputNumber
 					id="quantity"
 					v-model="formData.quantity"
 					:disabled="dialogMode === 'view'" />
 			</div>
-				<div class="form-field">
-					<label for="community">Community</label>
-					<TreeSelect
-						id="community"
-						v-model="formData.selectedCommunity"
-						:options="communityTree"
-						selectionMode="single"
-						:loading="loadingCommunities"
-						:disabled="dialogMode === 'view'"
-						placeholder="Select a community"
-						class="w-full" />
-				</div>
-				<div class="form-field">
-					<label for="isBasicNeed">Basic Need</label>
-					<Checkbox
-						id="isBasicNeed"
-						v-model="formData.isBasicNeed"
-						:binary="true"
-						:disabled="dialogMode === 'view'" />
-					<span class="ml-2">{{ formData.isBasicNeed ? 'Yes' : 'No' }}</span>
-				</div>
+			<div class="form-field flex-1">
+				<label for="isBasicNeed">Basic Need</label>
+				<Checkbox
+					id="isBasicNeed"
+					v-model="formData.isBasicNeed"
+					:binary="true"
+					:disabled="dialogMode === 'view'" />
+			</div>
+		</div>
 				<div class="form-field">
 					<label for="tags">Tags</label>
 					<AutoComplete

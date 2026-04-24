@@ -6,36 +6,6 @@ async function main() {
 
   const hashedPassword = await bcrypt.hash('aaa', 10)
 
-  // Create users
-  const adminUser = await prisma.user.upsert({
-    where: { username: 'admin@example.com' },
-    update: { password: hashedPassword },
-    create: {
-      username: 'admin@example.com',
-      email: 'admin@example.com',
-      password: hashedPassword,
-      firstname: 'Admin',
-      lastname: 'User',
-      isActive: true,
-      isVerified: true,
-    },
-  })
-
-  const regularUser = await prisma.user.upsert({
-    where: { username: 'user@example.com' },
-    update: { password: hashedPassword },
-    create: {
-      username: 'user@example.com',
-      email: 'user@example.com',
-      password: hashedPassword,
-      firstname: 'Regular',
-      lastname: 'User',
-      isActive: true,
-    },
-  })
-
-  console.log('Users created')
-
   // Create community nodes
   const country1 = await prisma.communityNode.create({
     data: {
@@ -67,112 +37,146 @@ async function main() {
       isActive: true,
     },
   })
-
+  
   const city1 = await prisma.communityNode.create({
-    data: {
-      title: 'San Francisco',
-      body: 'City of San Francisco',
-      country: 'USA',
-      address: 'San Francisco, CA, USA',
-      longitude: -122.4194,
-      latitude: 37.7749,
-      path: `1/${country1.id}/${state1.id}/`,
-      depth: 2,
-      numchild: 0,
-      parentId: state1.id,
-      isActive: true,
-    },
-  })
+		data: {
+			title: 'San Francisco',
+			body: 'City of San Francisco',
+			country: 'USA',
+			address: 'San Francisco, CA, USA',
+			longitude: -122.4194,
+			latitude: 37.7749,
+			path: `1/${country1.id}/${state1.id}/`,
+			depth: 2,
+			numchild: 0,
+			parentId: state1.id,
+			isActive: true,
+		},
+	})
 
-  const country2 = await prisma.communityNode.create({
-    data: {
-      title: 'Canada',
-      body: 'Canada',
-      country: 'Canada',
-      address: 'Canada',
-      longitude: -106.3468,
-      latitude: 56.1304,
-      path: '2/',
-      depth: 0,
-      numchild: 1,
-      isActive: true,
-    },
-  })
+	const country2 = await prisma.communityNode.create({
+		data: {
+			title: 'Canada',
+			body: 'Canada',
+			country: 'Canada',
+			address: 'Canada',
+			longitude: -106.3468,
+			latitude: 56.1304,
+			path: '2/',
+			depth: 0,
+			numchild: 1,
+			isActive: true,
+		},
+	})
 
-  const state2 = await prisma.communityNode.create({
-    data: {
-      title: 'Ontario',
-      body: 'Province of Ontario',
-      country: 'Canada',
-      address: 'Ontario, Canada',
-      longitude: -79.3832,
-      latitude: 43.6532,
-      path: `2/${country2.id}/`,
-      depth: 1,
-      numchild: 1,
-      parentId: country2.id,
-      isActive: true,
-    },
-  })
+	const state2 = await prisma.communityNode.create({
+		data: {
+			title: 'Ontario',
+			body: 'Province of Ontario',
+			country: 'Canada',
+			address: 'Ontario, Canada',
+			longitude: -79.3832,
+			latitude: 43.6532,
+			path: `2/${country2.id}/`,
+			depth: 1,
+			numchild: 1,
+			parentId: country2.id,
+			isActive: true,
+		},
+	})
 
-  const city2 = await prisma.communityNode.create({
-    data: {
-      title: 'Toronto',
-      body: 'City of Toronto',
-      country: 'Canada',
-      address: 'Toronto, ON, Canada',
-      longitude: -79.3832,
-      latitude: 43.6532,
-      path: `2/${country2.id}/${state2.id}/`,
-      depth: 2,
-      numchild: 0,
-      parentId: state2.id,
-      isActive: true,
-    },
-  })
+	const city2 = await prisma.communityNode.create({
+		data: {
+			title: 'Toronto',
+			body: 'City of Toronto',
+			country: 'Canada',
+			address: 'Toronto, ON, Canada',
+			longitude: -79.3832,
+			latitude: 43.6532,
+			path: `2/${country2.id}/${state2.id}/`,
+			depth: 2,
+			numchild: 0,
+			parentId: state2.id,
+			isActive: true,
+		},
+	})
 
-  console.log('Community nodes created')
+	console.log('Community nodes created')
+
+	// Create users
+	const adminUser = await prisma.user.upsert({
+		where: { username: 'admin@example.com' },
+		update: { password: hashedPassword },
+		create: {
+			username: 'admin@example.com',
+			email: 'admin@example.com',
+			password: hashedPassword,
+			firstname: 'Admin',
+			lastname: 'User',
+			isActive: true,
+			isVerified: true,
+			communityId: city1.id,
+		},
+	})
+
+	const regularUser = await prisma.user.upsert({
+		where: { username: 'user@example.com' },
+		update: { password: hashedPassword },
+		create: {
+			username: 'user@example.com',
+			email: 'user@example.com',
+			password: hashedPassword,
+			firstname: 'Regular',
+			lastname: 'User',
+			isActive: true,
+			communityId: city2.id,
+		},
+	})
+
+	console.log('Users created')
+
+
 
   // Create requests
   const request1 = await prisma.request.create({
-    data: {
-      title: 'Food Assistance Needed',
-      body: 'Need help with groceries for the week',
-      isBasicNeed: true,
-      ownerId: adminUser.id,
-      communityNodeId: city1.id,
-    },
-  })
+		data: {
+			title: 'Food Assistance Needed',
+			body: 'Need help with groceries for the week',
+			isBasicNeed: true,
+			ownerId: adminUser.id,
+			communityId: city1.id,
+		},
+	})
 
   const request2 = await prisma.request.create({
-    data: {
-      title: 'Housing Support',
-      body: 'Looking for temporary housing assistance',
-      isBasicNeed: true,
-      ownerId: regularUser.id,
-      communityNodeId: city1.id,
-    },
-  })
+		data: {
+			title: 'Housing Support',
+			body: 'Looking for temporary housing assistance',
+			isBasicNeed: true,
+			ownerId: regularUser.id,
+			communityId: city1.id,
+		},
+	})
 
   const request3 = await prisma.request.create({
-    data: {
-      title: 'Community Event Planning',
-      body: 'Help organize a community cleanup event',
-      isBasicNeed: false,
-      ownerId: adminUser.id,
-      communityNodeId: city2.id,
-    },
-  })
+		data: {
+			title: 'Community Event Planning',
+			body: 'Help organize a community cleanup event',
+			isBasicNeed: false,
+			ownerId: adminUser.id,
+			communityId: city2.id,
+		},
+	})
 
   const request4 = await prisma.request.create({
-    data: {
-      title: 'Healthcare Access',
-      body: 'Need information about local healthcare services',
-      isBasicNeed: true,
-      ownerId: regularUser.id,
-      communityNodeId: city2.id,
-    },
-  })
+		data: {
+			title: 'Healthcare Access',
+			body: 'Need information about local healthcare services',
+			isBasicNeed: true,
+			ownerId: regularUser.id,
+			communityId: city2.id,
+		},
+	})
 
   console.log('Requests created')
 

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
-import { createTreeNode } from '~~/lib/tree'
+import { createTreeNode, buildTreeSelectDataFromNodes } from '~~/lib/tree'
 // import {
 // 	RequestWhereInputObjectSchema,
 // 	RequestUncheckedCreateInputObjectZodSchema,
@@ -10,13 +10,13 @@ import { createTreeNode } from '~~/lib/tree'
 // } from '~~/prisma/generated/zod/schemas'
 
 export const requestsRouter = router({
-		list: publicProcedure
+	list: publicProcedure
 		.input(
 			z
 				.object({
 					search: z.string().optional(),
 					isActive: z.boolean().optional(),
-					communityNodeId: z.number().optional(),
+					communityId: z.number().optional(),
 				})
 				.optional(),
 		)
@@ -30,7 +30,7 @@ export const requestsRouter = router({
 						],
 					}),
 					isActive: input?.isActive,
-					communityNodeId: input?.communityNodeId,
+					communityId: input?.communityId,
 				},
 				orderBy: { createdAt: 'desc' },
 				include: {
@@ -84,19 +84,29 @@ export const requestsRouter = router({
 				tagIds: z.array(z.number()).optional().default([]),
 				recurrencePeriod: z.number().optional().default(0),
 				quantity: z.number().optional().default(1),
-				communityNodeId: z.number(),
 				isBasicNeed: z.boolean().optional().default(false),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const { tagIds, parentId, communityNodeId, isBasicNeed, recurrencePeriod, quantity, ...data } = input
+			const {
+				tagIds,
+				parentId,
+				isBasicNeed,
+				recurrencePeriod,
+				quantity,
+				...data
+			} = input
+
+			if (!ctx.user!.communityId) {
+				throw new Error('User must be assigned to a community')
+			}
 
 			try {
 				const node = await createTreeNode(prisma.request, {
 					...data,
 					isActive: true,
 					parentId,
-					communityNodeId,
+					communityId: ctx.user!.communityId,
 					isBasicNeed,
 					ownerId: ctx.user!.id,
 					tags: tagIds?.length
@@ -135,17 +145,13 @@ export const requestsRouter = router({
 				tagIds: z.array(z.number()).optional(),
 				recurrencePeriod: z.number().optional(),
 				quantity: z.number().optional(),
-				communityNodeId: z.number().optional(),
 				isBasicNeed: z.boolean().optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const { id, tagIds, communityNodeId, isBasicNeed, recurrencePeriod, quantity, ...data } = input
+			const { id, tagIds, isBasicNeed, recurrencePeriod, quantity, ...data } =
+				input
 			const updateData: Prisma.RequestUpdateInput = { ...data }
-
-			if (communityNodeId !== undefined) {
-				updateData.communityNode = { connect: { id: communityNodeId } }
-			}
 			if (isBasicNeed !== undefined) {
 				updateData.isBasicNeed = isBasicNeed
 			}
@@ -157,12 +163,12 @@ export const requestsRouter = router({
 
 			// Update the request
 			const updatedRequest = await prisma.request.update({
-				where: { 
+				where: {
 					id,
 					OR: [
 						{ ownerId: ctx.user!.id },
-						{ editors: { some: { id: ctx.user!.id } } }
-					]
+						{ editors: { some: { id: ctx.user!.id } } },
+					],
 				},
 				data: updateData,
 			})
@@ -176,7 +182,7 @@ export const requestsRouter = router({
 				if (existingOrder) {
 					await prisma.order.update({
 						where: { id: existingOrder.id },
-						data: { 
+						data: {
 							recurrencePeriod,
 							...(quantity !== undefined && { quantity }),
 						},
@@ -201,12 +207,12 @@ export const requestsRouter = router({
 		.mutation(async ({ ctx, input }) => {
 			// Ensure user can delete their own request or if they are listed as an editor
 			return prisma.request.delete({
-				where: { 
+				where: {
 					id: input.id,
 					OR: [
 						{ ownerId: ctx.user!.id },
-						{ editors: { some: { id: ctx.user!.id } } }
-					]
+						{ editors: { some: { id: ctx.user!.id } } },
+					],
 				},
 			})
 		}),
@@ -243,37 +249,9 @@ export const requestsRouter = router({
 	}),
 
 	getCommunityTree: publicProcedure.query(async () => {
-		const roots = await prisma.communityNode.findMany({
-			where: { parentId: null },
+		const allNodes = await prisma.communityNode.findMany({
 			orderBy: { title: 'asc' },
 		})
-
-		const buildTree = async (parentId: number | null): Promise<any[]> => {
-			const children = await prisma.communityNode.findMany({
-				where: { parentId },
-				orderBy: { title: 'asc' },
-			})
-			const result = []
-			for (const child of children) {
-				result.push({
-					key: String(child.id),
-					label: child.title,
-					data: child,
-					children: await buildTree(child.id),
-				})
-			}
-			return result
-		}
-
-		const tree = []
-		for (const root of roots) {
-			tree.push({
-				key: String(root.id),
-				label: root.title,
-				data: root,
-				children: await buildTree(root.id),
-			})
-		}
-		return tree
+		return buildTreeSelectDataFromNodes(allNodes)
 	}),
 })
