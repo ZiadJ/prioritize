@@ -33,14 +33,15 @@ export const requestsRouter = router({
 					communityId: input?.communityId,
 				},
 				orderBy: { createdAt: 'desc' },
-				include: {
-					tags: true,
-					communityNode: true,
-					orders: true,
-					_count: {
-						select: { children: true, feedback: true },
+            include: {
+						tags: true,
+						communityNode: true,
+						orders: true,
+						editors: true,
+						_count: {
+							select: { children: true, feedback: true },
+						},
 					},
-				},
 			})
 		}),
 

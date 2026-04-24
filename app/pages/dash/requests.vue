@@ -332,8 +332,9 @@ onMounted(async () => {
 							severity="info"
 							@click="viewRequest(data)"
 							v-tooltip.top="'View'" />
+						{{ session.user.id }}
 						<Button
-							v-if="session?.id === data.userId"
+							v-if="session?.id === data.ownerId || data.editors?.some((e: any) => e.id === session?.id)"
 							icon="pi pi-pencil"
 							text
 							rounded
@@ -341,7 +342,7 @@ onMounted(async () => {
 							@click="editRequest(data)"
 							v-tooltip.top="'Edit'" />
 						<Button
-							v-if="session?.id === data.userId"
+							v-if="session?.id === data.ownerId || data.editors?.some((e: any) => e.id === session?.id)"
 							icon="pi pi-trash"
 							text
 							rounded
