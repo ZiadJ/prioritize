@@ -6,6 +6,7 @@ definePageMeta({
 const { $trpcClient } = useNuxtApp()
 const toast = usePausableToast()
 const { data: session } = useAuth()
+import type { TRPCClientError } from '@trpc/client'
 
 const requests = ref<any[]>([])
 const loading = ref(true)
@@ -22,18 +23,33 @@ const deleteDialogVisible = ref(false)
 const formData = ref({
 	title: '',
 	body: '',
-	type: 0,
-	level: 0,
 	recurrencePeriod: 0,
+	quantity: 1,
 	isActive: true,
+	isBasicNeed: false,
 	tagIds: [] as number[],
 	selectedTags: [] as any[],
+	communityNodeId: null as number | null,
+	selectedCommunity: null as string | null,
 })
 
 const availableTags = ref<any[]>([])
 const tagSuggestions = ref<any[]>([])
 const tagSearch = ref('')
 const tagAutocomplete = useTemplateRef('tagAutocomplete')
+
+const recurrenceOptions = [
+	{ label: 'None', value: 0 },
+	{ label: 'Daily', value: 1 },
+	{ label: 'Weekly', value: 7 },
+	{ label: 'Monthly', value: 30 },
+	{ label: 'Quarterly', value: 90 },
+	{ label: 'Semi-annually', value: 180 },
+	{ label: 'Annually', value: 365 },
+]
+
+const communityTree = ref<any[]>([])
+const loadingCommunities = ref(false)
 
 const searchTags = (event: { query: string }) => {
 	const query = event.query || ''
@@ -55,6 +71,37 @@ const searchTags = (event: { query: string }) => {
 	)
 	tagSuggestions.value = filtered
 }
+
+const fetchCommunityTree = async () => {
+	loadingCommunities.value = true
+	try {
+		communityTree.value = await $trpcClient.requests.getCommunityTree.query()
+	} catch (error: any) {
+		console.error('Failed to fetch community tree:', error)
+	} finally {
+		loadingCommunities.value = false
+	}
+}
+
+const onCommunitySelect = (node: any) => {
+	formData.value.communityNodeId = parseInt(node.key)
+}
+
+const onCommunityUnselect = () => {
+	formData.value.communityNodeId = null
+	formData.value.selectedCommunity = null
+}
+
+watch(
+	() => formData.value.selectedCommunity,
+	(newVal) => {
+		if (newVal) {
+			formData.value.communityNodeId = parseInt(newVal)
+		} else {
+			formData.value.communityNodeId = null
+		}
+	}
+)
 
 const addNewTag = async () => {
 	const tagName = tagSearch.value.trim()
@@ -78,37 +125,10 @@ const addNewTag = async () => {
 		// Clear the AutoComplete input
 		(tagAutocomplete.value as any).$el.querySelector('input').value = '';
 		(tagAutocomplete.value as any).hide()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create tag:', error)
-      toast.add('error', 'Error', 'Failed to create tag', 0)
+      toast.add('error', 'Error', error.message || 'Failed to create tag', 0)
     }
-}
-
-const typeOptions = [
-	{ label: 'Emotional', value: 0 },
-	{ label: 'Observational', value: 1 },
-	{ label: 'Material', value: 2 },
-]
-
-const levelOptions = [
-	{ label: 'Safety', value: 0 },
-	{ label: 'Health', value: 1 },
-	{ label: 'Belonging', value: 2 },
-	{ label: 'Esteem', value: 3 },
-	{ label: 'Self-Actualization', value: 4 },
-]
-
-const getTypeLabel = (type: number) => typeOptions[type]?.label || 'Unknown'
-const getTypeSeverity = (type: number) => {
-	const severities = ['warn', 'info', 'success']
-	return severities[type] || 'secondary'
-}
-
-const getLevelLabel = (level: number) => levelOptions[level]?.label || 'Unknown'
-const getLevelSeverity = (level: number) => {
-	if (level <= 1) return 'danger'
-	if (level <= 2) return 'warn'
-	return 'success'
 }
 
 const fetchRequests = async () => {
@@ -118,9 +138,9 @@ const fetchRequests = async () => {
 			search: searchQuery.value || undefined,
 		})
 		requests.value = result || []
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch requests:', error)
-    toast.add('error', 'Error', 'Failed to fetch requests', 0)
+    toast.add('error', 'Error', error.message || 'Failed to fetch requests', 0)
   } finally {
 		loading.value = false
 	}
@@ -138,12 +158,14 @@ const openNewDialog = () => {
 	formData.value = {
 		title: '',
 		body: '',
-		type: 0,
-		level: 0,
 		recurrencePeriod: 0,
+		quantity: 1,
 		isActive: true,
+		isBasicNeed: false,
 		tagIds: [],
 		selectedTags: [],
+		communityNodeId: null,
+		selectedCommunity: null,
 	}
 	tagSearch.value = ''
 	tagSuggestions.value = availableTags.value
@@ -154,15 +176,19 @@ const openNewDialog = () => {
 const viewRequest = (request: any) => {
 	const tags = request.tags || []
 	tagSearch.value = ''
+	const communityNode = request.communityNode
+	const order = request.orders?.[0]
 	formData.value = {
 		title: request.title,
 		body: request.body,
-		type: request.type,
-		level: request.level,
-		recurrencePeriod: request.recurrencePeriod,
+		recurrencePeriod: order?.recurrencePeriod || 0,
+		quantity: order?.quantity || 1,
 		isActive: request.isActive,
+		isBasicNeed: request.isBasicNeed || false,
 		tagIds: tags.map((t: any) => t.id) || [],
 		selectedTags: tags,
+		communityNodeId: communityNode?.id || null,
+		selectedCommunity: communityNode ? String(communityNode.id) : null,
 	}
 	dialogMode.value = 'view'
 	dialogVisible.value = true
@@ -171,15 +197,19 @@ const viewRequest = (request: any) => {
 const editRequest = (request: any) => {
 	const tags = request.tags || []
 	tagSearch.value = ''
+	const communityNode = request.communityNode
+	const order = request.orders?.[0]
 	formData.value = {
 		title: request.title,
 		body: request.body,
-		type: request.type,
-		level: request.level,
-		recurrencePeriod: request.recurrencePeriod,
+		recurrencePeriod: order?.recurrencePeriod || 0,
+		quantity: order?.quantity || 1,
 		isActive: request.isActive,
+		isBasicNeed: request.isBasicNeed || false,
 		tagIds: tags.map((t: any) => t.id) || [],
 		selectedTags: tags,
+		communityNodeId: communityNode?.id || null,
+		selectedCommunity: communityNode ? String(communityNode.id) : null,
 	}
 	tagSuggestions.value = availableTags.value
 	dialogMode.value = 'update'
@@ -206,10 +236,11 @@ const saveRequest = async () => {
 			await $trpcClient.requests.create.mutate({
 				title: formData.value.title,
 				body: formData.value.body,
-				type: formData.value.type,
-				level: formData.value.level,
 				recurrencePeriod: formData.value.recurrencePeriod,
+				quantity: formData.value.quantity,
 				tagIds,
+				communityNodeId: formData.value.communityNodeId!,
+				isBasicNeed: formData.value.isBasicNeed,
 			})
         toast.add('success', 'Success', 'Request created successfully', 3000)
 		} else if (dialogMode.value === 'update' && currentRequestId.value) {
@@ -217,11 +248,12 @@ const saveRequest = async () => {
 				id: currentRequestId.value,
 				title: formData.value.title,
 				body: formData.value.body,
-				type: formData.value.type,
-				level: formData.value.level,
 				recurrencePeriod: formData.value.recurrencePeriod,
+				quantity: formData.value.quantity,
 				isActive: formData.value.isActive,
 				tagIds,
+				communityNodeId: formData.value.communityNodeId!,
+				isBasicNeed: formData.value.isBasicNeed,
 			})
           toast.add('success', 'Success', 'Request updated successfully', 3000)
 		}
@@ -229,12 +261,7 @@ const saveRequest = async () => {
 		fetchRequests()
 	} catch (error: any) {
 		console.error('Failed to save request:', error)
-        const message =
-          error?.message ||
-          error?.cause?.message ||
-          JSON.stringify(error) ||
-          'Failed to save request'
-        toast.add('error', 'Error', message, 0)
+		toast.add('error', 'Error', error.message || 'Failed to save request', 0)
 	} finally {
 		saving.value = false
 	}
@@ -254,9 +281,9 @@ const deleteRequest = async () => {
       toast.add('success', 'Success', 'Request deleted successfully', 3000)
 		deleteDialogVisible.value = false
 		fetchRequests()
-	} catch (error) {
+	} catch (error: any) {
 		console.error('Failed to delete request:', error)
-      toast.add('error', 'Error', 'Failed to delete request', 0)
+		toast.add('error', 'Error', error.message || 'Failed to delete request', 0)
 	} finally {
 		deleting.value = false
 	}
@@ -267,9 +294,10 @@ onMounted(async () => {
 	try {
 		availableTags.value = (await $trpcClient.requests.listTags.query()) || []
 		tagSuggestions.value = availableTags.value
-	} catch (error) {
+	} catch (error: any) {
 		console.error('Failed to fetch tags:', error)
 	}
+	fetchCommunityTree()
 })
 </script>
 
@@ -315,18 +343,16 @@ onMounted(async () => {
 					<span class="line-clamp-2">{{ data.body || '-' }}</span>
 				</template>
 			</Column>
-			<Column field="type" header="Type" sortable>
+			<Column field="communityNode" header="Community">
 				<template #body="{ data }">
-					<Tag
-						:value="getTypeLabel(data.type)"
-						:severity="getTypeSeverity(data.type)" />
+					<span>{{ data.communityNode?.title || '-' }}</span>
 				</template>
 			</Column>
-			<Column field="level" header="Level" sortable>
+			<Column field="isBasicNeed" header="Basic Need">
 				<template #body="{ data }">
 					<Tag
-						:value="getLevelLabel(data.level)"
-						:severity="getLevelSeverity(data.level)" />
+						:value="data.isBasicNeed ? 'Yes' : 'No'"
+						:severity="data.isBasicNeed ? 'danger' : 'secondary'" />
 				</template>
 			</Column>
 			<Column field="tags" header="Tags">
@@ -416,34 +442,44 @@ onMounted(async () => {
 						:disabled="dialogMode === 'view'"
 						rows="3" />
 				</div>
-				<div class="form-row gap-3">
-					<div class="form-field flex-1">
-						<label for="type">Type</label>
-						<Dropdown
-							id="type"
-							v-model="formData.type"
-							:options="typeOptions"
-							optionLabel="label"
-							optionValue="value"
-							:disabled="dialogMode === 'view'" />
-					</div>
-					<div class="form-field flex-1">
-						<label for="level">Level</label>
-						<Dropdown
-							id="level"
-							v-model="formData.level"
-							:options="levelOptions"
-							optionLabel="label"
-							optionValue="value"
-							:disabled="dialogMode === 'view'" />
-					</div>
+			<div class="form-field">
+				<label for="recurrence">Recurrence Period</label>
+				<Dropdown
+					id="recurrence"
+					v-model="formData.recurrencePeriod"
+					:options="recurrenceOptions"
+					optionLabel="label"
+					optionValue="value"
+					:disabled="dialogMode === 'view'"
+					placeholder="Select recurrence" />
+			</div>
+			<div class="form-field">
+				<label for="quantity">Quantity</label>
+				<InputNumber
+					id="quantity"
+					v-model="formData.quantity"
+					:disabled="dialogMode === 'view'" />
+			</div>
+				<div class="form-field">
+					<label for="community">Community</label>
+					<TreeSelect
+						id="community"
+						v-model="formData.selectedCommunity"
+						:options="communityTree"
+						selectionMode="single"
+						:loading="loadingCommunities"
+						:disabled="dialogMode === 'view'"
+						placeholder="Select a community"
+						class="w-full" />
 				</div>
 				<div class="form-field">
-					<label for="recurrence">Recurrence Period (days)</label>
-					<InputNumber
-						id="recurrence"
-						v-model="formData.recurrencePeriod"
+					<label for="isBasicNeed">Basic Need</label>
+					<Checkbox
+						id="isBasicNeed"
+						v-model="formData.isBasicNeed"
+						:binary="true"
 						:disabled="dialogMode === 'view'" />
+					<span class="ml-2">{{ formData.isBasicNeed ? 'Yes' : 'No' }}</span>
 				</div>
 				<div class="form-field">
 					<label for="tags">Tags</label>
