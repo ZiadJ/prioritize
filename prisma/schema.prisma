@@ -243,20 +243,20 @@ model User {
   fromRelationships UserRelation[]  @relation("from")
   toRelationships   UserRelation[]  @relation("to")
 
-  editableRequests      Request[]         @relation("requestEditors")
-  ownedRequests         Request[]         @relation("RequestOwner")
-  editableRequestNodes  RequestNode[]     @relation("RequestNodeEditors")
-  ownedRequestNodes     RequestNode[]     @relation("RequestNodeOwner")
-  editableProposals     Proposal[]        @relation("ProposalEditors")
-  ownedProposals        Proposal[]        @relation("ProposalOwner")
-  editableStepNodes     StepNode[]        @relation("StepNodeEditors")
-  ownedStepNodes        StepNode[]        @relation("StepNodeOwner")
-  editableStepCosts     StepCost[]        @relation("StepCostEditors")
-  ownedStepCosts        StepCost[]        @relation("StepCostOwner")
-  editableResourceNodes ResourceNode[]    @relation("ResourceNodeEditors")
-  ownedResourceNodes    ResourceNode[]    @relation("ResourceNodeOwner")
-  
-  requestQuantities     RequestQuantity[]
+  editableRequests      Request[]      @relation("requestEditors")
+  ownedRequests         Request[]      @relation("RequestOwner")
+  editableRequestNodes  RequestNode[]  @relation("RequestNodeEditors")
+  ownedRequestNodes     RequestNode[]  @relation("RequestNodeOwner")
+  editableProposals     Proposal[]     @relation("ProposalEditors")
+  ownedProposals        Proposal[]     @relation("ProposalOwner")
+  editableStepNodes     StepNode[]     @relation("StepNodeEditors")
+  ownedStepNodes        StepNode[]     @relation("StepNodeOwner")
+  editableStepCosts     StepCost[]     @relation("StepCostEditors")
+  ownedStepCosts        StepCost[]     @relation("StepCostOwner")
+  editableResourceNodes ResourceNode[] @relation("ResourceNodeEditors")
+  ownedResourceNodes    ResourceNode[] @relation("ResourceNodeOwner")
+
+  requestQuantities Order[]
 }
 
 model Token {
@@ -430,34 +430,36 @@ model Request {
   revisions RevisionNode[]
 
   // Variant hierarchy for similar requests with different parameters
-  path     String    @unique @default("")
+  path     String    @default("")
   depth    Int       @default(0)
   numchild Int       @default(0)
   parent   Request?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
   parentId Int?
   children Request[] @relation("Self")
 
-  type  Int // RequestType // Verbal, Material
-  level Int // RequestLevel // Safety, Health, Belonging, Esteem, SelfActualization
+  isPrivate   Boolean @default(false)
+  isBasicNeed Boolean @default(false)
 
-  recurrencePeriod Int // For reccurring requests such as daily water intake or weekly social interactions
+  requestNodes RequestNode[]
+  expertise    ExpertiseNode[]
+  feedback     FeedbackNode[]
+  tags         Tag[]
+  effects      Effect[]
+  orders       Order[]
 
-  requests   RequestNode[]
-  expertise  ExpertiseNode[]
-  feedback   FeedbackNode[]
-  tags       Tag[]
-  effects    Effect[]
-  quantities RequestQuantity[]
+  communityNode   CommunityNode @relation(fields: [communityNodeId], references: [id])
+  communityNodeId Int
 
   owner   User   @relation("RequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId String
   editors User[] @relation("requestEditors")
 
   @@index([path])
+  @@index([communityNodeId])
 }
 
-// Tracks the quantity of material requested by a user for a material-type request
-model RequestQuantity {
+// Tracks the quantity of material requested by a user 
+model Order {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
@@ -472,9 +474,15 @@ model RequestQuantity {
   unitOfMeasure Int? // UnitOfMeasure, null when using custom units
   customUnit    String? // e.g. "pizzas", "meetings", "trees"
 
+  recurrencePeriod     Int // Daily, Weekly, Monthly, Quaterly, Semi-anually, Anually
+  expectedDeliveryDate DateTime  @default(now())
+  deliveryDate         DateTime? // Is reset based on the recurrence period using a cron job
+  missedDeliveryDate   DateTime? // For tracking missed deliveries and adjusting the next delivery date accordingly
+
   @@unique([requestId, userId])
   @@index([requestId])
   @@index([userId])
+  @@map("RequestQuantity")
 }
 
 // A request containing proposal nodes each assignable to a step. Each
@@ -753,13 +761,41 @@ model ResourceNode {
   reservedQuantity       Float
   monetaryValue          Float // Per specified unit
 
-  stepsPerAdditionalRenewalCapacity StepNode[] // 
+  stepsPerAdditionalRenewalCapacity StepNode[] //
   stepCosts                         StepCost[] // Step cost referencing this resource node
   tags                              Tag[]
 
   owner   User   @relation("ResourceNodeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId String
   editors User[] @relation("ResourceNodeEditors")
+
+  @@index([path])
+}
+
+// A community organization with hierarchical structure and location data
+
+model CommunityNode {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean  @default(true)
+
+  title String @unique
+  body  String
+
+  path     String          @unique
+  depth    Int             @default(0)
+  numchild Int             @default(0)
+  parent   CommunityNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId Int?
+  children CommunityNode[] @relation("Self")
+
+  country   String
+  address   String
+  longitude Float
+  latitude  Float
+
+  requests Request[]
 
   @@index([path])
 }

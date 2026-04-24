@@ -7,9 +7,10 @@
 		"dev": "nuxt dev",
 		"generate": "nuxt generate",
 		"preview": "nuxt preview",
-		"postinstall": "nuxt prepare"
+		"postinstall": "nuxt prepare",
+		"seed": "tsx -r dotenv/config prisma/seed.ts"
 	},
-"dependencies": {
+	"dependencies": {
 		"@nuxt/icon": "^2.2.1",
 		"@nuxtjs/color-mode": "^4.0.0",
 		"@nuxtjs/google-fonts": "^3.2.0",
@@ -43,6 +44,7 @@
 		"@types/pg": "^8.20.0",
 		"prisma": "^7.7.0",
 		"prisma-generator-typescript-interfaces": "^3.1.0",
-		"prisma-zod-generator": "^2.1.4"
+		"prisma-zod-generator": "^2.1.4",
+		"tsx": "^4.21.0"
 	}
 }
