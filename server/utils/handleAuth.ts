@@ -1,5 +1,5 @@
 import { H3Event, createError } from "h3";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken'
 import prisma from '~~/lib/prisma';
 import { loginSchema, registerSchema } from "../validation/schemas";
 import { UserSession } from "../types/authTypes";
@@ -287,13 +287,13 @@ export const generateTokens = (userId: string, remember?: boolean) => {
 		? REMEMBER_ME_REFRESH_TOKEN_TTL
 		: REFRESH_TOKEN_TTL;
 
-	const accessToken = jwt.sign({ id: userId }, JWT_SECRET, {
-		expiresIn: ACCESS_TOKEN_TTL,
-	});
+const accessToken = jwt.sign({ id: userId }, JWT_SECRET as jwt.Secret, {
+	expiresIn: ACCESS_TOKEN_TTL as SignOptions['expiresIn'],
+})
 
-	const refreshToken = jwt.sign({ id: userId }, REFRESH_SECRET, {
-		expiresIn: refreshTtl,
-	});
+const refreshToken = jwt.sign({ id: userId }, REFRESH_SECRET as jwt.Secret, {
+	expiresIn: refreshTtl as SignOptions['expiresIn'],
+})
 
 	return { accessToken, refreshToken };
 };
@@ -324,11 +324,15 @@ export const clearAndStoreTokens = async (
 };
 
 export const returnToken = (id: number): string => {
-  return jwt.sign({ id }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_TTL });
+  return jwt.sign({ id }, JWT_SECRET as jwt.Secret, {
+		expiresIn: ACCESS_TOKEN_TTL as SignOptions['expiresIn'],
+	})
 };
 
 export const returnRefreshToken = (id: number): string => {
-  return jwt.sign({ id }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_TTL });
+  return jwt.sign({ id }, REFRESH_SECRET as jwt.Secret, {
+		expiresIn: REFRESH_TOKEN_TTL as SignOptions['expiresIn'],
+	})
 };
 
 export const validateRefreshToken = async (refreshToken: string) => {
