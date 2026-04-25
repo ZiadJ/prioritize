@@ -3,6 +3,7 @@ export type UserSession = {
 	email: string
 	username: string
 	communityId: number | null
+	countryId: number | null
 	role: string
 }
 

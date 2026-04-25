@@ -35,6 +35,7 @@ export const SignInRequest = async (event: H3Event) => {
 			email: user.email,
 			username: user.username,
 			communityId: user.communityId,
+			countryId: user.countryId,
 			role: user.role,
 		},
 		accessToken,
@@ -110,6 +111,7 @@ export const signUpRequest = async (event: H3Event) => {
 			email: User.email,
 			name: User.username,
 			communityId: User.communityId,
+			countryId: User.countryId,
 			role: User.role,
 		},
 	}
@@ -229,6 +231,7 @@ export const returnUserJwtPayload = async (
 			email: true,
 			username: true,
 			communityId: true,
+			countryId: true,
 			role: true,
 		},
 	})
