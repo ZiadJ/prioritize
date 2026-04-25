@@ -21,19 +21,19 @@ const selectedRequests = ref<any[]>([])
 const dialogVisible = ref(false)
 const dialogMode = ref<'create' | 'update' | 'view'>('create')
 const requestToDelete = ref<any>(null)
-const deleteDialogVisible = ref(false) 
+const deleteDialogVisible = ref(false)
 const currentRequestId = ref<number | null>(null)
 
 const allTags = ref<Tag[]>([])
 
 const formData = ref({
-  title: '',
-  body: '',
-  recurrencePeriod: 0,
-  quantity: 1,
-  isActive: true,
-  isBasicNeed: false,
-  selectedTags: [] as Tag[],
+	title: '',
+	body: '',
+	recurrencePeriod: 0,
+	quantity: 1,
+	isActive: true,
+	isBasicNeed: false,
+	selectedTags: [] as Tag[],
 })
 
 const viewCommunity = ref('')
@@ -41,6 +41,7 @@ const viewCountry = ref('')
 
 const tagsComponentRef = useTemplateRef('tagsComponentRef')
 
+// TODO: Check if really needed or if @tag-created on Tags component is sufficient
 const safeAddNewTag = async () => {
 	try {
 		await handleAddNewTag()
@@ -61,7 +62,9 @@ const handleAddNewTag = async () => {
 	}
 
 	try {
-		const newTag = await $trpcClient.requests.createTag.mutate({ name: tagName })
+		const newTag = await $trpcClient.requests.createTag.mutate({
+			name: tagName,
+		})
 		tagsComponentRef.value?.addTagFromExternal(newTag)
 		formData.value.selectedTags = [...formData.value.selectedTags, newTag]
 		allTags.value = [...allTags.value, newTag]
@@ -109,21 +112,21 @@ const openNewDialog = () => {
 }
 
 const viewRequest = (request: any) => {
-  const tags = request.tags || []
-  const order = request.orders?.[0]
-  formData.value = {
-    title: request.title,
-    body: request.body,
-    recurrencePeriod: order?.recurrencePeriod || 0,
-    quantity: order?.quantity || 1,
-    isActive: request.isActive,
-    isBasicNeed: request.isBasicNeed || false,
-    selectedTags: tags,
-  }
-  viewCommunity.value = request.communityNode?.title || '-'
-  viewCountry.value = request.country?.name || '-'
-  dialogMode.value = 'view'
-  dialogVisible.value = true
+	const tags = request.tags || []
+	const order = request.orders?.[0]
+	formData.value = {
+		title: request.title,
+		body: request.body,
+		recurrencePeriod: order?.recurrencePeriod || 0,
+		quantity: order?.quantity || 1,
+		isActive: request.isActive,
+		isBasicNeed: request.isBasicNeed || false,
+		selectedTags: tags,
+	}
+	viewCommunity.value = request.communityNode?.title || '-'
+	viewCountry.value = request.country?.name || '-'
+	dialogMode.value = 'view'
+	dialogVisible.value = true
 }
 
 const editRequest = (request: any) => {
@@ -144,54 +147,54 @@ const editRequest = (request: any) => {
 }
 
 const saveRequest = async () => {
-  if (!formData.value.title) {
-    toast.add('warn', 'Warning', 'Title is required', 3000)
-    return
-  }
+	if (!formData.value.title) {
+		toast.add('warn', 'Warning', 'Title is required', 3000)
+		return
+	}
 
-  const tagIds = formData.value.selectedTags?.map((t: any) => t.id) || []
+	const tagIds = formData.value.selectedTags?.map((t: any) => t.id) || []
 
-  saving.value = true
-  try {
-    if (dialogMode.value === 'create') {
-      // Ensure user has community and country assigned
-      if (!session.value?.user?.communityId) {
-        throw new Error('User must be assigned to a community')
-      }
-      if (!session.value?.user?.countryId) {
-        throw new Error('User must have a country assigned')
-      }
+	saving.value = true
+	try {
+		if (dialogMode.value === 'create') {
+			// Ensure user has community and country assigned
+			if (!session.value?.user?.communityId) {
+				throw new Error('User must be assigned to a community')
+			}
+			if (!session.value?.user?.countryId) {
+				throw new Error('User must have a country assigned')
+			}
 
-      await $trpcClient.requests.create.mutate({
-        title: formData.value.title,
-        body: formData.value.body,
-        recurrencePeriod: formData.value.recurrencePeriod,
-        quantity: formData.value.quantity,
-        tagIds,
-        isBasicNeed: formData.value.isBasicNeed,
-      })
-      toast.add('success', 'Success', 'Request created successfully', 3000)
-    } else if (dialogMode.value === 'update' && currentRequestId.value) {
-      await $trpcClient.requests.update.mutate({
-        id: currentRequestId.value,
-        title: formData.value.title,
-        body: formData.value.body,
-        recurrencePeriod: formData.value.recurrencePeriod,
-        quantity: formData.value.quantity,
-        isActive: formData.value.isActive,
-        tagIds,
-        isBasicNeed: formData.value.isBasicNeed,
-      })
-      toast.add('success', 'Success', 'Request updated successfully', 3000)
-    }
-    dialogVisible.value = false
-    fetchRequests()
-  } catch (error: any) {
-    console.error('Failed to save request:', error)
-    toast.add('error', 'Error', error.message || 'Failed to save request', 0)
-  } finally {
-    saving.value = false
-  }
+			await $trpcClient.requests.create.mutate({
+				title: formData.value.title,
+				body: formData.value.body,
+				recurrencePeriod: formData.value.recurrencePeriod,
+				quantity: formData.value.quantity,
+				tagIds,
+				isBasicNeed: formData.value.isBasicNeed,
+			})
+			toast.add('success', 'Success', 'Request created successfully', 3000)
+		} else if (dialogMode.value === 'update' && currentRequestId.value) {
+			await $trpcClient.requests.update.mutate({
+				id: currentRequestId.value,
+				title: formData.value.title,
+				body: formData.value.body,
+				recurrencePeriod: formData.value.recurrencePeriod,
+				quantity: formData.value.quantity,
+				isActive: formData.value.isActive,
+				tagIds,
+				isBasicNeed: formData.value.isBasicNeed,
+			})
+			toast.add('success', 'Success', 'Request updated successfully', 3000)
+		}
+		dialogVisible.value = false
+		fetchRequests()
+	} catch (error: any) {
+		console.error('Failed to save request:', error)
+		toast.add('error', 'Error', error.message || 'Failed to save request', 0)
+	} finally {
+		saving.value = false
+	}
 }
 
 const confirmDelete = (request: any) => {
@@ -220,7 +223,7 @@ onMounted(async () => {
 	fetchRequests()
 	try {
 		const tags = (await $trpcClient.requests.listTags.query()) || []
-       allTags.value = tags
+		allTags.value = tags
 	} catch (error: any) {
 		console.error(error.messsage || 'Failed to fetch tags:', error)
 	}
@@ -243,7 +246,11 @@ onMounted(async () => {
 						@input="debouncedSearch"
 						class="w-full" />
 				</IconField>
-				<Button label="New Request" class="ml-2" icon="pi pi-plus" @click="openNewDialog" />
+				<Button
+					label="New Request"
+					class="ml-2"
+					icon="pi pi-plus"
+					@click="openNewDialog" />
 			</div>
 		</div>
 
@@ -388,42 +395,43 @@ onMounted(async () => {
 						:disabled="dialogMode === 'view'"
 						placeholder="Select recurrence" />
 				</div>
-                <div class="flex gap-4">
-                    <div class="form-field flex-1">
-                        <label for="quantity">Quantity</label>
-                        <InputNumber
-                            id="quantity"
-                            v-model="formData.quantity"
-                            :disabled="dialogMode === 'view'" />
-                    </div>
-                    <div class="form-field flex-1">
-                        <label for="isBasicNeed">Basic Need</label>
-                        <Checkbox
-                            id="isBasicNeed"
-                            v-model="formData.isBasicNeed"
-                            :binary="true"
-                            :disabled="dialogMode === 'view'" />
-                    </div>
-                </div>
-                <div v-if="dialogMode === 'view'" class="form-field">
-                    <label>Community and Country</label>
-                    <div class="flex items-baseline">
-                        <span>{{ viewCommunity }}</span>
-                        <span class="mx-2">/</span>
-                        <span>{{ viewCountry }}</span>
-                    </div>
-                </div>
-                <div class="form-field">
-                    <label for="tags">Tags</label>
-                    <Tags
-                        ref="tagsComponentRef"
-                        v-model="formData.selectedTags"
-                        :tags="allTags"
-                        :disabled="dialogMode === 'view'"
-                        placeholder="Search or create tags"
-                        @tag-created="handleAddNewTag"
-                        @keydown.enter.stop="safeAddNewTag" />
-                </div>
+				<div class="flex gap-4">
+					<div class="form-field flex-1">
+						<label for="quantity">Quantity</label>
+						<InputNumber
+							id="quantity"
+							v-model="formData.quantity"
+							:disabled="dialogMode === 'view'" />
+					</div>
+					<div class="form-field flex-1">
+						<label for="isBasicNeed">Basic Need</label>
+						<Checkbox
+							id="isBasicNeed"
+							v-model="formData.isBasicNeed"
+							:binary="true"
+							:disabled="dialogMode === 'view'" />
+					</div>
+				</div>
+
+				<div class="form-field">
+					<label for="tags">Tags</label>
+					<Tags
+						ref="tagsComponentRef"
+						v-model="formData.selectedTags"
+						:tags="allTags"
+						:disabled="dialogMode === 'view'"
+						placeholder="Search or create tags"
+						@tag-created="handleAddNewTag"
+						@keydown.enter.stop="safeAddNewTag" />
+				</div>
+				<div v-if="dialogMode === 'view'" class="form-field">
+					<label>Community and Country</label>
+					<div class="flex items-baseline">
+						<span>{{ viewCommunity }}</span>
+						<span class="mx-2">/</span>
+						<span>{{ viewCountry || 'global' }}</span>
+					</div>
+				</div>
 				<div v-if="dialogMode === 'update'" class="form-field">
 					<label for="isActive">Status</label>
 					<SelectButton
@@ -521,6 +529,4 @@ onMounted(async () => {
 .form-field :deep(.p-autocomplete) {
 	width: 100%;
 }
-
-
 </style>

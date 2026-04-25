@@ -107,8 +107,21 @@ export async function createTreeNode(
 		positionData.position = position
 	}
 
+	// Transform parentId (if it exists) into parent relation for Prisma
+	const { parentId, ...restData } = data
+	const createData: Record<string, unknown> = {
+		...restData,
+		...positionData,
+		path: '//',
+		depth,
+		numchild: 0,
+	}
+	if (parentId !== undefined && parentId !== null) {
+		createData.parent = { connect: { id: parentId } }
+	}
+
 	const node = await model.create({
-		data: { ...data, ...positionData, path: '//', depth, numchild: 0 },
+		data: createData,
 	})
 
 	const parentPath = parent ? parent.path : null
