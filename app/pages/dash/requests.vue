@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import { useCreatableTags } from '~/composables/useCreatableTags'
+import { ref, onMounted } from 'vue'
+import type { Tag } from '~/components/Tags.vue'
+import Tags from '~/components/Tags.vue'
 
 definePageMeta({
 	layout: 'dashboard',
@@ -21,6 +23,8 @@ const dialogMode = ref<'create' | 'update' | 'view'>('create')
 const requestToDelete = ref<any>(null)
 const deleteDialogVisible = ref(false)
 
+const allTags = ref<Tag[]>([])
+
 const formData = ref({
 	title: '',
 	body: '',
@@ -28,30 +32,38 @@ const formData = ref({
 	quantity: 1,
 	isActive: true,
 	isBasicNeed: false,
-	tagIds: [] as number[],
-	selectedTags: [] as any[],
+	selectedTags: [] as Tag[],
 })
 
-const tagAutocomplete = useTemplateRef('tagAutocomplete')
-
-const { tagSuggestions, tagSearch, searchTags, addNewTag, fetchTags } =
-	useCreatableTags({
-		tagAutocomplete,
-		tags: [],
-		getSelectedTagIds: () => formData.value.selectedTags.map((t: any) => t.id),
-		createTagMutation: async (name: string) => {
-			const newTag = await $trpcClient.requests.createTag.mutate({ name })
-			formData.value.selectedTags = [...formData.value.selectedTags, newTag]
-			return newTag
-		},
-	})
+const tagsComponentRef = useTemplateRef('tagsComponentRef')
 
 const safeAddNewTag = async () => {
 	try {
-		await addNewTag()
+		await handleAddNewTag()
 	} catch (error: any) {
 		console.error('Failed to create tag:', error)
 		toast.add('error', 'Error', error.message || 'Failed to create tag', 0)
+	}
+}
+
+const handleAddNewTag = async () => {
+	const tagName = tagsComponentRef.value?.tagSearch?.trim()
+	if (!tagName) return
+
+	// Don't create if user is selecting from existing suggestions
+	const suggestions = tagsComponentRef.value?.tagSuggestions || []
+	if (suggestions.length > 0) {
+		return
+	}
+
+	try {
+		const newTag = await $trpcClient.requests.createTag.mutate({ name: tagName })
+		tagsComponentRef.value?.addTagFromExternal(newTag)
+		formData.value.selectedTags = [...formData.value.selectedTags, newTag]
+		allTags.value = [...allTags.value, newTag]
+	} catch (error: any) {
+		console.error('Failed to create tag:', error)
+		throw error
 	}
 }
 
@@ -73,6 +85,7 @@ const fetchRequests = async () => {
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 const debouncedSearch = () => {
 	if (searchTimeout) clearTimeout(searchTimeout)
+	tagsComponentRef.value?.filterSuggestions?.()
 	searchTimeout = setTimeout(() => {
 		fetchRequests()
 	}, 300)
@@ -86,17 +99,14 @@ const openNewDialog = () => {
 		quantity: 1,
 		isActive: true,
 		isBasicNeed: false,
-		tagIds: [],
 		selectedTags: [],
 	}
-	tagSearch.value = ''
 	dialogMode.value = 'create'
 	dialogVisible.value = true
 }
 
 const viewRequest = (request: any) => {
 	const tags = request.tags || []
-	tagSearch.value = ''
 	const order = request.orders?.[0]
 	formData.value = {
 		title: request.title,
@@ -105,7 +115,6 @@ const viewRequest = (request: any) => {
 		quantity: order?.quantity || 1,
 		isActive: request.isActive,
 		isBasicNeed: request.isBasicNeed || false,
-		tagIds: tags.map((t: any) => t.id) || [],
 		selectedTags: tags,
 	}
 	dialogMode.value = 'view'
@@ -114,7 +123,6 @@ const viewRequest = (request: any) => {
 
 const editRequest = (request: any) => {
 	const tags = request.tags || []
-	tagSearch.value = ''
 	const order = request.orders?.[0]
 	formData.value = {
 		title: request.title,
@@ -123,7 +131,6 @@ const editRequest = (request: any) => {
 		quantity: order?.quantity || 1,
 		isActive: request.isActive,
 		isBasicNeed: request.isBasicNeed || false,
-		tagIds: tags.map((t: any) => t.id) || [],
 		selectedTags: tags,
 	}
 	dialogMode.value = 'update'
@@ -139,10 +146,7 @@ const saveRequest = async () => {
 		return
 	}
 
-	const tagIds =
-		formData.value.selectedTags?.map((t: any) => t.id) ||
-		formData.value.tagIds ||
-		[]
+	const tagIds = formData.value.selectedTags?.map((t: any) => t.id) || []
 
 	saving.value = true
 	try {
@@ -205,9 +209,9 @@ onMounted(async () => {
 	fetchRequests()
 	try {
 		const tags = (await $trpcClient.requests.listTags.query()) || []
-		await fetchTags(tags)
+       allTags.value = tags
 	} catch (error: any) {
-		console.error('Failed to fetch tags:', error)
+		console.error(error.messsage || 'Failed to fetch tags:', error)
 	}
 })
 </script>
@@ -395,33 +399,17 @@ onMounted(async () => {
 							:disabled="dialogMode === 'view'" />
 					</div>
 				</div>
-				<div class="form-field">
-					<label for="tags">Tags</label>
-					<AutoComplete
-						ref="tagAutocomplete"
-						v-model="formData.selectedTags"
-						:suggestions="tagSuggestions"
-						@complete="searchTags"
-						optionLabel="name"
-						:multiple="true"
-						:dropdown="true"
-						:disabled="dialogMode === 'view'"
-						placeholder="Search or create tags"
-						class="w-full"
-						@keydown.enter.stop="safeAddNewTag">
-						<template #option="{ option }">
-							<div>{{ option.name }}</div>
-						</template>
-						<template #empty>
-							<Button
-								v-if="tagSearch && tagSearch.trim()"
-								label="Create tag"
-								size="small"
-								text
-								@click="safeAddNewTag" />
-						</template>
-					</AutoComplete>
-				</div>
+										<div class="form-field">
+											<label for="tags">Tags</label>
+											<Tags
+												ref="tagsComponentRef"
+												v-model="formData.selectedTags"
+												:tags="allTags"
+												:disabled="dialogMode === 'view'"
+												placeholder="Search or create tags"
+												@tag-created="handleAddNewTag"
+												@keydown.enter.stop="safeAddNewTag" />
+										</div>
 				<div v-if="dialogMode === 'update'" class="form-field">
 					<label for="isActive">Status</label>
 					<SelectButton
