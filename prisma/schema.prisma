@@ -236,6 +236,8 @@ model User {
 
   community   CommunityNode? @relation(fields: [communityId], references: [id])
   communityId Int?
+  country     Country?       @relation(fields: [countryId], references: [id])
+  countryId   Int?
 
   expertise         ExpertiseNode[]
   steps             StepNode[]      @relation("AssignedSteps")
@@ -440,6 +442,13 @@ model Request {
   parentId Int?
   children Request[] @relation("Self")
 
+  communityNode CommunityNode? @relation(fields: [communityId], references: [id])
+  communityId   Int?
+  country       Country?       @relation(fields: [countryId], references: [id])
+  countryId     Int?
+  owner         User           @relation("RequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId       String
+
   isPrivate   Boolean @default(false)
   isBasicNeed Boolean @default(false)
 
@@ -450,11 +459,6 @@ model Request {
   effects      Effect[]
   orders       Order[]
 
-  communityNode CommunityNode? @relation(fields: [communityId], references: [id])
-  communityId   Int?
-
-  owner   User   @relation("RequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId String
   editors User[] @relation("requestEditors")
 
   @@index([path])
@@ -793,7 +797,9 @@ model CommunityNode {
   parentId Int?
   children CommunityNode[] @relation("Self")
 
-  country   String
+  country   Country? @relation(fields: [countryId], references: [id])
+  countryId Int?
+
   address   String
   longitude Float
   latitude  Float
@@ -802,4 +808,21 @@ model CommunityNode {
   members  User[]
 
   @@index([path])
+}
+
+model Country {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean  @default(true)
+  name       String   @unique
+  code       String   @unique
+  phoneCode  String?
+
+  communities CommunityNode[]
+  users       User[]
+  requests    Request[]
+
+  @@index([name])
+  @@index([code])
 }
