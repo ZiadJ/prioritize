@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { useCreatableTags } from '~/composables/useCreatableTags'
+
 definePageMeta({
 	layout: 'dashboard',
 })
@@ -6,7 +8,6 @@ definePageMeta({
 const { $trpcClient } = useNuxtApp()
 const toast = usePausableToast()
 const { data: session } = useAuth()
-import type { TRPCClientError } from '@trpc/client'
 
 const requests = ref<any[]>([])
 const loading = ref(true)
@@ -34,9 +35,9 @@ const formData = ref({
 const tagAutocomplete = useTemplateRef('tagAutocomplete')
 
 const { tagSuggestions, tagSearch, searchTags, addNewTag, fetchTags } =
-	useTagAutocomplete({
+	useCreatableTags({
 		tagAutocomplete,
-		tags: [] as any[],
+		tags: [],
 		getSelectedTagIds: () => formData.value.selectedTags.map((t: any) => t.id),
 		createTagMutation: async (name: string) => {
 			const newTag = await $trpcClient.requests.createTag.mutate({ name })

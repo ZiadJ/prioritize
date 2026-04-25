@@ -13,14 +13,14 @@ export interface Tag {
 		getSelectedTagIds?: () => Set<number> | number[]
 	}
 
-export const useTagAutocomplete = (options: UseTagAutocompleteOptions) => {
+export const useCreatableTags = (options: UseTagAutocompleteOptions) => {
 	const { tagAutocomplete, tags, createTagMutation, getSelectedTagIds } =
 		options
 
 	const availableTags = ref<Tag[]>([])
 	const tagSuggestions = ref<Tag[]>([])
 	const tagSearch = ref('')
-//tagAutocomplete.
+	//tagAutocomplete.
 	const fetchTags = async (newTags?: Tag[]) => {
 		try {
 			if (newTags) {
@@ -88,12 +88,12 @@ export const useTagAutocomplete = (options: UseTagAutocompleteOptions) => {
 			availableTags.value = [...availableTags.value, newTag]
 			tagSearch.value = ''
 			tagSuggestions.value = availableTags.value.filter(
-				tag => !excludedTagIds.value.has(tag.id)
-			);
+				tag => !excludedTagIds.value.has(tag.id),
+			)
 
 			// Clear the AutoComplete input
-			(tagAutocomplete.value as any).$el.querySelector('input').value = '';
-			(tagAutocomplete.value as any).hide()
+			;(tagAutocomplete.value as any).$el.querySelector('input').value = ''
+			;(tagAutocomplete.value as any).hide()
 
 			return newTag
 		} catch (error: any) {
