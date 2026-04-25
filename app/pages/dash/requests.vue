@@ -33,23 +33,17 @@ const formData = ref({
 
 const tagAutocomplete = useTemplateRef('tagAutocomplete')
 
-const {
-	availableTags,
-	tagSuggestions,
-	tagSearch,
-	searchTags,
-	addNewTag,
-	fetchTags,
-} = useTagAutocomplete({
-	tagAutocomplete,
-	tags: [] as any[],
-	getSelectedTagIds: () => formData.value.selectedTags.map((t: any) => t.id),
-	createTagMutation: async (name: string) => {
-		const newTag = await $trpcClient.requests.createTag.mutate({ name })
-		formData.value.selectedTags = [...formData.value.selectedTags, newTag]
-		return newTag
-	},
-})
+const { tagSuggestions, tagSearch, searchTags, addNewTag, fetchTags } =
+	useTagAutocomplete({
+		tagAutocomplete,
+		tags: [] as any[],
+		getSelectedTagIds: () => formData.value.selectedTags.map((t: any) => t.id),
+		createTagMutation: async (name: string) => {
+			const newTag = await $trpcClient.requests.createTag.mutate({ name })
+			formData.value.selectedTags = [...formData.value.selectedTags, newTag]
+			return newTag
+		},
+	})
 
 const safeAddNewTag = async () => {
 	try {
@@ -206,7 +200,7 @@ const deleteRequest = async () => {
 	}
 }
 
-	onMounted(async () => {
+onMounted(async () => {
 	fetchRequests()
 	try {
 		const tags = (await $trpcClient.requests.listTags.query()) || []

@@ -103,7 +103,6 @@ export const useTagAutocomplete = (options: UseTagAutocompleteOptions) => {
 	}
 
 	return {
-		availableTags,
 		tagSuggestions,
 		tagSearch,
 		searchTags,
