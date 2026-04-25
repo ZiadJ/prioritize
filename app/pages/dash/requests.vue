@@ -57,7 +57,6 @@ const searchTags = (event: { query: string }) => {
 	tagSuggestions.value = filtered
 }
 
-	
 const addNewTag = async () => {
 	const tagName = tagSearch.value.trim()
 	if (!tagName) return
@@ -75,15 +74,15 @@ const addNewTag = async () => {
 		formData.value.selectedTags = [...formData.value.selectedTags, newTag]
 
 		tagSearch.value = ''
-		tagSuggestions.value = [...availableTags.value];
+		tagSuggestions.value = [...availableTags.value]
 
 		// Clear the AutoComplete input
-		(tagAutocomplete.value as any).$el.querySelector('input').value = '';
-		(tagAutocomplete.value as any).hide()
-    } catch (error: any) {
-      console.error('Failed to create tag:', error)
-      toast.add('error', 'Error', error.message || 'Failed to create tag', 0)
-    }
+		;(tagAutocomplete.value as any).$el.querySelector('input').value = ''
+		;(tagAutocomplete.value as any).hide()
+	} catch (error: any) {
+		console.error('Failed to create tag:', error)
+		toast.add('error', 'Error', error.message || 'Failed to create tag', 0)
+	}
 }
 
 const fetchRequests = async () => {
@@ -93,10 +92,10 @@ const fetchRequests = async () => {
 			search: searchQuery.value || undefined,
 		})
 		requests.value = result || []
-  } catch (error: any) {
-    console.error('Failed to fetch requests:', error)
-    toast.add('error', 'Error', error.message || 'Failed to fetch requests', 0)
-  } finally {
+	} catch (error: any) {
+		console.error('Failed to fetch requests:', error)
+		toast.add('error', 'Error', error.message || 'Failed to fetch requests', 0)
+	} finally {
 		loading.value = false
 	}
 }
@@ -167,10 +166,10 @@ const editRequest = (request: any) => {
 const currentRequestId = ref<number | null>(null)
 
 const saveRequest = async () => {
-  if (!formData.value.title) {
-    toast.add('warn', 'Warning', 'Title is required', 3000)
-    return
-  }
+	if (!formData.value.title) {
+		toast.add('warn', 'Warning', 'Title is required', 3000)
+		return
+	}
 
 	const tagIds =
 		formData.value.selectedTags?.map((t: any) => t.id) ||
@@ -188,7 +187,7 @@ const saveRequest = async () => {
 				tagIds,
 				isBasicNeed: formData.value.isBasicNeed,
 			})
-        toast.add('success', 'Success', 'Request created successfully', 3000)
+			toast.add('success', 'Success', 'Request created successfully', 3000)
 		} else if (dialogMode.value === 'update' && currentRequestId.value) {
 			await $trpcClient.requests.update.mutate({
 				id: currentRequestId.value,
@@ -200,7 +199,7 @@ const saveRequest = async () => {
 				tagIds,
 				isBasicNeed: formData.value.isBasicNeed,
 			})
-          toast.add('success', 'Success', 'Request updated successfully', 3000)
+			toast.add('success', 'Success', 'Request updated successfully', 3000)
 		}
 		dialogVisible.value = false
 		fetchRequests()
@@ -223,7 +222,7 @@ const deleteRequest = async () => {
 	deleting.value = true
 	try {
 		await $trpcClient.requests.delete.mutate({ id: requestToDelete.value.id })
-      toast.add('success', 'Success', 'Request deleted successfully', 3000)
+		toast.add('success', 'Success', 'Request deleted successfully', 3000)
 		deleteDialogVisible.value = false
 		fetchRequests()
 	} catch (error: any) {
@@ -332,9 +331,11 @@ onMounted(async () => {
 							severity="info"
 							@click="viewRequest(data)"
 							v-tooltip.top="'View'" />
-						{{ session.user.id }}
 						<Button
-							v-if="session?.id === data.ownerId || data.editors?.some((e: any) => e.id === session?.id)"
+							v-if="
+								session?.user.id === data.ownerId ||
+								data.editors?.some((e: any) => e.id === session?.user.id)
+							"
 							icon="pi pi-pencil"
 							text
 							rounded
@@ -342,7 +343,10 @@ onMounted(async () => {
 							@click="editRequest(data)"
 							v-tooltip.top="'Edit'" />
 						<Button
-							v-if="session?.id === data.ownerId || data.editors?.some((e: any) => e.id === session?.id)"
+							v-if="
+								session?.user.id === data.ownerId ||
+								data.editors?.some((e: any) => e.id === session?.user.id)
+							"
 							icon="pi pi-trash"
 							text
 							rounded
@@ -387,42 +391,42 @@ onMounted(async () => {
 						:disabled="dialogMode === 'view'"
 						rows="3" />
 				</div>
-			<div class="form-field">
-				<label for="recurrence">Recurrence</label>
-				<Dropdown
-					id="recurrence"
-					v-model="formData.recurrencePeriod"
-					:options="[
-						{ label: 'None', value: 0 },
-						{ label: 'Daily', value: 1 },
-						{ label: 'Weekly', value: 7 },
-						{ label: 'Monthly', value: 30 },
-						{ label: 'Quarterly', value: 90 },
-						{ label: 'Semi-annually', value: 180 },
-						{ label: 'Annually', value: 365 },
-					]"
-					optionLabel="label"
-					optionValue="value"
-					:disabled="dialogMode === 'view'"
-					placeholder="Select recurrence" />
-		</div>
-		<div class="flex gap-4">
-			<div class="form-field flex-1">
-				<label for="quantity">Quantity</label>
-				<InputNumber
-					id="quantity"
-					v-model="formData.quantity"
-					:disabled="dialogMode === 'view'" />
-			</div>
-			<div class="form-field flex-1">
-				<label for="isBasicNeed">Basic Need</label>
-				<Checkbox
-					id="isBasicNeed"
-					v-model="formData.isBasicNeed"
-					:binary="true"
-					:disabled="dialogMode === 'view'" />
-			</div>
-		</div>
+				<div class="form-field">
+					<label for="recurrence">Recurrence</label>
+					<Dropdown
+						id="recurrence"
+						v-model="formData.recurrencePeriod"
+						:options="[
+							{ label: 'None', value: 0 },
+							{ label: 'Daily', value: 1 },
+							{ label: 'Weekly', value: 7 },
+							{ label: 'Monthly', value: 30 },
+							{ label: 'Quarterly', value: 90 },
+							{ label: 'Semi-annually', value: 180 },
+							{ label: 'Annually', value: 365 },
+						]"
+						optionLabel="label"
+						optionValue="value"
+						:disabled="dialogMode === 'view'"
+						placeholder="Select recurrence" />
+				</div>
+				<div class="flex gap-4">
+					<div class="form-field flex-1">
+						<label for="quantity">Quantity</label>
+						<InputNumber
+							id="quantity"
+							v-model="formData.quantity"
+							:disabled="dialogMode === 'view'" />
+					</div>
+					<div class="form-field flex-1">
+						<label for="isBasicNeed">Basic Need</label>
+						<Checkbox
+							id="isBasicNeed"
+							v-model="formData.isBasicNeed"
+							:binary="true"
+							:disabled="dialogMode === 'view'" />
+					</div>
+				</div>
 				<div class="form-field">
 					<label for="tags">Tags</label>
 					<AutoComplete
