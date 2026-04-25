@@ -182,23 +182,25 @@ async function main() {
   console.log('Requests created')
 
   // Create orders
-  await prisma.order.create({
-    data: {
-      requestId: request1.id,
-      userId: adminUser.id,
-      quantity: 1,
-      recurrencePeriod: 7,
-    },
-  })
-
-  await prisma.order.create({
-    data: {
-      requestId: request2.id,
-      userId: regularUser.id,
-      quantity: 1,
-      recurrencePeriod: 30,
-    },
-  })
+   await prisma.order.create({
+     data: {
+       requestId: request1.id,
+       userId: adminUser.id,
+       quantity: 1,
+       recurrencePeriod: 7,
+       unitOfMeasure: 'Unit',
+     },
+   })
+ 
+   await prisma.order.create({
+     data: {
+       requestId: request2.id,
+       userId: regularUser.id,
+       quantity: 1,
+       recurrencePeriod: 30,
+       unitOfMeasure: 'Unit',
+     },
+   })
 
   console.log('Orders created')
 

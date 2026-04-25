@@ -478,8 +478,8 @@ model Order {
   userId    String
 
   quantity      Float
-  unitOfMeasure Int? // UnitOfMeasure, null when using custom units
-  customUnit    String? // e.g. "pizzas", "meetings", "trees"
+  unitOfMeasure UnitOfMeasure // UnitOfMeasure, null when using custom units
+  // customUnit    String? // e.g. "pizzas", "meetings", "trees"
 
   recurrencePeriod   Int // Daily, Weekly, Monthly, Quaterly, Semi-anually, Anually
   dueDeliveryDate    DateTime  @default(now())
@@ -489,7 +489,6 @@ model Order {
   @@unique([requestId, userId])
   @@index([requestId])
   @@index([userId])
-  @@map("RequestQuantity")
 }
 
 // A request containing proposal nodes each assignable to a step. Each

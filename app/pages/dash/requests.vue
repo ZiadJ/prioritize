@@ -30,7 +30,7 @@ const formData = ref({
 	title: '',
 	body: '',
 	recurrencePeriod: 0,
-	quantity: 1,
+	quantity: 0,
 	isActive: true,
 	isBasicNeed: false,
 	selectedTags: [] as Tag[],
@@ -40,16 +40,6 @@ const viewCommunity = ref('')
 const viewCountry = ref('')
 
 const tagsComponentRef = useTemplateRef('tagsComponentRef')
-
-// TODO: Check if really needed or if @tag-created on Tags component is sufficient
-const safeAddNewTag = async () => {
-	try {
-		await handleAddNewTag()
-	} catch (error: any) {
-		console.error('Failed to create tag:', error)
-		toast.add('error', 'Error', error.message || 'Failed to create tag', 0)
-	}
-}
 
 const handleAddNewTag = async () => {
 	const tagName = tagsComponentRef.value?.tagSearch?.trim()
@@ -83,7 +73,7 @@ const fetchRequests = async () => {
 		requests.value = result || []
 	} catch (error: any) {
 		console.error('Failed to fetch requests:', error)
-		toast.add('error', 'Error', error.message || 'Failed to fetch requests', 0)
+		toast.add('error', 'Error', error.message || 'Failed to fetch requests', 5000)
 	} finally {
 		loading.value = false
 	}
@@ -102,7 +92,7 @@ const openNewDialog = () => {
 		title: '',
 		body: '',
 		recurrencePeriod: 0,
-		quantity: 1,
+		quantity: 0,
 		isActive: true,
 		isBasicNeed: false,
 		selectedTags: [],
@@ -191,7 +181,7 @@ const saveRequest = async () => {
 		fetchRequests()
 	} catch (error: any) {
 		console.error('Failed to save request:', error)
-		toast.add('error', 'Error', error.message || 'Failed to save request', 0)
+		toast.add('error', 'Error', error.message || 'Failed to save request', 5000)
 	} finally {
 		saving.value = false
 	}
@@ -299,14 +289,7 @@ onMounted(async () => {
 					</div>
 				</template>
 			</Column>
-			<Column field="isActive" header="Status">
-				<template #body="{ data }">
-					<Tag
-						:value="data.isActive ? 'Active' : 'Inactive'"
-						:severity="data.isActive ? 'success' : 'danger'" />
-				</template>
-			</Column>
-			<Column header="Actions" :exportable="false" style="min-width: 8rem">
+			<Column header="Actions" :exportable="false" style="min-width: 0rem">
 				<template #body="{ data }">
 					<div class="flex gap-1">
 						<Button
@@ -365,6 +348,7 @@ onMounted(async () => {
 					<label for="title">Title *</label>
 					<InputText
 						id="title"
+						placeholder="Enter a question, issue or request"
 						v-model="formData.title"
 						:disabled="dialogMode === 'view'" />
 				</div>
@@ -372,6 +356,7 @@ onMounted(async () => {
 					<label for="body">Description</label>
 					<Textarea
 						id="body"
+						placeholder="A brief description of the question, issue or request"
 						v-model="formData.body"
 						:disabled="dialogMode === 'view'"
 						rows="3" />
@@ -399,6 +384,7 @@ onMounted(async () => {
 					<div class="form-field flex-1">
 						<label for="quantity">Quantity</label>
 						<InputNumber
+							placeholder="Not quantifiable"
 							id="quantity"
 							v-model="formData.quantity"
 							:disabled="dialogMode === 'view'" />
@@ -415,14 +401,13 @@ onMounted(async () => {
 
 				<div class="form-field">
 					<label for="tags">Tags</label>
-					<Tags
-						ref="tagsComponentRef"
-						v-model="formData.selectedTags"
-						:tags="allTags"
-						:disabled="dialogMode === 'view'"
-						placeholder="Search or create tags"
-						@tag-created="handleAddNewTag"
-						@keydown.enter.stop="safeAddNewTag" />
+				<Tags
+					ref="tagsComponentRef"
+					v-model="formData.selectedTags"
+					:tags="allTags"
+					:disabled="dialogMode === 'view'"
+					placeholder="Search or create tags"
+					@tag-created="handleAddNewTag" />
 				</div>
 				<div v-if="dialogMode === 'view'" class="form-field">
 					<label>Community and Country</label>
@@ -461,7 +446,8 @@ onMounted(async () => {
 			v-model:visible="deleteDialogVisible"
 			header="Confirm Delete"
 			:modal="true"
-			class="w-full md:w-4">
+			:style="{ width: '500px' }"
+			:breakpoints="{ '960px': '90vw', '640px': '95vw' }">
 			<div class="flex align-items-center gap-2">
 				<i class="pi pi-exclamation-triangle text-3xl text-primary" />
 				<span
