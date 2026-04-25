@@ -31,54 +31,29 @@ const formData = ref({
 	selectedTags: [] as any[],
 })
 
-const availableTags = ref<any[]>([])
-const tagSuggestions = ref<any[]>([])
-const tagSearch = ref('')
 const tagAutocomplete = useTemplateRef('tagAutocomplete')
 
-const searchTags = (event: { query: string }) => {
-	const query = event.query || ''
-	tagSearch.value = query
-
-	const excludeIds = new Set(formData.value.selectedTags.map((t: any) => t.id))
-
-	if (!query) {
-		tagSuggestions.value = availableTags.value.filter(
-			tag => !excludeIds.has(tag.id),
-		)
-		return
-	}
-
-	const filtered = availableTags.value.filter(
-		tag =>
-			tag.name.toLowerCase().startsWith(query.toLowerCase()) &&
-			!excludeIds.has(tag.id),
-	)
-	tagSuggestions.value = filtered
-}
-
-const addNewTag = async () => {
-	const tagName = tagSearch.value.trim()
-	if (!tagName) return
-
-	// Don't create if autocomplete shows suggestions - user is selecting from list
-	if (tagSuggestions.value.length > 0) {
-		return
-	}
-
-	try {
-		const newTag = await $trpcClient.requests.createTag.mutate({
-			name: tagName,
-		})
-
+const {
+	availableTags,
+	tagSuggestions,
+	tagSearch,
+	searchTags,
+	addNewTag,
+	fetchTags,
+} = useTagAutocomplete({
+	tagAutocomplete,
+	tags: [] as any[],
+	getSelectedTagIds: () => formData.value.selectedTags.map((t: any) => t.id),
+	createTagMutation: async (name: string) => {
+		const newTag = await $trpcClient.requests.createTag.mutate({ name })
 		formData.value.selectedTags = [...formData.value.selectedTags, newTag]
+		return newTag
+	},
+})
 
-		tagSearch.value = ''
-		tagSuggestions.value = [...availableTags.value]
-
-		// Clear the AutoComplete input
-		;(tagAutocomplete.value as any).$el.querySelector('input').value = ''
-		;(tagAutocomplete.value as any).hide()
+const safeAddNewTag = async () => {
+	try {
+		await addNewTag()
 	} catch (error: any) {
 		console.error('Failed to create tag:', error)
 		toast.add('error', 'Error', error.message || 'Failed to create tag', 0)
@@ -120,7 +95,6 @@ const openNewDialog = () => {
 		selectedTags: [],
 	}
 	tagSearch.value = ''
-	tagSuggestions.value = availableTags.value
 	dialogMode.value = 'create'
 	dialogVisible.value = true
 }
@@ -157,7 +131,6 @@ const editRequest = (request: any) => {
 		tagIds: tags.map((t: any) => t.id) || [],
 		selectedTags: tags,
 	}
-	tagSuggestions.value = availableTags.value
 	dialogMode.value = 'update'
 	currentRequestId.value = request.id
 	dialogVisible.value = true
@@ -233,11 +206,11 @@ const deleteRequest = async () => {
 	}
 }
 
-onMounted(async () => {
+	onMounted(async () => {
 	fetchRequests()
 	try {
-		availableTags.value = (await $trpcClient.requests.listTags.query()) || []
-		tagSuggestions.value = availableTags.value
+		const tags = (await $trpcClient.requests.listTags.query()) || []
+		await fetchTags(tags)
 	} catch (error: any) {
 		console.error('Failed to fetch tags:', error)
 	}
@@ -440,7 +413,7 @@ onMounted(async () => {
 						:disabled="dialogMode === 'view'"
 						placeholder="Search or create tags"
 						class="w-full"
-						@keydown.enter.stop="addNewTag">
+						@keydown.enter.stop="safeAddNewTag">
 						<template #option="{ option }">
 							<div>{{ option.name }}</div>
 						</template>
@@ -450,7 +423,7 @@ onMounted(async () => {
 								label="Create tag"
 								size="small"
 								text
-								@click="addNewTag" />
+								@click="safeAddNewTag" />
 						</template>
 					</AutoComplete>
 				</div>
