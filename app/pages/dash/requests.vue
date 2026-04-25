@@ -85,7 +85,6 @@ const fetchRequests = async () => {
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 const debouncedSearch = () => {
 	if (searchTimeout) clearTimeout(searchTimeout)
-	tagsComponentRef.value?.filterSuggestions?.()
 	searchTimeout = setTimeout(() => {
 		fetchRequests()
 	}, 300)
@@ -220,7 +219,7 @@ onMounted(async () => {
 	<div class="requests-page">
 		<div
 			class="header-actions flex justify-content-between align-items-center mb-4">
-			<h2 class="text-xl font-semibold m-0">Requests</h2>
+			<!-- <h2 class="text-xl font-semibold m-0">Requests</h2> -->
 			<div class="flex gap-2">
 				<IconField>
 					<InputIcon>
@@ -279,11 +278,6 @@ onMounted(async () => {
 							:value="tag.name"
 							severity="info" />
 					</div>
-				</template>
-			</Column>
-			<Column field="_count" header="Children">
-				<template #body="{ data }">
-					<span>{{ data._count?.children || 0 }}</span>
 				</template>
 			</Column>
 			<Column field="isActive" header="Status">
