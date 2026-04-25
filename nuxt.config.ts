@@ -143,6 +143,18 @@ export default defineNuxtConfig({
 				httpOnlyCookieAttribute: false,
 				signInResponseTokenPointer: '/accessToken',
 			},
+ 			session: {
+ 				dataType: {
+ 					id: 'string',
+ 					user: {
+ 						id: 'string',
+ 						email: 'string',
+ 						username: 'string',
+ 						communityId: 'number | null',
+ 						role: 'string',
+ 					},
+ 				},
+ 			},
 			refresh: {
 				isEnabled: process.env.NUXT_AUTH_REFRESH_ENABLED === 'true',
 				endpoint: { path: '/refresh', method: 'post' },

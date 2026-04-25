@@ -4,7 +4,7 @@ import prisma from '~~/lib/prisma';
 import { loginSchema, registerSchema } from "../validation/schemas";
 import { UserSession } from "../types/authTypes";
 import { compare, hash } from "bcrypt";
-import { st } from 'vue-router/dist/index-BzEKChPW.js';
+import { readBody } from "h3";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'generate JWT_SECRET';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'generate REFRESH_SECRET';
@@ -35,6 +35,7 @@ export const SignInRequest = async (event: H3Event) => {
 			email: user.email,
 			username: user.username,
 			communityId: user.communityId,
+			role: user.role,
 		},
 		accessToken,
 		refreshToken,
@@ -64,6 +65,7 @@ export const signOutRequest = async (event: H3Event) => {
 	})
 	return { message: 'You have successfully signed out.' }
 }
+
 /**
  * Sign up user from request
  * @param event H3Event
@@ -108,6 +110,7 @@ export const signUpRequest = async (event: H3Event) => {
 			email: User.email,
 			name: User.username,
 			communityId: User.communityId,
+			role: User.role,
 		},
 	}
 }
@@ -131,7 +134,7 @@ export const handleRefreshToken = async (event: H3Event) => {
 	const decode = (await validateRefreshToken(refreshToken)) as JwtPayload
 	const newAccessToken = returnToken(decode.id)
 
-	// ✅ Use refreshToken as the stable key, not the old accessToken
+	// Use refreshToken as the stable key, not the old accessToken
 	await prisma.token.update({
 		where: { refreshToken },
 		data: {
@@ -226,6 +229,7 @@ export const returnUserJwtPayload = async (
 			email: true,
 			username: true,
 			communityId: true,
+			role: true,
 		},
 	})
 	if (!user) {

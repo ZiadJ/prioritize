@@ -3,6 +3,7 @@ export type UserSession = {
 	email: string
 	username: string
 	communityId: number | null
+	role: string
 }
 
 export type LoginTokens = {

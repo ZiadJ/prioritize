@@ -232,6 +232,7 @@ model User {
   lattitude     Int       @default(0)
   preferences   Json      @default("{}") // Json(no Sqlite support)
   isVerified    Boolean   @default(false)
+  role          String    @default("")
 
   community   CommunityNode? @relation(fields: [communityId], references: [id])
   communityId Int?

@@ -104,7 +104,7 @@ async function main() {
 	console.log('Community nodes created')
 
 	// Create users
-	const adminUser = await prisma.user.upsert({
+  const adminUser = await prisma.user.upsert({
 		where: { username: 'admin@example.com' },
 		update: { password: hashedPassword },
 		create: {
@@ -115,6 +115,7 @@ async function main() {
 			lastname: 'User',
 			isActive: true,
 			isVerified: true,
+			role: 'admin',
 			communityId: city1.id,
 		},
 	})
