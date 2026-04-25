@@ -231,7 +231,7 @@ onMounted(async () => {
 						@input="debouncedSearch"
 						class="w-full" />
 				</IconField>
-				<Button label="New Request" icon="pi pi-plus" @click="openNewDialog" />
+				<Button label="New Request" class="ml-2" icon="pi pi-plus" @click="openNewDialog" />
 			</div>
 		</div>
 
@@ -254,7 +254,7 @@ onMounted(async () => {
 			</Column>
 			<Column field="body" header="Description">
 				<template #body="{ data }">
-					<span class="line-clamp-2">{{ data.body || '-' }}</span>
+					<span>{{ data.body || '-' }}</span>
 				</template>
 			</Column>
 			<Column field="communityNode" header="Community">
@@ -502,27 +502,5 @@ onMounted(async () => {
 	width: 100%;
 }
 
-.line-clamp-2 {
-	display: -webkit-box;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-	overflow: hidden;
-}
 
-:deep(.p-datatable .p-datatable-thead > tr > th) {
-	font-weight: 600;
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr:hover) {
-	background: #f8f9fa;
-}
-
-:deep(.p-toast-message) {
-	opacity: 0.5;
-	transition: opacity 0.3s ease;
-}
-
-:deep(.p-toast-message:hover) {
-	opacity: 1;
-}
 </style>
