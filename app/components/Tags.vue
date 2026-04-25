@@ -1,25 +1,25 @@
 <template>
-		<AutoComplete
-			ref="tagAutocomplete"
-			v-model="selectedTags"
-			:suggestions="tagSuggestions"
-			@complete="searchTags"
-			optionLabel="name"
-			:multiple="true"
-			:dropdown="true"
-			:disabled="disabled"
-			:placeholder="placeholder"
-			class="w-full"
-			@keydown.enter.stop="addNewTag">
-			<template #empty>
-				<Button
-					v-if="tagSearch && tagSearch.trim()"
-					label="Create tag"
-					size="small"
-					text
-					@click="addNewTag" />
-			</template>
-		</AutoComplete>
+	<AutoComplete
+		ref="tagAutocomplete"
+		v-model="selectedTags"
+		:suggestions="tagSuggestions"
+		@complete="searchTags"
+		optionLabel="name"
+		:multiple="true"
+		:dropdown="true"
+		:disabled="disabled"
+		:placeholder="placeholder"
+		class="w-full"
+		@keydown.enter.stop="addNewTag">
+		<template #empty>
+			<Button
+				v-if="tagSearch && tagSearch.trim()"
+				label="Create tag"
+				size="small"
+				text
+				@click="addNewTag" />
+		</template>
+	</AutoComplete>
 </template>
 
 <script lang="ts" setup>
@@ -143,9 +143,10 @@ const addNewTag = async () => {
 	tagSearch.value = ''
 	filterSuggestions()
 
-	// Clear the AutoComplete input
-	;(tagAutocomplete.value as any).$el.querySelector('input').value = ''
-	;(tagAutocomplete.value as any).hide?.()
+	
+	const tac = tagAutocomplete.value as any
+	tac.$el.querySelector('input').value = '' // Clear the AutoComplete input
+	tac.hide?.() // Hide dropdown
 
 	emit('tag-created', newTag)
 	emit('update:modelValue', selectedTags.value)
@@ -178,5 +179,3 @@ defineExpose({
 	filterSuggestions,
 })
 </script>
-
-
