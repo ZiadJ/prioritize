@@ -27,14 +27,14 @@ const currentRequestId = ref<number | null>(null)
 const allTags = ref<Tag[]>([])
 
 const formData = ref({
-	title: '',
-	body: '',
-	recurrencePeriod: 0,
-	quantity: 0,
-	isActive: true,
-	isBasicNeed: false,
-	selectedTags: [] as Tag[],
-})
+		title: '',
+		body: '',
+		recurrencePeriod: 0,
+		quantity: undefined as number | undefined,
+		isActive: true,
+		isBasicNeed: false,
+		selectedTags: [] as Tag[],
+	})
 
 const viewCommunity = ref('')
 const viewCountry = ref('')
@@ -67,12 +67,12 @@ const debouncedSearch = () => {
 	}, 300)
 }
 
-const openNewDialog = () => {
+const 	openNewDialog = () => {
 	formData.value = {
 		title: '',
 		body: '',
 		recurrencePeriod: 0,
-		quantity: 0,
+		quantity: undefined,
 		isActive: true,
 		isBasicNeed: false,
 		selectedTags: [],
@@ -81,14 +81,14 @@ const openNewDialog = () => {
 	dialogVisible.value = true
 }
 
-const viewRequest = (request: any) => {
+const 	viewRequest = (request: any) => {
 	const tags = request.tags || []
 	const order = request.orders?.[0]
 	formData.value = {
 		title: request.title,
 		body: request.body,
 		recurrencePeriod: order?.recurrencePeriod || 0,
-		quantity: order?.quantity || 1,
+		quantity: order?.quantity ?? null,
 		isActive: request.isActive,
 		isBasicNeed: request.isBasicNeed || false,
 		selectedTags: tags,
@@ -106,7 +106,7 @@ const editRequest = (request: any) => {
 		title: request.title,
 		body: request.body,
 		recurrencePeriod: order?.recurrencePeriod || 0,
-		quantity: order?.quantity || 1,
+		quantity: order?.quantity,
 		isActive: request.isActive,
 		isBasicNeed: request.isBasicNeed || false,
 		selectedTags: tags,
@@ -143,7 +143,6 @@ const saveRequest = async () => {
 			}
 		}
 
-		// Build payload with tagIds; selectedTags will be stripped by Zod
 		const payload = {
 			...formData.value,
 			tagIds: realTagIds,
