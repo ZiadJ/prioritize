@@ -153,12 +153,12 @@ enum RequestLevel {
 
 enum UnitOfMeasure {
   Unit
-  Time
-  Energy
-  Weight
-  Volume
-  Area
-  Length
+  Hours // Time
+  Kilograms // Weight
+  CubicMetres // Volume
+  SquareMetres // Area
+  Metres // Length
+  Joules // Energy
 }
 
 model FeedbackNode {
@@ -759,10 +759,10 @@ model ResourceNode {
   children ResourceNode[] @relation("Self")
 
   type                   Int // ResourceType // ServiceTime, Material, Digital
-  unitOfMeasure          Int // UnitOfMeasure // Unit, Time, Energy, Weight, Volume, Area, Length
+  unitOfMeasure          UnitOfMeasure 
   quantityAvailable      Float
-  renewalCapacity        Float
-  managedRenewalCapacity Float
+  monthlyCapacity        Float // Amount that can be renewed within a month (includes volunteer time)
+  managedMonthlyCapacity Float
   minQuantity            Float
   reservedQuantity       Float
   monetaryValue          Float // Per specified unit

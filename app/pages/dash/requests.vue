@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import type { Tag } from '~/components/Tags.vue'
 import Tags from '~/components/Tags.vue'
+import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 
 definePageMeta({
 	layout: 'dashboard',
@@ -27,15 +28,15 @@ const currentRequestId = ref<number | null>(null)
 const allTags = ref<Tag[]>([])
 
 const formData = ref({
-		title: '',
-		body: '',
-		recurrencePeriod: 0,
-		quantity: undefined as number | undefined,
-		unitOfMeasure: '',
-		isActive: true,
-		isBasicNeed: false,
-		selectedTags: [] as Tag[],
-	})
+	title: '',
+	body: '',
+	recurrencePeriod: 0,
+	quantity: undefined as number | undefined,
+	unitOfMeasure: undefined as UnitOfMeasure | undefined,
+	isActive: true,
+	isBasicNeed: false,
+	selectedTags: [] as Tag[],
+})
 
 const viewCommunity = ref('')
 const viewCountry = ref('')
@@ -68,13 +69,13 @@ const debouncedSearch = () => {
 	}, 300)
 }
 
-const 	openNewDialog = () => {
+const openNewDialog = () => {
 	formData.value = {
 		title: '',
 		body: '',
 		recurrencePeriod: 0,
 		quantity: undefined,
-		unitOfMeasure: '',
+		unitOfMeasure: undefined,
 		isActive: true,
 		isBasicNeed: false,
 		selectedTags: [],
@@ -83,39 +84,45 @@ const 	openNewDialog = () => {
 	dialogVisible.value = true
 }
 
-const 	viewRequest = (request: any) => {
-	const order = request.orders?.[0]
-	formData.value = {
-		title: request.title,
-		body: request.body,
-		recurrencePeriod: order?.recurrencePeriod || 0,
-		quantity: order?.quantity ?? null,
-		unitOfMeasure: order?.unitOfMeasure || '',
-		isActive: request.isActive,
-		isBasicNeed: request.isBasicNeed || false,
-		selectedTags: request.tags || [],
-	}
-	viewCommunity.value = request.communityNode?.title || '-'
-	viewCountry.value = request.country?.name || '-'
-	dialogMode.value = 'view'
-	dialogVisible.value = true
+const viewRequest = (request: any) => {
+  const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
+  formData.value = {
+    title: request.title,
+    body: request.body,
+    recurrencePeriod: order?.recurrencePeriod || 0,
+    quantity: order?.quantity ?? undefined,
+    unitOfMeasure:
+      order?.unitOfMeasure !== undefined
+        ? (order.unitOfMeasure as UnitOfMeasure)
+        : undefined,
+    isActive: request.isActive,
+    isBasicNeed: request.isBasicNeed || false,
+    selectedTags: request.tags || [],
+  }
+  viewCommunity.value = request.communityNode?.title || '-'
+  viewCountry.value = request.country?.name || '-'
+  dialogMode.value = 'view'
+  dialogVisible.value = true
 }
 
 const editRequest = (request: any) => {
-	const order = request.orders?.[0]
-	formData.value = {
-		title: request.title,
-		body: request.body,
-		recurrencePeriod: order?.recurrencePeriod || 0,
-		quantity: order?.quantity,
-		unitOfMeasure: order?.unitOfMeasure || '',
-		isActive: request.isActive,
-		isBasicNeed: request.isBasicNeed || false,
-		selectedTags: request.tags || [],
-	}
-	dialogMode.value = 'update'
-	currentRequestId.value = request.id
-	dialogVisible.value = true
+  const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
+  formData.value = {
+    title: request.title,
+    body: request.body,
+    recurrencePeriod: order?.recurrencePeriod || 0,
+    quantity: order?.quantity ?? undefined,
+    unitOfMeasure:
+      order?.unitOfMeasure !== undefined
+        ? (order.unitOfMeasure as UnitOfMeasure)
+        : undefined,
+    isActive: request.isActive,
+    isBasicNeed: request.isBasicNeed || false,
+    selectedTags: request.tags || [],
+  }
+  dialogMode.value = 'update'
+  currentRequestId.value = request.id
+  dialogVisible.value = true
 }
 
 const saveRequest = async () => {
@@ -148,6 +155,14 @@ const saveRequest = async () => {
 		const payload = {
 			...formData.value,
 			tagIds: realTagIds,
+		}
+
+		if (
+			formData.value.quantity !== undefined &&
+			formData.value.quantity !== null
+		) {
+			payload.quantity = formData.value.quantity
+			payload.unitOfMeasure = formData.value.unitOfMeasure || undefined
 		}
 
 		if (dialogMode.value === 'create') {
@@ -378,15 +393,27 @@ onMounted(async () => {
 							placeholder="Not quantifiable"
 							id="quantity"
 							v-model="formData.quantity"
-							:disabled="dialogMode === 'view'" />
+							:disabled="dialogMode === 'view'"
+							@input="e => (formData.quantity = e.value as number | undefined)"
+							" />
 					</div>
-					<div v-if="formData.quantity !== undefined && formData.quantity !== null" class="form-field flex-1">
+					<div
+						v-if="formData.quantity !== undefined && formData.quantity !== null"
+						class="form-field flex-1">
 						<label for="unitOfMeasure">Unit</label>
-						<InputText
+						<Dropdown
 							id="unitOfMeasure"
-							placeholder="e.g. kg, pieces, hours"
 							v-model="formData.unitOfMeasure"
-							:disabled="dialogMode === 'view'" />
+							:options="
+								Object.keys(UnitOfMeasure).map(key => ({
+									label: key,
+									value: key as UnitOfMeasure,
+								}))
+							"
+							optionLabel="label"
+							optionValue="value"
+							:disabled="dialogMode === 'view'"
+							placeholder="Select unit" />
 					</div>
 					<div class="form-field flex-1">
 						<label for="isBasicNeed">Basic Need</label>

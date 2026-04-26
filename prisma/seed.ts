@@ -30,16 +30,16 @@ async function main() {
       },
     })
 
-   // Create community nodes using tree utility
-   const country1 = await createTreeNode(prisma.communityNode, {
-     title: 'USA',
-     body: 'United States of America',
-     country: { connect: { id: usa.id } },
-     address: 'United States',
-     longitude: -95.7129,
-     latitude: 37.0902,
-     isActive: true,
-   })
+    // Create community nodes using tree utility
+    const country1 = await createTreeNode(prisma.communityNode, {
+      title: 'North American Region',
+      body: 'Region in North America',
+      country: { connect: { id: usa.id } },
+      address: 'United States',
+      longitude: -95.7129,
+      latitude: 37.0902,
+      isActive: true,
+    })
 
     const state1 = await createTreeNode(prisma.communityNode, {
       title: 'California',
@@ -63,15 +63,15 @@ async function main() {
      isActive: true,
    })
 
-   const country2 = await createTreeNode(prisma.communityNode, {
-     title: 'Canada',
-     body: 'Canada',
-     country: { connect: { id: canada.id } },
-     address: 'Canada',
-     longitude: -106.3468,
-     latitude: 56.1304,
-     isActive: true,
-   })
+    const country2 = await createTreeNode(prisma.communityNode, {
+      title: 'Canadian Region',
+      body: 'Country in North America',
+      country: { connect: { id: canada.id } },
+      address: 'Canada',
+      longitude: -106.3468,
+      latitude: 56.1304,
+      isActive: true,
+    })
 
    const state2 = await createTreeNode(prisma.communityNode, {
      title: 'Ontario',
