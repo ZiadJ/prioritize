@@ -33,110 +33,111 @@ export const requestsRouter = router({
 					communityId: input?.communityId,
 				},
 				orderBy: { createdAt: 'desc' },
-            include: {
-						tags: true,
-						communityNode: true,
-						orders: true,
-						editors: true,
-						_count: {
-							select: { children: true, feedback: true },
-						},
+				include: {
+					tags: true,
+					communityNode: true,
+					orders: true,
+					editors: true,
+					_count: {
+						select: { children: true, feedback: true },
 					},
+				},
 			})
 		}),
 
 	byId: publicProcedure
- 		.input(z.object({ id: z.number() }))
- 		.query(async ({ input }) => {
- 			return prisma.request.findUnique({
- 				where: { id: input.id },
- 				include: {
- 					tags: true,
- 					expertise: true,
- 					effects: true,
- 					owner: true,
- 					editors: true,
- 					orders: true,
- 					communityNode: true,
- 					country: true,
- 					feedback: {
- 						include: {
- 							user: {
- 								select: { username: true, firstname: true, lastname: true },
- 							},
- 						},
- 					},
- 					_count: {
- 						select: {
- 							children: true,
- 							feedback: true,
- 							revisions: true,
- 						},
- 					},
- 				},
- 			})
- 		}),
+		.input(z.object({ id: z.number() }))
+		.query(async ({ input }) => {
+			return prisma.request.findUnique({
+				where: { id: input.id },
+				include: {
+					tags: true,
+					expertise: true,
+					effects: true,
+					owner: true,
+					editors: true,
+					orders: true,
+					communityNode: true,
+					country: true,
+					feedback: {
+						include: {
+							user: {
+								select: { username: true, firstname: true, lastname: true },
+							},
+						},
+					},
+					_count: {
+						select: {
+							children: true,
+							feedback: true,
+							revisions: true,
+						},
+					},
+				},
+			})
+		}),
 
 	create: protectedProcedure
- 		.input(
- 			z.object({
- 				title: z.string().min(1),
- 				body: z.string().optional().default(''),
- 				parentId: z.number().optional(),
- 				tagIds: z.array(z.number()).optional().default([]),
- 				recurrencePeriod: z.number().optional().default(0),
- 				quantity: z.number().optional().default(1),
- 				isBasicNeed: z.boolean().optional().default(false),
- 			}),
- 		)
- 		.mutation(async ({ ctx, input }) => {
- 			const {
- 				tagIds,
- 				parentId,
- 				isBasicNeed,
- 				recurrencePeriod,
- 				quantity,
- 				...data
- 			} = input
- 
- 			if (!ctx.user!.communityId) {
- 				throw new Error('User must be assigned to a community')
- 			}
- 
- 			try {
- 				const node = await createTreeNode(prisma.request, {
- 					...data,
- 					isActive: true,
- 					parentId,
- 					communityId: ctx.user!.communityId,
- 					countryId: ctx.user!.countryId,
- 					isBasicNeed,
- 					ownerId: ctx.user!.id,
- 					tags: tagIds?.length
- 						? {
- 								connect: tagIds.map(id => ({ id })),
- 							}
- 						: undefined,
- 				})
- 
- 				// Create Order if recurrencePeriod is provided
- 				if (recurrencePeriod && recurrencePeriod > 0) {
- 					await prisma.order.create({
- 						data: {
- 							requestId: node.id,
- 							userId: ctx.user!.id,
- 							quantity: quantity || 1,
- 							recurrencePeriod,
- 						},
- 					})
- 				}
- 
- 				return node
- 			} catch (e) {
- 				console.error('Prisma create error:', e)
- 				throw e
- 			}
- 		}),
+		.input(
+			z.object({
+				title: z.string().min(1),
+				body: z.string().optional().default(''),
+				parentId: z.number().optional(),
+				tagIds: z.array(z.number()).optional().default([]),
+				recurrencePeriod: z.number().optional().default(0),
+				quantity: z.number().optional().default(1),
+				isBasicNeed: z.boolean().optional().default(false),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const {
+				tagIds,
+				parentId,
+				isBasicNeed,
+				recurrencePeriod,
+				quantity,
+				...data
+			} = input
+
+			if (!ctx.user!.communityId) {
+				throw new Error('User must be assigned to a community')
+			}
+
+			try {
+				const node = await createTreeNode(prisma.request, {
+					...data,
+					isActive: true,
+					parentId,
+					communityId: ctx.user!.communityId,
+					countryId: ctx.user!.countryId,
+					isBasicNeed,
+					ownerId: ctx.user!.id,
+					tags: tagIds?.length
+						? {
+								connect: tagIds.map(id => ({ id })),
+							}
+						: undefined,
+				})
+
+				// Create Order if recurrencePeriod is provided
+				if (recurrencePeriod && recurrencePeriod > 0) {
+					await prisma.order.create({
+						data: {
+							requestId: node.id,
+							userId: ctx.user!.id,
+							quantity: quantity || 1,
+							unitOfMeasure: 'Unit',
+							recurrencePeriod,
+						},
+					})
+				}
+
+				return node
+			} catch (e) {
+				console.error('Prisma create error:', e)
+				throw e
+			}
+		}),
 
 	update: protectedProcedure
 		.input(
@@ -196,6 +197,7 @@ export const requestsRouter = router({
 							requestId: id,
 							userId: ctx.user!.id,
 							quantity: quantity || 1,
+							unitOfMeasure: 'Unit',
 							recurrencePeriod,
 						},
 					})
