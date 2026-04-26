@@ -32,68 +32,68 @@ async function main() {
 
     // Create community nodes using tree utility
     const country1 = await createTreeNode(prisma.communityNode, {
-      title: 'North American Region',
-      body: 'Region in North America',
-      country: { connect: { id: usa.id } },
-      address: 'United States',
-      longitude: -95.7129,
-      latitude: 37.0902,
-      isActive: true,
-    })
+			title: 'Azure Valley Region',
+			body: 'Region in North America',
+			country: { connect: { id: usa.id } },
+			address: 'United States',
+			longitude: -95.7129,
+			latitude: 37.0902,
+			isActive: true,
+		})
 
-    const state1 = await createTreeNode(prisma.communityNode, {
-      title: 'California',
-      body: 'State of California',
-      country: { connect: { id: usa.id } },
-      address: 'California, USA',
-      longitude: -119.4179,
-      latitude: 36.7783,
-      parentId: country1.id,
-      isActive: true,
-    })
+		const state1 = await createTreeNode(prisma.communityNode, {
+			title: 'Arcadia',
+			body: 'State of Arcadia',
+			country: { connect: { id: usa.id } },
+			address: 'Arcadia, USA',
+			longitude: -119.4179,
+			latitude: 36.7783,
+			parentId: country1.id,
+			isActive: true,
+		})
 
-   const city1 = await createTreeNode(prisma.communityNode, {
-     title: 'San Francisco',
-     body: 'City of San Francisco',
-     country: { connect: { id: usa.id } },
-     address: 'San Francisco, CA, USA',
-     longitude: -122.4194,
-     latitude: 37.7749,
-     parentId: state1.id,
-     isActive: true,
-   })
+		const city1 = await createTreeNode(prisma.communityNode, {
+			title: 'Sunset Harbor',
+			body: 'City of Sunset Harbor',
+			country: { connect: { id: usa.id } },
+			address: 'Sunset Harbor, Arcadia, USA',
+			longitude: -122.4194,
+			latitude: 37.7749,
+			parentId: state1.id,
+			isActive: true,
+		})
 
-    const country2 = await createTreeNode(prisma.communityNode, {
-      title: 'Canadian Region',
-      body: 'Country in North America',
-      country: { connect: { id: canada.id } },
-      address: 'Canada',
-      longitude: -106.3468,
-      latitude: 56.1304,
-      isActive: true,
-    })
+		const country2 = await createTreeNode(prisma.communityNode, {
+			title: 'Northern Lights Region',
+			body: 'Region in North America',
+			country: { connect: { id: canada.id } },
+			address: 'Canada',
+			longitude: -106.3468,
+			latitude: 56.1304,
+			isActive: true,
+		})
 
-   const state2 = await createTreeNode(prisma.communityNode, {
-     title: 'Ontario',
-     body: 'Province of Ontario',
-     country: { connect: { id: canada.id } },
-     address: 'Ontario, Canada',
-     longitude: -79.3832,
-     latitude: 43.6532,
-     parentId: country2.id,
-     isActive: true,
-   })
+		const state2 = await createTreeNode(prisma.communityNode, {
+			title: 'Maple Haven',
+			body: 'Province of Maple Haven',
+			country: { connect: { id: canada.id } },
+			address: 'Maple Haven, Canada',
+			longitude: -79.3832,
+			latitude: 43.6532,
+			parentId: country2.id,
+			isActive: true,
+		})
 
-   const city2 = await createTreeNode(prisma.communityNode, {
-     title: 'Toronto',
-     body: 'City of Toronto',
-     country: { connect: { id: canada.id } },
-     address: 'Toronto, ON, Canada',
-     longitude: -79.3832,
-     latitude: 43.6532,
-     parentId: state2.id,
-     isActive: true,
-   })
+		const city2 = await createTreeNode(prisma.communityNode, {
+			title: 'Icehaven',
+			body: 'Region in Icehaven',
+			country: { connect: { id: canada.id } },
+			address: 'Icehaven, Maple Haven, Canada',
+			longitude: -79.3832,
+			latitude: 43.6532,
+			parentId: state2.id,
+			isActive: true,
+		})
 
 	console.log('Community nodes created')
 
