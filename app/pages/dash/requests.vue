@@ -39,9 +39,6 @@ const formData = ref({
 const viewCommunity = ref('')
 const viewCountry = ref('')
 
-const tagsComponentRef = useTemplateRef('tagsComponentRef')
-
-
 const fetchRequests = async () => {
 	loading.value = true
 	try {
@@ -51,7 +48,12 @@ const fetchRequests = async () => {
 		requests.value = result || []
 	} catch (error: any) {
 		console.error('Failed to fetch requests:', error)
-		toast.add('error', 'Error', error.message || 'Failed to fetch requests', 5000)
+		toast.add(
+			'error',
+			'Error',
+			error.message || 'Failed to fetch requests',
+			5000,
+		)
 	} finally {
 		loading.value = false
 	}
@@ -120,26 +122,26 @@ const saveRequest = async () => {
 		return
 	}
 
-		saving.value = true
-		try {
-			// Resolve any temporary tag IDs to persisted IDs
-			const selectedTags = formData.value.selectedTags || []
-			const realTagIds: number[] = []
+	saving.value = true
+	try {
+		// Resolve any temporary tag IDs to persisted IDs
+		const selectedTags = formData.value.selectedTags || []
+		const realTagIds: number[] = []
 
-			for (const tag of selectedTags) {
-				if (!tag.id) continue
+		for (const tag of selectedTags) {
+			if (!tag.id) continue
 
-				if (tag.id < 0) {
-					// Persist temp tag on server
-					const createdTag = await $trpcClient.requests.createTag.mutate({
-						name: tag.name,
-					})
-					realTagIds.push(createdTag.id)
-					allTags.value = [...allTags.value, createdTag]
-				} else {
-					realTagIds.push(tag.id)
-				}
+			if (tag.id < 0) {
+				// Persist temp tag on server
+				const createdTag = await $trpcClient.requests.createTag.mutate({
+					name: tag.name,
+				})
+				realTagIds.push(createdTag.id)
+				allTags.value = [...allTags.value, createdTag]
+			} else {
+				realTagIds.push(tag.id)
 			}
+		}
 
 		if (dialogMode.value === 'create') {
 			// Ensure user has community and country assigned
@@ -396,12 +398,11 @@ onMounted(async () => {
 
 				<div class="form-field">
 					<label for="tags">Tags</label>
-				<Tags
-					ref="tagsComponentRef"
-					v-model="formData.selectedTags"
-					:tags="allTags"
-					:disabled="dialogMode === 'view'"
-					placeholder="Search or create tags" />
+					<Tags
+						v-model="formData.selectedTags"
+						:tags="allTags"
+						:disabled="dialogMode === 'view'"
+						placeholder="Search or create tags" />
 				</div>
 				<div v-if="dialogMode === 'view'" class="form-field">
 					<label>Community and Country</label>
