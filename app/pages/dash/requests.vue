@@ -41,28 +41,6 @@ const viewCountry = ref('')
 
 const tagsComponentRef = useTemplateRef('tagsComponentRef')
 
-const handleAddNewTag = async () => {
-	const tagName = tagsComponentRef.value?.tagSearch?.trim()
-	if (!tagName) return
-
-	// Don't create if user is selecting from existing suggestions
-	const suggestions = tagsComponentRef.value?.tagSuggestions || []
-	if (suggestions.length > 0) {
-		return
-	}
-
-	try {
-		const newTag = await $trpcClient.requests.createTag.mutate({
-			name: tagName,
-		})
-		tagsComponentRef.value?.addTagFromExternal(newTag)
-		formData.value.selectedTags = [...formData.value.selectedTags, newTag]
-		allTags.value = [...allTags.value, newTag]
-	} catch (error: any) {
-		console.error('Failed to create tag:', error)
-		throw error
-	}
-}
 
 const fetchRequests = async () => {
 	loading.value = true
@@ -142,10 +120,27 @@ const saveRequest = async () => {
 		return
 	}
 
-	const tagIds = formData.value.selectedTags?.map((t: any) => t.id) || []
+		saving.value = true
+		try {
+			// Resolve any temporary tag IDs to persisted IDs
+			const selectedTags = formData.value.selectedTags || []
+			const realTagIds: number[] = []
 
-	saving.value = true
-	try {
+			for (const tag of selectedTags) {
+				if (!tag.id) continue
+
+				if (tag.id < 0) {
+					// Persist temp tag on server
+					const createdTag = await $trpcClient.requests.createTag.mutate({
+						name: tag.name,
+					})
+					realTagIds.push(createdTag.id)
+					allTags.value = [...allTags.value, createdTag]
+				} else {
+					realTagIds.push(tag.id)
+				}
+			}
+
 		if (dialogMode.value === 'create') {
 			// Ensure user has community and country assigned
 			if (!session.value?.user?.communityId) {
@@ -160,7 +155,7 @@ const saveRequest = async () => {
 				body: formData.value.body,
 				recurrencePeriod: formData.value.recurrencePeriod,
 				quantity: formData.value.quantity,
-				tagIds,
+				tagIds: realTagIds,
 				isBasicNeed: formData.value.isBasicNeed,
 			})
 			toast.add('success', 'Success', 'Request created successfully', 3000)
@@ -172,7 +167,7 @@ const saveRequest = async () => {
 				recurrencePeriod: formData.value.recurrencePeriod,
 				quantity: formData.value.quantity,
 				isActive: formData.value.isActive,
-				tagIds,
+				tagIds: realTagIds,
 				isBasicNeed: formData.value.isBasicNeed,
 			})
 			toast.add('success', 'Success', 'Request updated successfully', 3000)
@@ -212,10 +207,10 @@ const deleteRequest = async () => {
 onMounted(async () => {
 	fetchRequests()
 	try {
-		const tags = (await $trpcClient.requests.listTags.query()) || []
-		allTags.value = tags
+		allTags.value = (await $trpcClient.requests.listTags.query()) || []
 	} catch (error: any) {
-		console.error(error.messsage || 'Failed to fetch tags:', error)
+		toast.add('error', 'Error', error.message || 'Failed to load tags', 5000)
+		console.error('Failed to fetch tags:', error.message || error)
 	}
 })
 </script>
@@ -406,8 +401,7 @@ onMounted(async () => {
 					v-model="formData.selectedTags"
 					:tags="allTags"
 					:disabled="dialogMode === 'view'"
-					placeholder="Search or create tags"
-					@tag-created="handleAddNewTag" />
+					placeholder="Search or create tags" />
 				</div>
 				<div v-if="dialogMode === 'view'" class="form-field">
 					<label>Community and Country</label>

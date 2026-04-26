@@ -134,7 +134,7 @@ const addNewTag = async () => {
 
 	// Create a temporary tag object to emit
 	const newTag: Tag = {
-		id: Date.now(), // temporary ID, will be replaced by server response
+		id: -1, // temporary ID, will be replaced by server response
 		name: tagName,
 	}
 
@@ -152,31 +152,7 @@ const addNewTag = async () => {
 	emit('update:modelValue', selectedTags.value)
 }
 
-const addTagFromExternal = (tag: Tag) => {
-	// Replace in availableTags immutably to trigger reactivity
-	const availIdx = availableTags.value.findIndex(t => t.id === tag.id || t.name === tag.name)
-	if (availIdx !== -1) {
-		const newAvailable = [...availableTags.value]
-		newAvailable[availIdx] = tag
-		availableTags.value = newAvailable
-	} else {
-		availableTags.value = [...availableTags.value, tag]
-	}
-	// Replace in selectedTags immutably to trigger reactivity and v-model update
-	const selIdx = selectedTags.value.findIndex(t => t.id === tag.id || t.name === tag.name)
-	if (selIdx !== -1) {
-		const newSelected = [...selectedTags.value]
-		newSelected[selIdx] = tag
-		selectedTags.value = newSelected
-	} else {
-		selectedTags.value = [...selectedTags.value, tag]
-	}
-	filterSuggestions()
-}
-
-
 defineExpose({
-	addTagFromExternal,
 	tagSearch,
 	tagSuggestions,
 	availableTags,
