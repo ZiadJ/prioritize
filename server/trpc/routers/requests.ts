@@ -3,6 +3,7 @@ import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { createTreeNode, buildTreeSelectDataFromNodes } from '~~/lib/tree'
+import { Request, Order } from '~~/prisma/generated/interfaces'
 
 // import {
 // 	RequestWhereInputObjectSchema,
@@ -82,26 +83,24 @@ export const requestsRouter = router({
 	create: protectedProcedure
 		.input(
 			z.object({
+				// Request fields
 				title: z.string().min(1),
 				body: z.string().optional().default(''),
 				parentId: z.number().optional(),
 				tagIds: z.array(z.number()).optional().default([]),
-				recurrencePeriod: z.number().optional().default(0),
-				quantity: z.number().optional().nullable(),
-				unitOfMeasure: z.enum(UnitOfMeasure).optional(),
 				isBasicNeed: z.boolean().optional().default(false),
+				// Order fields
+				order: z
+					.object({
+						quantity: z.number().optional().nullable(),
+						unitOfMeasure: z.enum(UnitOfMeasure).optional(),
+						recurrencePeriod: z.number().optional().default(0),
+					})
+					.optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const {
-				tagIds,
-				parentId,
-				isBasicNeed,
-				recurrencePeriod,
-				quantity,
-				unitOfMeasure,
-				...data
-			} = input
+			const { tagIds, parentId, isBasicNeed, order, ...data } = input
 
 			if (!ctx.user!.communityId) {
 				throw new Error('User must be assigned to a community')
@@ -123,18 +122,22 @@ export const requestsRouter = router({
 						: undefined,
 				})
 
-		// Create Order if quantity is provided or recurrencePeriod is set
-		if (quantity !== null && quantity !== undefined || recurrencePeriod && recurrencePeriod > 0) {
-			await prisma.order.create({
-				data: {
-					request: { connect: { id: node.id } },
-					user: { connect: { id: ctx.user!.id } },
-					recurrencePeriod: recurrencePeriod || 0,
-					quantity: quantity ?? 1,
-					unitOfMeasure: unitOfMeasure ?? UnitOfMeasure.Unit,
-				},
-			})
-		}
+				// Create Order if order data is provided and has quantity or recurrencePeriod
+				if (
+					order &&
+					((order.quantity !== null && order.quantity !== undefined) ||
+						(order.recurrencePeriod && order.recurrencePeriod > 0))
+				) {
+					await prisma.order.create({
+						data: {
+							request: { connect: { id: node.id } },
+							user: { connect: { id: ctx.user!.id } },
+							recurrencePeriod: order.recurrencePeriod || 0,
+							quantity: order.quantity ?? 1,
+							unitOfMeasure: order.unitOfMeasure ?? UnitOfMeasure.Unit,
+						},
+					})
+				}
 
 				return node
 			} catch (e) {
@@ -147,26 +150,24 @@ export const requestsRouter = router({
 		.input(
 			z.object({
 				id: z.number(),
+				// Request fields
 				title: z.string().min(1).optional(),
 				body: z.string().optional(),
 				isActive: z.boolean().optional(),
 				tagIds: z.array(z.number()).optional(),
-				recurrencePeriod: z.number().optional(),
-				quantity: z.number().optional().nullable(),
-				unitOfMeasure: z.enum(UnitOfMeasure).optional(),
 				isBasicNeed: z.boolean().optional(),
+				// Order fields
+				order: z
+					.object({
+						quantity: z.number().optional().nullable(),
+						unitOfMeasure: z.enum(UnitOfMeasure).optional(),
+						recurrencePeriod: z.number().optional(),
+					})
+					.optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const {
-				id,
-				tagIds,
-				isBasicNeed,
-				recurrencePeriod,
-				quantity,
-				unitOfMeasure,
-				...data
-			} = input
+			const { id, tagIds, isBasicNeed, order, ...data } = input
 			const updateData: Prisma.RequestUpdateInput = { ...data }
 			if (isBasicNeed !== undefined) {
 				updateData.isBasicNeed = isBasicNeed
@@ -190,33 +191,37 @@ export const requestsRouter = router({
 			})
 
 			// Handle Order update/creation for recurrencePeriod
-			if (recurrencePeriod !== undefined) {
+			if (order !== undefined) {
 				const existingOrder = await prisma.order.findFirst({
 					where: { requestId: id, userId: ctx.user!.id },
 				})
 
 				if (existingOrder) {
-					const orderUpdateData: Prisma.OrderUpdateInput = {
-						recurrencePeriod,
+					const orderUpdateData: Prisma.OrderUpdateInput = {}
+					if (order.recurrencePeriod !== undefined) {
+						orderUpdateData.recurrencePeriod = order.recurrencePeriod
 					}
-					if (quantity != null) {
-						orderUpdateData.quantity = quantity
+					if (order.quantity != null) {
+						orderUpdateData.quantity = order.quantity
 					}
-					if (unitOfMeasure !== undefined) {
-						orderUpdateData.unitOfMeasure = unitOfMeasure
+					if (order.unitOfMeasure !== undefined) {
+						orderUpdateData.unitOfMeasure = order.unitOfMeasure
 					}
 					await prisma.order.update({
 						where: { id: existingOrder.id },
 						data: orderUpdateData,
 					})
-				} else if (recurrencePeriod > 0) {
+				} else if (
+					order.recurrencePeriod !== undefined &&
+					order.recurrencePeriod > 0
+				) {
 					await prisma.order.create({
 						data: {
 							request: { connect: { id } },
 							user: { connect: { id: ctx.user!.id } },
-							recurrencePeriod,
-							quantity: quantity ?? 1,
-							unitOfMeasure: unitOfMeasure ?? UnitOfMeasure.Unit,
+							recurrencePeriod: order.recurrencePeriod,
+							quantity: order.quantity ?? 1,
+							unitOfMeasure: order.unitOfMeasure ?? UnitOfMeasure.Unit,
 						},
 					})
 				}

@@ -30,12 +30,14 @@ const allTags = ref<Tag[]>([])
 const formData = ref({
 	title: '',
 	body: '',
-	recurrencePeriod: 0,
-	quantity: undefined as number | undefined,
-	unitOfMeasure: undefined as UnitOfMeasure | undefined,
 	isActive: true,
 	isBasicNeed: false,
 	selectedTags: [] as Tag[],
+	order: {
+		quantity: undefined as number | undefined,
+		unitOfMeasure: undefined as UnitOfMeasure | undefined,
+		recurrencePeriod: 0,
+	} as { quantity?: number | null; unitOfMeasure?: UnitOfMeasure; recurrencePeriod: number }
 })
 
 const viewCommunity = ref('')
@@ -73,57 +75,57 @@ const openNewDialog = () => {
 	formData.value = {
 		title: '',
 		body: '',
-		recurrencePeriod: 0,
-		quantity: undefined,
-		unitOfMeasure: undefined,
 		isActive: true,
 		isBasicNeed: false,
 		selectedTags: [],
+		order: {
+			quantity: undefined,
+			unitOfMeasure: undefined,
+			recurrencePeriod: 0,
+		}
 	}
 	dialogMode.value = 'create'
 	dialogVisible.value = true
 }
 
 const viewRequest = (request: any) => {
-  const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
-  formData.value = {
-    title: request.title,
-    body: request.body,
-    recurrencePeriod: order?.recurrencePeriod || 0,
-    quantity: order?.quantity ?? undefined,
-    unitOfMeasure:
-      order?.unitOfMeasure !== undefined
-        ? (order.unitOfMeasure as UnitOfMeasure)
-        : undefined,
-    isActive: request.isActive,
-    isBasicNeed: request.isBasicNeed || false,
-    selectedTags: request.tags || [],
-  }
-  viewCommunity.value = request.communityNode?.title || '-'
-  viewCountry.value = request.country?.name || '-'
-  dialogMode.value = 'view'
-  dialogVisible.value = true
-}
+   const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
+   formData.value = {
+     title: request.title,
+     body: request.body,
+     isActive: request.isActive,
+     isBasicNeed: request.isBasicNeed || false,
+     selectedTags: request.tags || [],
+     order: {
+       quantity: order?.quantity ?? undefined,
+       unitOfMeasure: order?.unitOfMeasure as UnitOfMeasure | undefined,
+       recurrencePeriod: order?.recurrencePeriod || 0,
+     }
+   }
+   viewCommunity.value = request.communityNode?.title || '-'
+   viewCountry.value = request.country?.name || '-'
+   dialogMode.value = 'view'
+   dialogVisible.value = true
+ }
 
 const editRequest = (request: any) => {
-  const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
-  formData.value = {
-    title: request.title,
-    body: request.body,
-    recurrencePeriod: order?.recurrencePeriod || 0,
-    quantity: order?.quantity ?? undefined,
-    unitOfMeasure:
-      order?.unitOfMeasure !== undefined
-        ? (order.unitOfMeasure as UnitOfMeasure)
-        : undefined,
-    isActive: request.isActive,
-    isBasicNeed: request.isBasicNeed || false,
-    selectedTags: request.tags || [],
-  }
-  dialogMode.value = 'update'
-  currentRequestId.value = request.id
-  dialogVisible.value = true
-}
+   const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
+   formData.value = {
+     title: request.title,
+     body: request.body,
+     isActive: request.isActive,
+     isBasicNeed: request.isBasicNeed || false,
+     selectedTags: request.tags || [],
+     order: {
+       quantity: order?.quantity ?? undefined,
+       unitOfMeasure: order?.unitOfMeasure as UnitOfMeasure | undefined,
+       recurrencePeriod: order?.recurrencePeriod || 0,
+     }
+   }
+   dialogMode.value = 'update'
+   currentRequestId.value = request.id
+   dialogVisible.value = true
+ }
 
 const saveRequest = async () => {
 	if (!formData.value.title) {
@@ -155,8 +157,7 @@ const saveRequest = async () => {
 		const payload = {
 			...formData.value,
 			tagIds: realTagIds,
-			// quantity: formData.value.quantity,
-			// unitOfMeasure: formData.value.unitOfMeasure
+			// Note: order is already nested in formData.value.order
 		}
 
 		if (dialogMode.value === 'create') {
@@ -365,7 +366,7 @@ onMounted(async () => {
 					<label for="recurrence">Recurrence</label>
 					<Dropdown
 						id="recurrence"
-						v-model="formData.recurrencePeriod"
+						v-model="formData.order.recurrencePeriod"
 						:options="[
 							{ label: 'None', value: 0 },
 							{ label: 'Daily', value: 1 },
@@ -386,18 +387,18 @@ onMounted(async () => {
 						<InputNumber
 							placeholder="Not quantifiable"
 							id="quantity"
-							v-model="formData.quantity"
+							v-model="formData.order.quantity"
 							:disabled="dialogMode === 'view'"
-							@input="e => (formData.quantity = e.value as number | undefined)"
+							@input="e => (formData.order.quantity = e.value as number | undefined)"
 							" />
 					</div>
 					<div
-						v-if="formData.quantity !== undefined && formData.quantity !== null"
+						v-if="formData.order.quantity !== undefined && formData.order.quantity !== null"
 						class="form-field flex-1">
 						<label for="unitOfMeasure">Unit</label>
 						<Dropdown
 							id="unitOfMeasure"
-							v-model="formData.unitOfMeasure"
+							v-model="formData.order.unitOfMeasure"
 							:options="
 								Object.keys(UnitOfMeasure).map(key => ({
 									label: key,
