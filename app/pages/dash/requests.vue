@@ -31,6 +31,7 @@ const formData = ref({
 		body: '',
 		recurrencePeriod: 0,
 		quantity: undefined as number | undefined,
+		unitOfMeasure: '',
 		isActive: true,
 		isBasicNeed: false,
 		selectedTags: [] as Tag[],
@@ -73,6 +74,7 @@ const 	openNewDialog = () => {
 		body: '',
 		recurrencePeriod: 0,
 		quantity: undefined,
+		unitOfMeasure: '',
 		isActive: true,
 		isBasicNeed: false,
 		selectedTags: [],
@@ -82,16 +84,16 @@ const 	openNewDialog = () => {
 }
 
 const 	viewRequest = (request: any) => {
-	const tags = request.tags || []
 	const order = request.orders?.[0]
 	formData.value = {
 		title: request.title,
 		body: request.body,
 		recurrencePeriod: order?.recurrencePeriod || 0,
 		quantity: order?.quantity ?? null,
+		unitOfMeasure: order?.unitOfMeasure || '',
 		isActive: request.isActive,
 		isBasicNeed: request.isBasicNeed || false,
-		selectedTags: tags,
+		selectedTags: request.tags || [],
 	}
 	viewCommunity.value = request.communityNode?.title || '-'
 	viewCountry.value = request.country?.name || '-'
@@ -100,16 +102,16 @@ const 	viewRequest = (request: any) => {
 }
 
 const editRequest = (request: any) => {
-	const tags = request.tags || []
 	const order = request.orders?.[0]
 	formData.value = {
 		title: request.title,
 		body: request.body,
 		recurrencePeriod: order?.recurrencePeriod || 0,
 		quantity: order?.quantity,
+		unitOfMeasure: order?.unitOfMeasure || '',
 		isActive: request.isActive,
 		isBasicNeed: request.isBasicNeed || false,
-		selectedTags: tags,
+		selectedTags: request.tags || [],
 	}
 	dialogMode.value = 'update'
 	currentRequestId.value = request.id
@@ -376,6 +378,14 @@ onMounted(async () => {
 							placeholder="Not quantifiable"
 							id="quantity"
 							v-model="formData.quantity"
+							:disabled="dialogMode === 'view'" />
+					</div>
+					<div v-if="formData.quantity !== undefined && formData.quantity !== null" class="form-field flex-1">
+						<label for="unitOfMeasure">Unit</label>
+						<InputText
+							id="unitOfMeasure"
+							placeholder="e.g. kg, pieces, hours"
+							v-model="formData.unitOfMeasure"
 							:disabled="dialogMode === 'view'" />
 					</div>
 					<div class="form-field flex-1">
