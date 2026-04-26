@@ -143,6 +143,12 @@ const saveRequest = async () => {
 			}
 		}
 
+		// Build payload with tagIds; selectedTags will be stripped by Zod
+		const payload = {
+			...formData.value,
+			tagIds: realTagIds,
+		}
+
 		if (dialogMode.value === 'create') {
 			// Ensure user has community and country assigned
 			if (!session.value?.user?.communityId) {
@@ -152,25 +158,12 @@ const saveRequest = async () => {
 				throw new Error('User must have a country assigned')
 			}
 
-			await $trpcClient.requests.create.mutate({
-				title: formData.value.title,
-				body: formData.value.body,
-				recurrencePeriod: formData.value.recurrencePeriod,
-				quantity: formData.value.quantity,
-				tagIds: realTagIds,
-				isBasicNeed: formData.value.isBasicNeed,
-			})
+			await $trpcClient.requests.create.mutate(payload)
 			toast.add('success', 'Success', 'Request created successfully', 3000)
 		} else if (dialogMode.value === 'update' && currentRequestId.value) {
 			await $trpcClient.requests.update.mutate({
+				...payload,
 				id: currentRequestId.value,
-				title: formData.value.title,
-				body: formData.value.body,
-				recurrencePeriod: formData.value.recurrencePeriod,
-				quantity: formData.value.quantity,
-				isActive: formData.value.isActive,
-				tagIds: realTagIds,
-				isBasicNeed: formData.value.isBasicNeed,
 			})
 			toast.add('success', 'Success', 'Request updated successfully', 3000)
 		}
