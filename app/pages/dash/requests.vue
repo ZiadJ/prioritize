@@ -155,10 +155,9 @@ const saveRequest = async () => {
 		const payload = {
 			...formData.value,
 			tagIds: realTagIds,
-			quantity: formData.value.quantity,
-			unitOfMeasure: formData.value.unitOfMeasure
+			// quantity: formData.value.quantity,
+			// unitOfMeasure: formData.value.unitOfMeasure
 		}
-
 
 		if (dialogMode.value === 'create') {
 			// Ensure user has community and country assigned

@@ -152,7 +152,7 @@ enum RequestLevel {
 }
 
 enum UnitOfMeasure {
-  Unit
+  Units // Generic unit for countable items
   Hours // Time
   Kilograms // Weight
   CubicMetres // Volume
