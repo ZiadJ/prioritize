@@ -24,7 +24,7 @@ export const requestsRouter = router({
 				.optional(),
 		)
 		.query(async ({ input }) => {
-			return prisma.request.findMany({
+			const result = await prisma.request.findMany({
 				where: {
 					...(input?.search && {
 						OR: [
@@ -36,27 +36,37 @@ export const requestsRouter = router({
 					communityId: input?.communityId,
 				},
 				orderBy: { createdAt: 'desc' },
-			include: {
-				tags: true,
-				communityNode: true,
-				orders: {
-					include: {
-						user: {
-							select: {
-								id: true,
-								username: true,
-								firstname: true,
-								lastname: true,
+				include: {
+					tags: true,
+					communityNode: true,
+					orders: {
+						include: {
+							user: {
+								select: {
+									id: true,
+									username: true,
+									firstname: true,
+									lastname: true,
+								},
 							},
 						},
 					},
+					editors: true,
+					_count: {
+						select: { children: true, feedback: true },
+					},
 				},
-				editors: true,
-				_count: {
-					select: { children: true, feedback: true },
-				},
-			},
+			});
+
+			// Attach unitOfMeasure from request to each order for frontend compatibility
+			 (result ?? []).forEach(req => {
+				if (req.orders) {
+					req.orders.forEach((order: any) => {
+						order.unitOfMeasure = req.unitOfMeasure
+					})
+				}
 			})
+			return result
 		}),
 
 	byId: publicProcedure
@@ -70,18 +80,23 @@ export const requestsRouter = router({
 					effects: true,
 					owner: true,
 					editors: true,
-					orders: {
-						include: {
-							user: {
-								select: {
-									id: true,
-									username: true,
-									firstname: true,
-									lastname: true,
-								},
+				orders: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+								firstname: true,
+								lastname: true,
+							},
+						},
+						request: {
+							select: {
+								unitOfMeasure: true,
 							},
 						},
 					},
+				},
 					communityNode: true,
 					country: true,
 					feedback: {
@@ -115,10 +130,10 @@ export const requestsRouter = router({
 				order: z
 					.object({
 						quantity: z.number().optional().nullable(),
-						unitOfMeasure: z.enum(UnitOfMeasure).optional(),
-						recurrencePeriod: z.number().optional().default(0),
+						recurrencePeriod: z.number().optional(),
 					})
 					.optional(),
+				unitOfMeasure: z.enum(UnitOfMeasure).optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -156,7 +171,6 @@ export const requestsRouter = router({
 							user: { connect: { id: ctx.user!.id } },
 							recurrencePeriod: order.recurrencePeriod || 0,
 							quantity: order.quantity ?? 1,
-							unitOfMeasure: order.unitOfMeasure ?? UnitOfMeasure.Units,
 						},
 					})
 				}
@@ -182,14 +196,14 @@ export const requestsRouter = router({
 				order: z
 					.object({
 						quantity: z.number().optional().nullable(),
-						unitOfMeasure: z.enum(UnitOfMeasure).optional(),
 						recurrencePeriod: z.number().optional(),
 					})
 					.optional(),
+				unitOfMeasure: z.enum(UnitOfMeasure).optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const { id, tagIds, isBasicNeed, order, ...data } = input
+			const { id, tagIds, isBasicNeed, order, unitOfMeasure, ...data } = input
 			const updateData: Prisma.RequestUpdateInput = { ...data }
 			if (isBasicNeed !== undefined) {
 				updateData.isBasicNeed = isBasicNeed
@@ -198,6 +212,9 @@ export const requestsRouter = router({
 				updateData.tags = {
 					set: tagIds.map(tagId => ({ id: tagId })),
 				}
+			}
+			if (unitOfMeasure !== undefined) {
+				updateData.unitOfMeasure = unitOfMeasure
 			}
 
 			// Update the request
@@ -212,7 +229,7 @@ export const requestsRouter = router({
 				data: updateData,
 			})
 
-			// Handle Order update/creation for recurrencePeriod
+			// Handle Order update/creation
 			if (order !== undefined) {
 				const existingOrder = await prisma.order.findFirst({
 					where: { requestId: id, userId: ctx.user!.id },
@@ -226,24 +243,20 @@ export const requestsRouter = router({
 					if (order.quantity != null) {
 						orderUpdateData.quantity = order.quantity
 					}
-					if (order.unitOfMeasure !== undefined) {
-						orderUpdateData.unitOfMeasure = order.unitOfMeasure
-					}
 					await prisma.order.update({
 						where: { id: existingOrder.id },
 						data: orderUpdateData,
 					})
 				} else if (
-					order.recurrencePeriod !== undefined &&
-					order.recurrencePeriod > 0
+					(order.quantity !== null && order.quantity !== undefined) ||
+					(order.recurrencePeriod !== undefined && order.recurrencePeriod > 0)
 				) {
 					await prisma.order.create({
 						data: {
 							request: { connect: { id } },
 							user: { connect: { id: ctx.user!.id } },
-							recurrencePeriod: order.recurrencePeriod,
+							recurrencePeriod: order.recurrencePeriod || 0,
 							quantity: order.quantity ?? 1,
-							unitOfMeasure: order.unitOfMeasure ?? UnitOfMeasure.Units,
 						},
 					})
 				}

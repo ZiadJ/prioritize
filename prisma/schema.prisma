@@ -440,8 +440,9 @@ model Request {
   owner         User           @relation("RequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId       String
 
-  isPrivate   Boolean @default(false)
-  isBasicNeed Boolean @default(false)
+  isPrivate     Boolean        @default(false)
+  isBasicNeed   Boolean        @default(false)
+  unitOfMeasure UnitOfMeasure?
 
   requestNodes RequestNode[]
   expertise    ExpertiseNode[]
@@ -468,8 +469,7 @@ model Order {
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
 
-  quantity      Float
-  unitOfMeasure UnitOfMeasure // UnitOfMeasure, null when using custom units
+  quantity Float
   // customUnit    String? // e.g. "pizzas", "meetings", "trees"
 
   recurrencePeriod   Int // Daily, Weekly, Monthly, Quaterly, Semi-anually, Anually

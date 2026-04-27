@@ -38,11 +38,11 @@ const formData = ref({
 	isActive: true,
 	isBasicNeed: false,
 	selectedTags: [] as Tag[],
+	unitOfMeasure: undefined as UnitOfMeasure | undefined,
 	order: {
 		quantity: undefined as number | undefined,
-		unitOfMeasure: undefined as UnitOfMeasure | undefined,
 		recurrencePeriod: 0,
-	} as { quantity?: number | null; unitOfMeasure?: UnitOfMeasure; recurrencePeriod: number }
+	} as { quantity?: number | null; recurrencePeriod: number }
 })
 
 const viewCommunity = ref('')
@@ -83,9 +83,9 @@ const openNewDialog = () => {
 		isActive: true,
 		isBasicNeed: false,
 		selectedTags: [],
+		unitOfMeasure: undefined,
 		order: {
 			quantity: undefined,
-			unitOfMeasure: undefined,
 			recurrencePeriod: 0,
 		}
 	}
@@ -101,9 +101,9 @@ const viewRequest = (request: any) => {
      isActive: request.isActive,
      isBasicNeed: request.isBasicNeed || false,
      selectedTags: request.tags || [],
+     unitOfMeasure: request.unitOfMeasure as UnitOfMeasure | undefined,
      order: {
        quantity: order?.quantity ?? undefined,
-       unitOfMeasure: order?.unitOfMeasure as UnitOfMeasure | undefined,
        recurrencePeriod: order?.recurrencePeriod || 0,
      }
    }
@@ -122,9 +122,9 @@ const editRequest = (request: any) => {
      isActive: request.isActive,
      isBasicNeed: request.isBasicNeed || false,
      selectedTags: request.tags || [],
+     unitOfMeasure: request.unitOfMeasure as UnitOfMeasure | undefined,
      order: {
        quantity: order?.quantity ?? undefined,
-       unitOfMeasure: order?.unitOfMeasure as UnitOfMeasure | undefined,
        recurrencePeriod: order?.recurrencePeriod || 0,
      }
    }
@@ -424,7 +424,7 @@ onMounted(async () => {
 						<label for="unitOfMeasure">Unit</label>
 						<Dropdown
 							id="unitOfMeasure"
-							v-model="formData.order.unitOfMeasure"
+							v-model="formData.unitOfMeasure"
 							:options="
 								Object.keys(UnitOfMeasure).map(key => ({
 									label: key,

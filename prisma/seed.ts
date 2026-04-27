@@ -134,73 +134,75 @@ async function main() {
 
 
 
-  // Create requests
-  const request1 = await prisma.request.create({
-    data: {
-      title: 'Food Assistance Needed',
-      body: 'Need help with groceries for the week',
-      isBasicNeed: true,
-      ownerId: adminUser.id,
-      communityId: city1.id,
-      countryId: usa.id,
-    },
-  })
+   // Create requests
+   const request1 = await prisma.request.create({
+     data: {
+       title: 'Food Assistance Needed',
+       body: 'Need help with groceries for the week',
+       isBasicNeed: true,
+       unitOfMeasure: 'Units',
+       ownerId: adminUser.id,
+       communityId: city1.id,
+       countryId: usa.id,
+     },
+   })
 
-  const request2 = await prisma.request.create({
-    data: {
-      title: 'Housing Support',
-      body: 'Looking for temporary housing assistance',
-      isBasicNeed: true,
-      ownerId: regularUser.id,
-      communityId: city1.id,
-      countryId: usa.id,
-    },
-  })
+   const request2 = await prisma.request.create({
+     data: {
+       title: 'Housing Support',
+       body: 'Looking for temporary housing assistance',
+       isBasicNeed: true,
+       unitOfMeasure: 'Units',
+       ownerId: regularUser.id,
+       communityId: city1.id,
+       countryId: usa.id,
+     },
+   })
 
-  const request3 = await prisma.request.create({
-    data: {
-      title: 'Community Event Planning',
-      body: 'Help organize a community cleanup event',
-      isBasicNeed: false,
-      ownerId: adminUser.id,
-      communityId: city2.id,
-      countryId: canada.id,
-    },
-  })
+   const request3 = await prisma.request.create({
+     data: {
+       title: 'Community Event Planning',
+       body: 'Help organize a community cleanup event',
+       isBasicNeed: false,
+       unitOfMeasure: 'Units',
+       ownerId: adminUser.id,
+       communityId: city2.id,
+       countryId: canada.id,
+     },
+   })
 
-  const request4 = await prisma.request.create({
-    data: {
-      title: 'Healthcare Access',
-      body: 'Need information about local healthcare services',
-      isBasicNeed: true,
-      ownerId: regularUser.id,
-      communityId: city2.id,
-      countryId: canada.id,
-    },
-  })
+   const request4 = await prisma.request.create({
+     data: {
+       title: 'Healthcare Access',
+       body: 'Need information about local healthcare services',
+       isBasicNeed: true,
+       unitOfMeasure: 'Units',
+       ownerId: regularUser.id,
+       communityId: city2.id,
+       countryId: canada.id,
+     },
+   })
 
   console.log('Requests created')
 
-  // Create orders
-   await prisma.order.create({
-     data: {
-       requestId: request1.id,
-       userId: adminUser.id,
-       quantity: 1,
-       recurrencePeriod: 7,
-       unitOfMeasure: 'Unit',
-     },
-   })
- 
-   await prisma.order.create({
-     data: {
-       requestId: request2.id,
-       userId: regularUser.id,
-       quantity: 1,
-       recurrencePeriod: 30,
-       unitOfMeasure: 'Unit',
-     },
-   })
+   // Create orders
+    await prisma.order.create({
+      data: {
+        requestId: request1.id,
+        userId: adminUser.id,
+        quantity: 1,
+        recurrencePeriod: 7,
+      },
+    })
+  
+    await prisma.order.create({
+      data: {
+        requestId: request2.id,
+        userId: regularUser.id,
+        quantity: 1,
+        recurrencePeriod: 30,
+      },
+    })
 
   console.log('Orders created')
 
