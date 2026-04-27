@@ -4,6 +4,7 @@ import type { Tag } from '~/components/Tags.vue'
 import Tags from '~/components/Tags.vue'
 import OrdersList from '~/components/OrdersList.vue'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
+import { useConfirm } from "primevue/useconfirm"
 
 definePageMeta({
 	layout: 'dashboard',
@@ -11,6 +12,7 @@ definePageMeta({
 
 const { $trpcClient } = useNuxtApp()
 const toast = usePausableToast()
+const confirm = useConfirm()
 const { data: session } = useAuth()
 
 const requests = ref<any[]>([])
@@ -22,8 +24,6 @@ const selectedRequests = ref<any[]>([])
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'create' | 'update' | 'view'>('create')
-const requestToDelete = ref<any>(null)
-const deleteDialogVisible = ref(false)
 const currentRequestId = ref<number | null>(null)
 const currentRequest = ref<any>(null)
 const ordersDialogVisible = ref(false)
@@ -94,45 +94,45 @@ const openNewDialog = () => {
 }
 
 const viewRequest = (request: any) => {
-   const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
-   formData.value = {
-     title: request.title,
-     body: request.body,
-     isActive: request.isActive,
-     isBasicNeed: request.isBasicNeed || false,
-     selectedTags: request.tags || [],
-     unitOfMeasure: request.unitOfMeasure as UnitOfMeasure | undefined,
-     order: {
-       quantity: order?.quantity ?? undefined,
-       recurrencePeriod: order?.recurrencePeriod || 0,
-     }
-   }
-   viewCommunity.value = request.communityNode?.title || '-'
-   viewCountry.value = request.country?.name || '-'
-   currentRequest.value = request
-   dialogMode.value = 'view'
-   dialogVisible.value = true
-  }
+	const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
+	formData.value = {
+		title: request.title,
+		body: request.body,
+		isActive: request.isActive,
+		isBasicNeed: request.isBasicNeed || false,
+		selectedTags: request.tags || [],
+		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure | undefined,
+		order: {
+			quantity: order?.quantity ?? undefined,
+			recurrencePeriod: order?.recurrencePeriod || 0,
+		}
+	}
+	viewCommunity.value = request.communityNode?.title || '-'
+	viewCountry.value = request.country?.name || '-'
+	currentRequest.value = request
+	dialogMode.value = 'view'
+	dialogVisible.value = true
+}
 
 const editRequest = (request: any) => {
-   const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
-   formData.value = {
-     title: request.title,
-     body: request.body,
-     isActive: request.isActive,
-     isBasicNeed: request.isBasicNeed || false,
-     selectedTags: request.tags || [],
-     unitOfMeasure: request.unitOfMeasure as UnitOfMeasure | undefined,
-     order: {
-       quantity: order?.quantity ?? undefined,
-       recurrencePeriod: order?.recurrencePeriod || 0,
-     }
-   }
-   currentRequestId.value = request.id
-   currentRequest.value = request
-   dialogMode.value = 'update'
-   dialogVisible.value = true
-  }
+	const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
+	formData.value = {
+		title: request.title,
+		body: request.body,
+		isActive: request.isActive,
+		isBasicNeed: request.isBasicNeed || false,
+		selectedTags: request.tags || [],
+		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure | undefined,
+		order: {
+			quantity: order?.quantity ?? undefined,
+			recurrencePeriod: order?.recurrencePeriod || 0,
+		}
+	}
+	currentRequestId.value = request.id
+	currentRequest.value = request
+	dialogMode.value = 'update'
+	dialogVisible.value = true
+}
 
 const saveRequest = async () => {
 	if (!formData.value.title) {
@@ -195,9 +195,36 @@ const saveRequest = async () => {
 	}
 }
 
-const confirmDelete = (request: any) => {
-	requestToDelete.value = request
-	deleteDialogVisible.value = true
+const confirmDelete = (event: MouseEvent, request: any) => {
+	confirm.require({
+		target: event.currentTarget as HTMLElement,
+		message: `Do you want to delete "${request.title}"?`,
+		group: "right",
+		icon: 'pi pi-info-circle',
+		rejectProps: {
+			label: 'Cancel',
+			severity: 'secondary',
+			outlined: true
+		},
+		acceptProps: {
+			label: 'Delete',
+			severity: 'danger'
+		},
+		// style: { transform: 'translateX(20px)' },
+		accept: async () => {
+			deleting.value = true
+			try {
+				await $trpcClient.requests.delete.mutate({ id: request.id })
+				toast.add('success', 'Success', 'Request deleted successfully', 3000)
+				fetchRequests()
+			} catch (error: any) {
+				console.error('Failed to delete request:', error)
+				toast.add('error', 'Error', error.message || 'Failed to delete request', 5000)
+			} finally {
+				deleting.value = false
+			}
+		}
+	})
 }
 
 const showOrders = () => {
@@ -209,23 +236,6 @@ const showOrders = () => {
 	//	(o: any) => o.userId !== session.value?.user?.id,
 	//)
 	ordersDialogVisible.value = true
-}
-
-const deleteRequest = async () => {
-	if (!requestToDelete.value) return
-
-	deleting.value = true
-	try {
-		await $trpcClient.requests.delete.mutate({ id: requestToDelete.value.id })
-		toast.add('success', 'Success', 'Request deleted successfully', 3000)
-		deleteDialogVisible.value = false
-		fetchRequests()
-	} catch (error: any) {
-		console.error('Failed to delete request:', error)
-		toast.add('error', 'Error', error.message || 'Failed to delete request', 0)
-	} finally {
-		deleting.value = false
-	}
 }
 
 const closeOrdersDialog = () => {
@@ -248,39 +258,21 @@ onMounted(async () => {
 
 <template>
 	<div class="requests-page">
-		<div
-			class="header-actions flex justify-content-between align-items-center mb-4">
+		<div class="header-actions flex justify-content-between align-items-center mb-4">
 			<!-- <h2 class="text-xl font-semibold m-0">Requests</h2> -->
 			<div class="flex gap-2">
 				<IconField>
 					<InputIcon>
 						<i class="pi pi-search" />
 					</InputIcon>
-					<InputText
-						v-model="searchQuery"
-						placeholder="Search requests..."
-						@input="debouncedSearch"
-						class="w-full" />
+					<InputText v-model="searchQuery" placeholder="Search requests..." @input="debouncedSearch" class="w-full" />
 				</IconField>
-				<Button
-					label="New Request"
-					class="ml-2"
-					icon="pi pi-plus"
-					@click="openNewDialog" />
+				<Button label="New Request" class="ml-2" icon="pi pi-plus" @click="openNewDialog" />
 			</div>
 		</div>
 
-		<DataTable
-			:value="requests"
-			:loading="loading"
-			:paginator="true"
-			:rows="10"
-			v-model:selection="selectedRequests"
-			dataKey="id"
-			:rowHover="true"
-			stripedRows
-			tableStyle="min-width: 50rem"
-			class="p-datatable-sm">
+		<DataTable :value="requests" :loading="loading" :paginator="true" :rows="10" v-model:selection="selectedRequests"
+			dataKey="id" :rowHover="true" stripedRows tableStyle="min-width: 50rem" class="p-datatable-sm">
 			<Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
 			<Column field="title" header="Title" sortable>
 				<template #body="{ data }">
@@ -299,53 +291,28 @@ onMounted(async () => {
 			</Column>
 			<Column field="isBasicNeed" header="Basic Need">
 				<template #body="{ data }">
-					<Tag
-						:value="data.isBasicNeed ? 'Yes' : 'No'"
-						:severity="data.isBasicNeed ? 'danger' : 'secondary'" />
+					<Tag :value="data.isBasicNeed ? 'Yes' : 'No'" :severity="data.isBasicNeed ? 'danger' : 'secondary'" />
 				</template>
 			</Column>
 			<Column field="tags" header="Tags">
 				<template #body="{ data }">
 					<div class="flex flex-wrap gap-1">
-						<Tag
-							v-for="tag in data.tags"
-							:key="tag.id"
-							:value="tag.name"
-							severity="info" />
+						<Tag v-for="tag in data.tags" :key="tag.id" :value="tag.name" severity="info" />
 					</div>
 				</template>
 			</Column>
 			<Column header="Actions" :exportable="false" style="min-width: 0rem">
 				<template #body="{ data }">
 					<div class="flex gap-1">
-						<Button
-							icon="pi pi-eye"
-							text
-							rounded
-							severity="info"
-							@click="viewRequest(data)"
-							v-tooltip.top="'View'" />
-						<Button
-							v-if="
-								session?.user.id === data.ownerId ||
-								data.editors?.some((e: any) => e.id === session?.user.id)
-							"
-							icon="pi pi-pencil"
-							text
-							rounded
-							severity="success"
-							@click="editRequest(data)"
-							v-tooltip.top="'Edit'" />
-						<Button
-							v-if="
-								session?.user.id === data.ownerId ||
-								data.editors?.some((e: any) => e.id === session?.user.id)
-							"
-							icon="pi pi-trash"
-							text
-							rounded
-							severity="danger"
-							@click="confirmDelete(data)"
+						<Button icon="pi pi-eye" text rounded severity="info" @click="viewRequest(data)" v-tooltip.top="'View'" />
+						<Button v-if="
+							session?.user.id === data.ownerId ||
+							data.editors?.some((e: any) => e.id === session?.user.id)
+						" icon="pi pi-pencil" text rounded severity="success" @click="editRequest(data)" v-tooltip.top="'Edit'" />
+						<Button v-if="
+							session?.user.id === data.ownerId ||
+							data.editors?.some((e: any) => e.id === session?.user.id)
+						" icon="pi pi-trash" text rounded severity="danger" @click="confirmDelete($event, data)"
 							v-tooltip.top="'Delete'" />
 					</div>
 				</template>
@@ -357,101 +324,60 @@ onMounted(async () => {
 			</template>
 		</DataTable>
 
-		<Dialog
-			v-model:visible="dialogVisible"
-			:header="
-				dialogMode === 'create'
-					? 'New Request'
-					: dialogMode === 'update'
-						? 'Edit Request'
-						: 'View Request'
-			"
-			:modal="true"
-			dismissableMask
-			:style="{ width: '500px' }"
-			:breakpoints="{ '960px': '90vw', '640px': '95vw' }">
+		<Dialog v-model:visible="dialogVisible" :header="dialogMode === 'create'
+				? 'New Request'
+				: dialogMode === 'update'
+					? 'Edit Request'
+					: 'View Request'
+			" :modal="true" dismissableMask :style="{ width: '500px' }" :breakpoints="{ '960px': '90vw', '640px': '95vw' }">
 			<div class="form-content gap-3">
 				<div class="form-field">
 					<label for="title">Title *</label>
-					<InputText
-						id="title"
-						placeholder="Enter a question, issue or request"
-						v-model="formData.title"
+					<InputText id="title" placeholder="Enter a question, issue or request" v-model="formData.title"
 						:disabled="dialogMode === 'view'" />
 				</div>
 				<div class="form-field">
 					<label for="body">Description</label>
-					<Textarea
-						id="body"
-						placeholder="A brief description of the question, issue or request"
-						v-model="formData.body"
-						:disabled="dialogMode === 'view'"
-						rows="3" />
+					<Textarea id="body" placeholder="A brief description of the question, issue or request"
+						v-model="formData.body" :disabled="dialogMode === 'view'" rows="3" />
 				</div>
 				<div class="form-field">
 					<label for="recurrence">Recurrence</label>
-					<Dropdown
-						id="recurrence"
-						v-model="formData.order.recurrencePeriod"
-						:options="[
-							{ label: 'None', value: 0 },
-							{ label: 'Daily', value: 1 },
-							{ label: 'Weekly', value: 7 },
-							{ label: 'Monthly', value: 30 },
-							{ label: 'Quarterly', value: 90 },
-							{ label: 'Semi-annually', value: 180 },
-							{ label: 'Annually', value: 365 },
-						]"
-						optionLabel="label"
-						optionValue="value"
-						:disabled="dialogMode === 'view'"
-						placeholder="Select recurrence" />
+					<Dropdown id="recurrence" v-model="formData.order.recurrencePeriod" :options="[
+						{ label: 'None', value: 0 },
+						{ label: 'Daily', value: 1 },
+						{ label: 'Weekly', value: 7 },
+						{ label: 'Monthly', value: 30 },
+						{ label: 'Quarterly', value: 90 },
+						{ label: 'Semi-annually', value: 180 },
+						{ label: 'Annually', value: 365 },
+					]" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" placeholder="Select recurrence" />
 				</div>
 				<div class="flex gap-4">
 					<div class="form-field flex-1">
 						<label for="quantity">Quantity</label>
-						<InputNumber
-							placeholder="Not quantifiable"
-							id="quantity"
-							v-model="formData.order.quantity"
-							:disabled="dialogMode === 'view'"
-							@input="e => (formData.order.quantity = e.value as number | undefined)"
-							" />
+						<InputNumber placeholder="Not quantifiable" id="quantity" v-model="formData.order.quantity"
+							:disabled="dialogMode === 'view'" @input="e => (formData.order.quantity = e.value as number | undefined)" " />
 					</div>
 					<div
-						v-if="formData.order.quantity !== undefined && formData.order.quantity !== null"
-						class="form-field flex-1">
-						<label for="unitOfMeasure">Unit</label>
-						<Dropdown
-							id="unitOfMeasure"
-							v-model="formData.unitOfMeasure"
-							:options="
-								Object.keys(UnitOfMeasure).map(key => ({
-									label: key,
-									value: key as UnitOfMeasure,
-								}))
-							"
-							optionLabel="label"
-							optionValue="value"
-							:disabled="dialogMode === 'view'"
-							placeholder="Select unit" />
+						v-if="formData.order.quantity !== undefined && formData.order.quantity !== null" class="form-field flex-1">
+							<label for="unitOfMeasure">Unit</label>
+							<Dropdown id="unitOfMeasure" v-model="formData.unitOfMeasure" :options="Object.keys(UnitOfMeasure).map(key => ({
+								label: key,
+								value: key as UnitOfMeasure,
+							}))
+								" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" placeholder="Select unit" />
 					</div>
 					<div class="form-field flex-1">
 						<label for="isBasicNeed">Basic Need</label>
-						<Checkbox
-							id="isBasicNeed"
-							v-model="formData.isBasicNeed"
-							:binary="true"
+						<Checkbox id="isBasicNeed" v-model="formData.isBasicNeed" :binary="true"
 							:disabled="dialogMode === 'view'" />
 					</div>
 				</div>
 
 				<div class="form-field">
 					<label for="tags">Tags</label>
-					<Tags
-						v-model="formData.selectedTags"
-						:tags="allTags"
-						:disabled="dialogMode === 'view'"
+					<Tags v-model="formData.selectedTags" :tags="allTags" :disabled="dialogMode === 'view'"
 						placeholder="Search or create tags" />
 				</div>
 				<div v-if="dialogMode === 'view'" class="form-field">
@@ -464,71 +390,28 @@ onMounted(async () => {
 				</div>
 				<div v-if="dialogMode === 'update'" class="form-field">
 					<label for="isActive">Status</label>
-					<SelectButton
-						id="isActive"
-						v-model="formData.isActive"
-						:options="[
-							{ label: 'Active', value: true },
-							{ label: 'Inactive', value: false },
-						]"
-						optionLabel="label"
-						optionValue="value" />
+					<SelectButton id="isActive" v-model="formData.isActive" :options="[
+						{ label: 'Active', value: true },
+						{ label: 'Inactive', value: false },
+					]" optionLabel="label" optionValue="value" />
 				</div>
 			</div>
 				<template #footer>
-					<div class="flex justify-content-between gap-2 w-full">
-							<div class="flex-1">
-									<Button
-										v-if="dialogMode !== 'create'"
-										label="Orders"
-										text
-										@click="showOrders" />
-							</div>
-							<div class="flex gap-2">
-									<Button label="Cancel" text @click="dialogVisible = false" />
-									<Button
-											v-if="dialogMode !== 'view'"
-											:label="dialogMode === 'create' ? 'Create' : 'Update'"
-											@click="saveRequest"
-											:loading="saving" />
-							</div>
+				<div class="flex justify-content-between gap-2 w-full">
+					<div class="flex-1">
+						<Button v-if="dialogMode !== 'create'" label="Orders" text @click="showOrders" />
 					</div>
-			</template>
-		</Dialog>
-
-		<Dialog
-			v-model:visible="deleteDialogVisible"
-			header="Confirm Delete"
-			:modal="true"
-			:style="{ width: '500px' }"
-			:breakpoints="{ '960px': '90vw', '640px': '95vw' }">
-			<div class="flex align-items-center gap-2">
-				<i class="pi pi-exclamation-triangle text-3xl text-primary" />
-				<span
-					>Are you sure you want to delete
-					<strong>{{ requestToDelete?.title }}</strong
-					>?</span
-				>
-			</div>
-			<template #footer>
-				<div class="flex justify-content-end gap-2">
-					<Button label="Cancel" text @click="deleteDialogVisible = false" />
-					<Button
-						label="Delete"
-						severity="danger"
-						@click="deleteRequest"
-						:loading="deleting" />
+					<div class="flex gap-2">
+						<Button label="Cancel" text @click="dialogVisible = false" />
+						<Button v-if="dialogMode !== 'view'" :label="dialogMode === 'create' ? 'Create' : 'Update'"
+							@click="saveRequest" :loading="saving" />
+					</div>
 				</div>
 			</template>
 		</Dialog>
 
-		<Dialog
-			v-model:visible="ordersDialogVisible"
-			:header="`Orders - ${currentRequestTitle}`"
-			:modal="true"
-			 dismissableMask
-			:style="{ width: '700px' }"
-			:breakpoints="{ '960px': '90vw', '640px': '95vw' }"
+		<Dialog v-model:visible="ordersDialogVisible" :header="`Orders - ${currentRequestTitle}`" :modal="true"
+			dismissableMask :style="{ width: '700px' }" :breakpoints="{ '960px': '90vw', '640px': '95vw' }"
 			@update:visible="closeOrdersDialog">
 			<OrdersList :orders="currentRequestOrders" />
 		</Dialog>
@@ -545,7 +428,7 @@ onMounted(async () => {
 	flex-direction: column;
 }
 
-.form-content > *:not(.form-row) {
+.form-content>*:not(.form-row) {
 	flex: 0 0 auto;
 	width: 100%;
 }
@@ -555,7 +438,7 @@ onMounted(async () => {
 	gap: 1rem;
 }
 
-.form-row > * {
+.form-row>* {
 	flex: 1;
 }
 
