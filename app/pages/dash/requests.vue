@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import type { Tag } from '~/components/Tags.vue'
 import Tags from '~/components/Tags.vue'
-import OrdersList from '~/components/OrdersList.vue'
+import OrdersList from '~/components/requests/OrdersList.vue'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { useConfirm } from "primevue/useconfirm"
 
@@ -369,8 +369,8 @@ onMounted(async () => {
 								" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" placeholder="Select unit" />
 					</div>
 					<div class="form-field flex-1">
-						<label for="isBasicNeed">Basic Need</label>
-						<Checkbox id="isBasicNeed" v-model="formData.isBasicNeed" :binary="true"
+						<label for="isBasicNeed" class="cursor-pointer">Basic Need</label>
+						<Checkbox inputId="isBasicNeed" v-model="formData.isBasicNeed" :binary="true"
 							:disabled="dialogMode === 'view'" />
 					</div>
 				</div>
