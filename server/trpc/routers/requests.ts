@@ -59,13 +59,13 @@ export const requestsRouter = router({
 			});
 
 			// Attach unitOfMeasure from request to each order for frontend compatibility
-			 (result ?? []).forEach(req => {
-				if (req.orders) {
-					req.orders.forEach((order: any) => {
-						order.unitOfMeasure = req.unitOfMeasure
-					})
-				}
-			})
+			//  (result ?? []).forEach(req => {
+			// 	if (req.orders) {
+			// 		req.orders.forEach((order: any) => {
+			// 			order.unitOfMeasure = req.unitOfMeasure
+			// 		})
+			// 	}
+			// })
 			return result
 		}),
 
