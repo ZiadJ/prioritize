@@ -152,6 +152,7 @@ enum RequestLevel {
 }
 
 enum UnitOfMeasure {
+  Unquantifiable // For non-countable items such as "a better world" and "happiness"
   Units // Generic unit for countable items
   Hours // Time
   Kilograms // Weight
@@ -201,15 +202,16 @@ model FeedbackNode {
   @@index([path])
 }
 
-// model Todo {
-//   id        String   @id
-//   ownerId   String
-//   label     String
-//   done      Boolean  @default(false)
-//   createdAt DateTime
-//   updatedAt DateTime
-//   User      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-// }
+model Token {
+  id           Int      @id @default(autoincrement())
+  accessToken  String   @unique
+  refreshToken String   @unique
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime // Fecha de expiración del token
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+}
 
 model User {
   id        String   @id @default(cuid())
@@ -262,17 +264,6 @@ model User {
 
   orders Order[]
   tokens Token[]
-}
-
-model Token {
-  id           Int      @id @default(autoincrement())
-  accessToken  String   @unique
-  refreshToken String   @unique
-  createdAt    DateTime @default(now())
-  expiresAt    DateTime // Fecha de expiración del token
-
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
 }
 
 model UserRelation {
@@ -759,7 +750,7 @@ model ResourceNode {
   children ResourceNode[] @relation("Self")
 
   type                   Int // ResourceType // ServiceTime, Material, Digital
-  unitOfMeasure          UnitOfMeasure 
+  unitOfMeasure          UnitOfMeasure
   quantityAvailable      Float
   monthlyCapacity        Float // Amount that can be renewed within a month (includes volunteer time)
   managedMonthlyCapacity Float
@@ -803,8 +794,12 @@ model CommunityNode {
   longitude Float
   latitude  Float
 
-  requests Request[]
-  members  User[]
+  requests                    Request[]
+  members                     User[]
+  regionalCommunities         CommunityNode[] @relation("RegionalCommunities")
+  regionalCommunityOf         CommunityNode[] @relation("RegionalCommunities")
+  regionalCommunitiesExtended CommunityNode[] @relation("RegionalCommunitiesExtended")
+  regionalCommunityExtendedOf CommunityNode[] @relation("RegionalCommunitiesExtended")
 
   @@index([path])
 }

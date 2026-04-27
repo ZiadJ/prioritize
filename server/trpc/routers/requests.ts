@@ -36,15 +36,26 @@ export const requestsRouter = router({
 					communityId: input?.communityId,
 				},
 				orderBy: { createdAt: 'desc' },
-				include: {
-					tags: true,
-					communityNode: true,
-					orders: true,
-					editors: true,
-					_count: {
-						select: { children: true, feedback: true },
+			include: {
+				tags: true,
+				communityNode: true,
+				orders: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+								firstname: true,
+								lastname: true,
+							},
+						},
 					},
 				},
+				editors: true,
+				_count: {
+					select: { children: true, feedback: true },
+				},
+			},
 			})
 		}),
 
@@ -59,7 +70,18 @@ export const requestsRouter = router({
 					effects: true,
 					owner: true,
 					editors: true,
-					orders: true,
+					orders: {
+						include: {
+							user: {
+								select: {
+									id: true,
+									username: true,
+									firstname: true,
+									lastname: true,
+								},
+							},
+						},
+					},
 					communityNode: true,
 					country: true,
 					feedback: {
@@ -134,7 +156,7 @@ export const requestsRouter = router({
 							user: { connect: { id: ctx.user!.id } },
 							recurrencePeriod: order.recurrencePeriod || 0,
 							quantity: order.quantity ?? 1,
-							unitOfMeasure: order.unitOfMeasure ?? UnitOfMeasure.Unit,
+							unitOfMeasure: order.unitOfMeasure ?? UnitOfMeasure.Units,
 						},
 					})
 				}
@@ -221,7 +243,7 @@ export const requestsRouter = router({
 							user: { connect: { id: ctx.user!.id } },
 							recurrencePeriod: order.recurrencePeriod,
 							quantity: order.quantity ?? 1,
-							unitOfMeasure: order.unitOfMeasure ?? UnitOfMeasure.Unit,
+							unitOfMeasure: order.unitOfMeasure ?? UnitOfMeasure.Units,
 						},
 					})
 				}

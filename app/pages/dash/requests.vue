@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import type { Tag } from '~/components/Tags.vue'
 import Tags from '~/components/Tags.vue'
+import OrdersList from '~/components/OrdersList.vue'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 
 definePageMeta({
@@ -24,6 +25,10 @@ const dialogMode = ref<'create' | 'update' | 'view'>('create')
 const requestToDelete = ref<any>(null)
 const deleteDialogVisible = ref(false)
 const currentRequestId = ref<number | null>(null)
+const currentRequest = ref<any>(null)
+const ordersDialogVisible = ref(false)
+const currentRequestOrders = ref<any[]>([])
+const currentRequestTitle = ref('')
 
 const allTags = ref<Tag[]>([])
 
@@ -104,9 +109,10 @@ const viewRequest = (request: any) => {
    }
    viewCommunity.value = request.communityNode?.title || '-'
    viewCountry.value = request.country?.name || '-'
+   currentRequest.value = request
    dialogMode.value = 'view'
    dialogVisible.value = true
- }
+  }
 
 const editRequest = (request: any) => {
    const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
@@ -122,10 +128,11 @@ const editRequest = (request: any) => {
        recurrencePeriod: order?.recurrencePeriod || 0,
      }
    }
-   dialogMode.value = 'update'
    currentRequestId.value = request.id
+   currentRequest.value = request
+   dialogMode.value = 'update'
    dialogVisible.value = true
- }
+  }
 
 const saveRequest = async () => {
 	if (!formData.value.title) {
@@ -193,6 +200,17 @@ const confirmDelete = (request: any) => {
 	deleteDialogVisible.value = true
 }
 
+const showOrders = () => {
+	if (!currentRequest.value) return
+	currentRequestTitle.value = currentRequest.value.title
+	const allOrders = currentRequest.value.orders || []
+	// Exclude current user's own order
+	currentRequestOrders.value = allOrders //.filter(
+	//	(o: any) => o.userId !== session.value?.user?.id,
+	//)
+	ordersDialogVisible.value = true
+}
+
 const deleteRequest = async () => {
 	if (!requestToDelete.value) return
 
@@ -210,6 +228,12 @@ const deleteRequest = async () => {
 	}
 }
 
+const closeOrdersDialog = () => {
+	ordersDialogVisible.value = false
+	currentRequestOrders.value = []
+	currentRequestTitle.value = ''
+}
+
 onMounted(async () => {
 	fetchRequests()
 	try {
@@ -219,6 +243,7 @@ onMounted(async () => {
 		console.error('Failed to fetch tags:', error.message || error)
 	}
 })
+
 </script>
 
 <template>
@@ -342,6 +367,7 @@ onMounted(async () => {
 						: 'View Request'
 			"
 			:modal="true"
+			dismissableMask
 			:style="{ width: '500px' }"
 			:breakpoints="{ '960px': '90vw', '640px': '95vw' }">
 			<div class="form-content gap-3">
@@ -449,15 +475,24 @@ onMounted(async () => {
 						optionValue="value" />
 				</div>
 			</div>
-			<template #footer>
-				<div class="flex justify-content-end gap-2">
-					<Button label="Cancel" text @click="dialogVisible = false" />
-					<Button
-						v-if="dialogMode !== 'view'"
-						:label="dialogMode === 'create' ? 'Create' : 'Update'"
-						@click="saveRequest"
-						:loading="saving" />
-				</div>
+				<template #footer>
+					<div class="flex justify-content-between gap-2 w-full">
+							<div class="flex-1">
+									<Button
+										v-if="dialogMode !== 'create'"
+										label="Orders"
+										text
+										@click="showOrders" />
+							</div>
+							<div class="flex gap-2">
+									<Button label="Cancel" text @click="dialogVisible = false" />
+									<Button
+											v-if="dialogMode !== 'view'"
+											:label="dialogMode === 'create' ? 'Create' : 'Update'"
+											@click="saveRequest"
+											:loading="saving" />
+							</div>
+					</div>
 			</template>
 		</Dialog>
 
@@ -485,6 +520,17 @@ onMounted(async () => {
 						:loading="deleting" />
 				</div>
 			</template>
+		</Dialog>
+
+		<Dialog
+			v-model:visible="ordersDialogVisible"
+			:header="`Orders - ${currentRequestTitle}`"
+			:modal="true"
+			 dismissableMask
+			:style="{ width: '700px' }"
+			:breakpoints="{ '960px': '90vw', '640px': '95vw' }"
+			@update:visible="closeOrdersDialog">
+			<OrdersList :orders="currentRequestOrders" />
 		</Dialog>
 	</div>
 </template>
