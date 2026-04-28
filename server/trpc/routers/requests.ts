@@ -5,9 +5,6 @@ import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { createTreeNode, buildTreeSelectDataFromNodes } from '~~/lib/tree'
 import { RequestSchema } from '~~/prisma/generated/zod/schemas/models/Request.schema'
 
-// Create request input type derived from Prisma-generated Zod schema
-// We omit fields that are auto-generated or handled separately (id, path, depth, numchild, modifiedAt, createdAt, etc.)
-// and add custom fields like order and tagIds
 const requestInputBase = RequestSchema.omit({
 	id: true,
 	path: true,
