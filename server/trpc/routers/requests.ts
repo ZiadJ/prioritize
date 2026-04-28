@@ -56,7 +56,7 @@ export const requestsRouter = router({
 						select: { children: true, feedback: true },
 					},
 				},
-			});
+			})
 
 			// Attach unitOfMeasure from request to each order for frontend compatibility
 			//  (result ?? []).forEach(req => {
@@ -80,23 +80,23 @@ export const requestsRouter = router({
 					effects: true,
 					owner: true,
 					editors: true,
-				orders: {
-					include: {
-						user: {
-							select: {
-								id: true,
-								username: true,
-								firstname: true,
-								lastname: true,
+					orders: {
+						include: {
+							user: {
+								select: {
+									id: true,
+									username: true,
+									firstname: true,
+									lastname: true,
+								},
 							},
-						},
-						request: {
-							select: {
-								unitOfMeasure: true,
+							request: {
+								select: {
+									unitOfMeasure: true,
+								},
 							},
 						},
 					},
-				},
 					communityNode: true,
 					country: true,
 					feedback: {
@@ -126,6 +126,7 @@ export const requestsRouter = router({
 				parentId: z.number().optional(),
 				tagIds: z.array(z.number()).optional().default([]),
 				isBasicNeed: z.boolean().optional().default(false),
+				unitOfMeasure: z.enum(UnitOfMeasure).optional(),
 				// Order fields
 				order: z
 					.object({
@@ -133,7 +134,6 @@ export const requestsRouter = router({
 						recurrencePeriod: z.number().optional(),
 					})
 					.optional(),
-				unitOfMeasure: z.enum(UnitOfMeasure).optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -192,6 +192,7 @@ export const requestsRouter = router({
 				isActive: z.boolean().optional(),
 				tagIds: z.array(z.number()).optional(),
 				isBasicNeed: z.boolean().optional(),
+				unitOfMeasure: z.enum(UnitOfMeasure).optional(),
 				// Order fields
 				order: z
 					.object({
@@ -199,7 +200,6 @@ export const requestsRouter = router({
 						recurrencePeriod: z.number().optional(),
 					})
 					.optional(),
-				unitOfMeasure: z.enum(UnitOfMeasure).optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
