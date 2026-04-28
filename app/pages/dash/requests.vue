@@ -353,10 +353,17 @@ onMounted(async () => {
 					]" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" placeholder="Select recurrence" />
 				</div>
 				<div class="flex gap-4">
-					<div class="form-field flex-1">
+					<!-- Show quantity input when unitOfMeasure is not None (all modes) -->
+					<div v-if="formData.unitOfMeasure !== UnitOfMeasure.None" class="form-field flex-1">
 						<label for="quantity">Quantity</label>
 						<InputNumber id="quantity" v-model="formData.order.quantity"
 							:disabled="dialogMode === 'view'" @input="e => (formData.order.quantity = e.value as number | undefined)" />
+					</div>
+					<!-- Show join/joined button only in edit/view mode when unitOfMeasure is None (hidden in create mode) -->
+					<div v-else-if="dialogMode !== 'create'" class="form-field flex-1">
+						<label for="quantity">&nbsp;</label>
+						<Button :label="formData.order.quantity ? 'Joined' : 'Join'" 
+							:disabled="dialogMode === 'view'" class="w-full" @click="formData.order.quantity = formData.order.quantity ? 0 : 1" />
 					</div>
 					<div class="form-field flex-1">
 							<label for="unitOfMeasure">Unit of Measure</label>
