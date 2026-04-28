@@ -3,24 +3,28 @@ import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { createTreeNode, buildTreeSelectDataFromNodes } from '~~/lib/tree'
+import { RequestSchema } from '~~/prisma/generated/zod/schemas/models/Request.schema'
 
-// import {
-// 	RequestWhereInputObjectSchema,
-// 	RequestUncheckedCreateInputObjectZodSchema,
-// 	RequestUncheckedUpdateInputObjectZodSchema,
-// 	RequestWhereUniqueInputObjectSchema,
-// } from '~~/prisma/generated/zod/schemas'
+// Create request input type derived from Prisma-generated Zod schema
+// We omit fields that are auto-generated or handled separately (id, path, depth, numchild, modifiedAt, createdAt, etc.)
+// and add custom fields like order and tagIds
+const requestInputBase = RequestSchema.omit({
+	id: true,
+	path: true,
+	depth: true,
+	numchild: true,
+	modifiedAt: true,
+	createdAt: true,
+	communityId: true,
+	countryId: true,
+	ownerId: true,
+	isPrivate: true,
+	isDirty: true,
+})
 
-const requestInput = z.object({
+const requestInput = requestInputBase.extend({
 	id: z.number().optional(),
-	parentId: z.number().optional(),
-	// Request fields
-	title: z.string().min(1),
-	body: z.string().optional().default(''),
-	isActive: z.boolean().optional(),
 	tagIds: z.array(z.number()).optional().default([]),
-	isBasicNeed: z.boolean().optional().default(false),
-	unitOfMeasure: z.enum(UnitOfMeasure).optional(),
 	// Order fields
 	order: z
 		.object({
