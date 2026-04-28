@@ -355,12 +355,12 @@ onMounted(async () => {
 				</div>
                 <div class="flex gap-4">
                     <Transition name="slide-fade" mode="out-in">
-                        <div v-if="formData.unitOfMeasure !== UnitOfMeasure.None" key="quantity-input" class="form-field flex-1" style="min-width: 200px;">
+                        <div v-if="formData.unitOfMeasure !== UnitOfMeasure.None" key="quantity-input" class="form-field flex-1">
                             <label for="quantity">Quantity</label>
                             <InputNumber id="quantity" v-model="formData.order.quantity"
                                 :disabled="dialogMode === 'view'" @input="e => (formData.order.quantity = e.value as number | undefined)" />
                         </div>
-                        <div v-else-if="dialogMode !== 'create'" key="join-button" class="form-field flex-1" style="min-width: 200px;">
+                        <div v-else-if="dialogMode !== 'create'" key="join-button" class="form-field flex-1">
                             <label for="quantity">&nbsp;</label>
                             <Button :label="formData.order.quantity ? 'Joined' : 'Join'"
                                 :disabled="dialogMode === 'view'" class="w-full" @click="formData.order.quantity = formData.order.quantity ? 0 : 1" />
@@ -471,6 +471,7 @@ onMounted(async () => {
 	width: 100%;
 }
 
+/* Slide-fade transition for quantity/join elements */
 /* Width animation for quantity/join elements */
 .slide-fade-enter-active,
 .slide-fade-leave-active {
@@ -481,7 +482,6 @@ onMounted(async () => {
 .slide-fade-leave-to {
 	opacity: 0;
 	max-width: 0;
-	min-width: 0;
 }
 .slide-fade-enter-to,
 .slide-fade-leave-from {
