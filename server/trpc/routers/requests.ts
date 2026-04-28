@@ -22,7 +22,6 @@ const requestInputBase = RequestSchema.omit({
 const requestInput = requestInputBase.extend({
 	id: z.number().optional(),
 	tagIds: z.array(z.number()).optional().default([]),
-	// Order fields
 	order: z
 		.object({
 			quantity: z.number().optional().nullable(),
