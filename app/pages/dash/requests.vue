@@ -334,7 +334,7 @@ onMounted(async () => {
 				<div class="form-field">
 					<label for="title">Title *</label>
 					<InputText id="title" placeholder="Enter a question, issue or request" v-model="formData.title"
-						:disabled="dialogMode === 'view'" />
+						:disabled="dialogMode === 'view'" v-bind:autofocus="dialogMode === 'create'" />
 				</div>
 				<div class="form-field">
 					<label for="body">Description</label>
