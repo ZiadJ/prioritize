@@ -153,7 +153,7 @@ enum RequestLevel {
 }
 
 enum UnitOfMeasure {
-  Unquantifiable // For non-countable items such as "a better world" and "happiness"
+  None // For non-countable items such as "a better world" and "happiness"
   Units // Generic unit for countable items
   Hours // Time
   Kilograms // Weight
@@ -443,7 +443,7 @@ model Request {
 
   isPrivate     Boolean        @default(false)
   isBasicNeed   Boolean        @default(false)
-  unitOfMeasure UnitOfMeasure?
+  unitOfMeasure UnitOfMeasure
 
   requestNodes RequestNode[]
   expertise    ExpertiseNode[]

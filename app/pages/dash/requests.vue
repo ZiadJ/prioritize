@@ -38,7 +38,7 @@ const formData = ref({
 	isActive: true,
 	isBasicNeed: false,
 	selectedTags: [] as Tag[],
-	unitOfMeasure: undefined as UnitOfMeasure | undefined,
+	unitOfMeasure: 'None' as UnitOfMeasure,
 	order: {
 		quantity: undefined as number | undefined,
 		recurrencePeriod: 0,
@@ -83,9 +83,9 @@ const openNewDialog = () => {
 		isActive: true,
 		isBasicNeed: false,
 		selectedTags: [],
-		unitOfMeasure: undefined,
+		unitOfMeasure: 'None' as UnitOfMeasure,
 		order: {
-			quantity: undefined,
+			quantity: 1,
 			recurrencePeriod: 0,
 		}
 	}
@@ -101,7 +101,7 @@ const viewRequest = (request: any) => {
 		isActive: request.isActive,
 		isBasicNeed: request.isBasicNeed || false,
 		selectedTags: request.tags || [],
-		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure | undefined,
+		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure,
 		order: {
 			quantity: order?.quantity ?? undefined,
 			recurrencePeriod: order?.recurrencePeriod || 0,
@@ -122,7 +122,7 @@ const editRequest = (request: any) => {
 		isActive: request.isActive,
 		isBasicNeed: request.isBasicNeed || false,
 		selectedTags: request.tags || [],
-		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure | undefined,
+		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure,
 		order: {
 			quantity: order?.quantity ?? undefined,
 			recurrencePeriod: order?.recurrencePeriod || 0,
@@ -210,7 +210,6 @@ const confirmDelete = (event: MouseEvent, request: any) => {
 			label: 'Delete',
 			severity: 'danger'
 		},
-		// style: { transform: 'translateX(20px)' },
 		accept: async () => {
 			deleting.value = true
 			try {
@@ -356,17 +355,17 @@ onMounted(async () => {
 				<div class="flex gap-4">
 					<div class="form-field flex-1">
 						<label for="quantity">Quantity</label>
-						<InputNumber placeholder="Not quantifiable" id="quantity" v-model="formData.order.quantity"
-							:disabled="dialogMode === 'view'" @input="e => (formData.order.quantity = e.value as number | undefined)" " />
+						<InputNumber id="quantity" v-model="formData.order.quantity"
+							:disabled="dialogMode === 'view'" @input="e => (formData.order.quantity = e.value as number | undefined)" />
 					</div>
-					<div
-						v-if="formData.order.quantity !== undefined && formData.order.quantity !== null" class="form-field flex-1">
-							<label for="unitOfMeasure">Unit</label>
+					<div class="form-field flex-1">
+							<label for="unitOfMeasure">Unit of Measure</label>
 							<Dropdown id="unitOfMeasure" v-model="formData.unitOfMeasure" :options="Object.keys(UnitOfMeasure).map(key => ({
 								label: key,
 								value: key as UnitOfMeasure,
 							}))
-								" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" placeholder="Select unit" />
+								" 
+								optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" placeholder="Select unit" />
 					</div>
 					<div class="form-field flex-1">
 						<label for="isBasicNeed" class="cursor-pointer">Basic Need</label>
@@ -397,16 +396,16 @@ onMounted(async () => {
 				</div>
 			</div>
 				<template #footer>
-				<div class="flex justify-content-between gap-2 w-full">
-					<div class="flex-1">
-						<Button v-if="dialogMode !== 'create'" label="Orders" text @click="showOrders" />
-					</div>
-					<div class="flex gap-2">
-						<Button label="Cancel" text @click="dialogVisible = false" />
-						<Button v-if="dialogMode !== 'view'" :label="dialogMode === 'create' ? 'Create' : 'Update'"
-							@click="saveRequest" :loading="saving" />
-					</div>
+			<div class="flex justify-content-between gap-2 w-full">
+				<div class="flex-1">
+					<Button v-if="dialogMode !== 'create'" :label="`${currentRequest.orders?.length ?? 0} requests`" text @click="showOrders" />
 				</div>
+				<div class="flex gap-2">
+					<Button label="Cancel" text @click="dialogVisible = false" />
+					<Button v-if="dialogMode !== 'view'" :label="dialogMode === 'create' ? 'Create' : 'Update'"
+						@click="saveRequest" :loading="saving" />
+				</div>
+			</div>
 			</template>
 		</Dialog>
 
