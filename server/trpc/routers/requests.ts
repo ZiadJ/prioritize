@@ -5,29 +5,22 @@ import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { createTreeNode, buildTreeSelectDataFromNodes } from '~~/lib/tree'
 import { RequestSchema } from '~~/prisma/generated/zod/schemas/models/Request.schema'
 
-const requestInputBase = RequestSchema.omit({
-	id: true,
-	path: true,
-	depth: true,
-	numchild: true,
-	modifiedAt: true,
-	createdAt: true,
-	communityId: true,
-	countryId: true,
-	ownerId: true,
-	isPrivate: true,
-	isDirty: true,
-})
-
-const requestInput = requestInputBase.extend({
-	id: z.number().optional(),
-	tagIds: z.array(z.number()).optional().default([]),
-	order: z
-		.object({
-			quantity: z.number().optional().nullable(),
-			recurrencePeriod: z.number().optional(),
-		})
-		.optional(),
+const requestInput = RequestSchema.pick({
+  isActive: true,
+  title: true,
+  body: true,
+  parentId: true,
+  isBasicNeed: true,
+  unitOfMeasure: true,
+}).extend({
+  id: z.number().optional(),
+  tagIds: z.array(z.number()).optional().default([]),
+  order: z
+      .object({
+        quantity: z.number().optional().nullable(),
+        recurrencePeriod: z.number().optional(),
+      })
+      .optional(),
 })
 
 export const requestsRouter = router({
