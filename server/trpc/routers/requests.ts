@@ -3,7 +3,6 @@ import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { createTreeNode, buildTreeSelectDataFromNodes } from '~~/lib/tree'
-import { Request, Order } from '~~/prisma/generated/interfaces'
 
 // import {
 // 	RequestWhereInputObjectSchema,
@@ -11,6 +10,25 @@ import { Request, Order } from '~~/prisma/generated/interfaces'
 // 	RequestUncheckedUpdateInputObjectZodSchema,
 // 	RequestWhereUniqueInputObjectSchema,
 // } from '~~/prisma/generated/zod/schemas'
+
+const requestInput = z.object({
+	id: z.number().optional(),
+	parentId: z.number().optional(),
+	// Request fields
+	title: z.string().min(1),
+	body: z.string().optional().default(''),
+	isActive: z.boolean().optional(),
+	tagIds: z.array(z.number()).optional().default([]),
+	isBasicNeed: z.boolean().optional().default(false),
+	unitOfMeasure: z.enum(UnitOfMeasure).optional(),
+	// Order fields
+	order: z
+		.object({
+			quantity: z.number().optional().nullable(),
+			recurrencePeriod: z.number().optional(),
+		})
+		.optional(),
+})
 
 export const requestsRouter = router({
 	list: publicProcedure
@@ -118,24 +136,7 @@ export const requestsRouter = router({
 		}),
 
 	create: protectedProcedure
-		.input(
-			z.object({
-				// Request fields
-				title: z.string().min(1),
-				body: z.string().optional().default(''),
-				parentId: z.number().optional(),
-				tagIds: z.array(z.number()).optional().default([]),
-				isBasicNeed: z.boolean().optional().default(false),
-				unitOfMeasure: z.enum(UnitOfMeasure).optional(),
-				// Order fields
-				order: z
-					.object({
-						quantity: z.number().optional().nullable(),
-						recurrencePeriod: z.number().optional(),
-					})
-					.optional(),
-			}),
-		)
+		.input(requestInput)
 		.mutation(async ({ ctx, input }) => {
 			const { tagIds, parentId, isBasicNeed, order, ...data } = input
 
@@ -183,25 +184,7 @@ export const requestsRouter = router({
 		}),
 
 	update: protectedProcedure
-		.input(
-			z.object({
-				id: z.number(),
-				// Request fields
-				title: z.string().min(1).optional(),
-				body: z.string().optional(),
-				isActive: z.boolean().optional(),
-				tagIds: z.array(z.number()).optional(),
-				isBasicNeed: z.boolean().optional(),
-				unitOfMeasure: z.enum(UnitOfMeasure).optional(),
-				// Order fields
-				order: z
-					.object({
-						quantity: z.number().optional().nullable(),
-						recurrencePeriod: z.number().optional(),
-					})
-					.optional(),
-			}),
-		)
+		.input(requestInput.partial())
 		.mutation(async ({ ctx, input }) => {
 			const { id, tagIds, isBasicNeed, order, unitOfMeasure, ...data } = input
 			const updateData: Prisma.RequestUpdateInput = { ...data }
