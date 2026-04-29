@@ -440,7 +440,8 @@ onMounted(async () => {
 			dismissableMask :style="{ width: '700px' }" :breakpoints="{ '960px': '90vw', '640px': '95vw' }"
 			show-effect="fadeIn" hide-effect="fadeOut"
 			@update:visible="closeOrdersDialog">
-			<OrdersList :orders="currentRequestOrders" 
+			<OrdersList 
+				:orders="currentRequestOrders" 
 				:unitOfMeasure="currentRequest?.unitOfMeasure || UnitOfMeasure.None" />
 		</Dialog>
 	</div>

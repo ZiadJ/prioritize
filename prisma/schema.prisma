@@ -39,7 +39,6 @@ generator zod {
   output   = "../prisma/generated/zod"
 }
 
-
 datasource db {
   provider = "postgresql"
 }
@@ -163,34 +162,25 @@ enum UnitOfMeasure {
   Joules // Energy
 }
 
-model FeedbackNode {
+model Feedback {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
   isActive   Boolean
-
-  path     String         @unique
-  depth    Int            @default(0)
-  numchild Int            @default(0)
-  parent   FeedbackNode?  @relation("Self", fields: [parentId], references: [id])
-  parentId Int?
-  children FeedbackNode[] @relation("Self")
 
   user                User    @relation(fields: [userId], references: [id])
   userId              String
   type                Int
   rating              Int
   confidence          Int
-  // type                Int // FeedbackType // User, Revision, Request, Interest, RequestNode, Effect, ProposalStep
-  // targetId            String
+  // type             Int // FeedbackType // User, Revision, RequestNode, Effect, ProposalStep
+  // targetId         String
   title               String
   description         String
   requireCommentOnNeg Boolean // Require a comment for negative feedback unless a related rating is specified
 
   Revisions RevisionNode[]
 
-  request        Request?     @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  requestId      Int?
   RequestNode    RequestNode? @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
   requestNodeId  Int?
   proposalNode   Proposal?    @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
@@ -199,8 +189,8 @@ model FeedbackNode {
   effectId       Int?
 
   // Omitting userId to allow a user to offer multiple feedbacks to another user
-  @@unique([requestId, requestNodeId, proposalNodeId, effectId])
-  @@index([path])
+  @@unique([requestNodeId, proposalNodeId, effectId])
+  @@map("FeedbackNode")
 }
 
 model Token {
@@ -237,6 +227,8 @@ model User {
   isVerified    Boolean   @default(false)
   role          String    @default("")
 
+  balance Float @default(0) // The available budget spendable on an order within a request
+
   community   CommunityNode? @relation(fields: [communityId], references: [id])
   communityId Int?
   country     Country?       @relation(fields: [countryId], references: [id])
@@ -244,7 +236,7 @@ model User {
 
   expertise         ExpertiseNode[]
   steps             StepNode[]      @relation("AssignedSteps")
-  feedback          FeedbackNode[]
+  feedback          Feedback[]
   revisions         RevisionNode[]
   tags              Tag[]
   fromRelationships UserRelation[]  @relation("from")
@@ -310,7 +302,7 @@ model RevisionNode {
   isRejected    Boolean // Based on feedback ratings
   rejectedAt    DateTime
 
-  feedback FeedbackNode[]
+  feedback Feedback[]
 
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId          String
@@ -408,6 +400,9 @@ model ExpertiseNode {
   parentId Int?
   children ExpertiseNode[] @relation("Self")
 
+  requestNode   RequestNode? @relation(fields: [requestNodeId], references: [id])
+  requestNodeId Int?
+
   users     User[]
   interests Request[]
   effects   Effect[]
@@ -441,13 +436,13 @@ model Request {
   owner         User           @relation("RequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId       String
 
-  isPrivate     Boolean        @default(false)
-  isBasicNeed   Boolean        @default(false)
+  isApproved    Boolean       @default(false)
+  isPrivate     Boolean       @default(false)
+  isBasicNeed   Boolean       @default(false)
   unitOfMeasure UnitOfMeasure
 
   requestNodes RequestNode[]
   expertise    ExpertiseNode[]
-  feedback     FeedbackNode[]
   tags         Tag[]
   effects      Effect[]
   orders       Order[]
@@ -471,7 +466,7 @@ model Order {
   userId    String
 
   quantity Float
-  // customUnit    String? // e.g. "pizzas", "meetings", "trees"
+  budget   Float // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
 
   recurrencePeriod   Int // Daily, Weekly, Monthly, Quaterly, Semi-anually, Anually
   dueDeliveryDate    DateTime  @default(now())
@@ -527,7 +522,8 @@ model RequestNode {
   proposals Proposal[] // Auto-generated when adding proposed steps
 
   // Auto-generated when adding feedback to proposed steps
-  feedback FeedbackNode[]
+  feedback          Feedback[]
+  requiredExpertise ExpertiseNode[] // Required expertise for providing feedback
 
   owner   User   @relation("RequestNodeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId String
@@ -583,7 +579,7 @@ model Proposal {
   isDraft       Boolean?
   isUnavailable Boolean?
 
-  requestNodeImpact     FeedbackNode[] // Voted feedback from experts based on the related interests
+  requestNodeImpact     Feedback[] // Voted feedback from experts based on the related interests
   requests              RequestNode[]
   tags                  Tag[]
   assignedCognitiveBias AssignedCognitiveBias[]
@@ -698,7 +694,7 @@ model Effect {
   relationFormula String
 
   steps    StepNode[]
-  feedback FeedbackNode[]
+  feedback Feedback[]
   tags     Tag[]
 
   effectorFrom Effector[]      @relation("from")

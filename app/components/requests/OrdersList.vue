@@ -1,19 +1,18 @@
 <script lang="ts" setup>
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 
-interface OrderUser {
-	id: string
-	username: string
-	firstname: string
-	lastname: string
-}
 
 interface OrderWithUser {
 	id: number
 	quantity: number
 	unitOfMeasure?: UnitOfMeasure
 	recurrencePeriod: number
-	user: OrderUser
+	user: {
+		id: string
+		username: string
+		firstname: string
+		lastname: string
+	}
 }
 
 const props = defineProps<{
