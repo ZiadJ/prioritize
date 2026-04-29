@@ -7,6 +7,7 @@ import Tags from '~/components/Tags.vue'
 import OrdersList from '~/components/requests/OrdersList.vue'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { useConfirm } from 'primevue/useconfirm'
+import { number } from 'zod'
 
 type RequestRouterInput = inferRouterInputs<AppRouter>['requests']
 type RequestRouterOutput = inferRouterOutputs<AppRouter>['requests']
@@ -51,6 +52,7 @@ const totalRequestedQuantity = computed(() => {
 })
 
 const isOwner = computed(() => {
+	if (dialogMode.value === 'create') return true
 	return (
 		currentRequest.value &&
 		(session.value?.user?.id === currentRequest.value.ownerId ||
@@ -64,12 +66,13 @@ const formData = ref({
 	title: '',
 	body: '',
 	isActive: true,
+	budget: 0,
 	selectedTags: [] as Tag[],
 	unitOfMeasure: 'None' as UnitOfMeasure,
 	order: {
 		quantity: undefined as number | undefined,
 		recurrencePeriod: 0,
-		budget: undefined as number | undefined,
+		budget: 0,
 		estimatedDeliveryAt: undefined as Date | undefined,
 		dueAt: undefined as Date | undefined,
 		isBasicNeed: false,
@@ -109,12 +112,13 @@ const openNewDialog = () => {
 		title: '',
 		body: '',
 		isActive: true,
+		budget: 0,
 		selectedTags: [],
 		unitOfMeasure: 'None' as UnitOfMeasure,
 		order: {
 			quantity: 1,
 			recurrencePeriod: 0,
-			budget: undefined,
+			budget: 0,
 			estimatedDeliveryAt: undefined,
 			dueAt: undefined,
 			isBasicNeed: false,
@@ -132,6 +136,7 @@ const editRequest = (request: Request) => {
 		title: request.title,
 		body: request.body || '',
 		isActive: request.isActive,
+		budget: order?.budget || 0,
 		selectedTags: request.tags || [],
 		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure,
 		order: {
@@ -467,8 +472,7 @@ onMounted(async () => {
 						<Checkbox
 							inputId="isBasicNeed"
 							v-model="formData.order.isBasicNeed"
-							:binary="true"
-							:disabled="!isOwner" />
+							:binary="true" />
 					</div>
 				</div>
 				<div class="flex gap-4">
