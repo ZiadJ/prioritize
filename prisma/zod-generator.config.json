@@ -1,6 +1,7 @@
 {
   "mode": "custom",
   "pureModels": true,
+  "pureModelsIncludeRelations": true,
   "variants": {
     "pure": { "enabled": true },
     "input": { "enabled": false },

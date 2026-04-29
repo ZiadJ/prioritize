@@ -47,15 +47,7 @@ const totalRequestedQuantity = computed(() => {
 	}, 0)
 })
 
-const formData = ref<{
-	title: string
-	body: string
-	isActive: boolean
-	isBasicNeed: boolean
-	selectedTags: Tag[]
-	unitOfMeasure: UnitOfMeasure
-	order: { quantity?: number | null; recurrencePeriod: number }
-}>({
+const formData = ref({
 	title: '',
 	body: '',
 	isActive: true,
