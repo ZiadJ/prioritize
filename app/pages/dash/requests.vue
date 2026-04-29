@@ -1,10 +1,17 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
 import type { Tag } from '~/components/Tags.vue'
+import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
+import type { AppRouter } from '~~/server/trpc/routers'
 import Tags from '~/components/Tags.vue'
 import OrdersList from '~/components/requests/OrdersList.vue'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { useConfirm } from "primevue/useconfirm"
+
+type RequestRouterInput = inferRouterInputs<AppRouter>['requests']
+type RequestRouterOutput = inferRouterOutputs<AppRouter>['requests']
+type Request = RequestRouterOutput['list'][number]
+type RequestOrder = Request['orders'][number]
 
 definePageMeta({
 	layout: 'dashboard',
@@ -15,32 +22,40 @@ const toast = usePausableToast()
 const confirm = useConfirm()
 const { data: session } = useAuth()
 
-const requests = ref<any[]>([])
+const requests = ref<Request[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const deleting = ref(false)
 const searchQuery = ref('')
-const selectedRequests = ref<any[]>([])
+const selectedRequests = ref<Request[]>([])
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'create' | 'update' | 'view'>('create')
 const currentRequestId = ref<number | null>(null)
-const currentRequest = ref<any>(null)
+const currentRequest = ref<Request | null>(null)
 const ordersDialogVisible = ref(false)
-const currentRequestOrders = ref<any[]>([])
+const currentRequestOrders = ref<RequestOrder[]>([])
 const currentRequestTitle = ref('')
 
 const allTags = ref<Tag[]>([])
 
 const totalRequestedQuantity = computed(() => {
 	if (!currentRequest.value?.orders) return 0
-	return currentRequest.value.orders.reduce((sum: number, order: any) => {
+	return currentRequest.value.orders.reduce((sum: number, order: RequestOrder) => {
 		const qty = order.quantity || 0
 		return sum + qty
 	}, 0)
 })
 
-const formData = ref({
+const formData = ref<{
+	title: string
+	body: string
+	isActive: boolean
+	isBasicNeed: boolean
+	selectedTags: Tag[]
+	unitOfMeasure: UnitOfMeasure
+	order: { quantity?: number | null; recurrencePeriod: number }
+}>({
 	title: '',
 	body: '',
 	isActive: true,
@@ -101,11 +116,11 @@ const openNewDialog = () => {
 	dialogVisible.value = true
 }
 
-const viewRequest = (request: any) => {
-	const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
+const viewRequest = (request: Request) => {
+	const order = request.orders?.find((o: RequestOrder) => o.userId === session.value?.user?.id)
 	formData.value = {
 		title: request.title,
-		body: request.body,
+		body: request.body || '',
 		isActive: request.isActive,
 		isBasicNeed: request.isBasicNeed || false,
 		selectedTags: request.tags || [],
@@ -116,17 +131,17 @@ const viewRequest = (request: any) => {
 		}
 	}
 	viewCommunity.value = request.communityNode?.title || '-'
-	viewCountry.value = request.country?.name || '-'
+	// viewCountry.value = request?.name || '-'
 	currentRequest.value = request
 	dialogMode.value = 'view'
 	dialogVisible.value = true
 }
 
-const editRequest = (request: any) => {
-	const order = request.orders?.find((o: any) => o.userId === session.value?.user?.id)
+const editRequest = (request: Request) => {
+	const order = request.orders?.find((o: RequestOrder) => o.userId === session.value?.user?.id)
 	formData.value = {
 		title: request.title,
-		body: request.body,
+		body: request.body || '',
 		isActive: request.isActive,
 		isBasicNeed: request.isBasicNeed || false,
 		selectedTags: request.tags || [],
@@ -203,7 +218,7 @@ const saveRequest = async () => {
 	}
 }
 
-const confirmDelete = (event: MouseEvent, request: any) => {
+const confirmDelete = (event: MouseEvent, request: Request) => {
 	confirm.require({
 		target: event.currentTarget as HTMLElement,
 		message: `Do you want to delete "${request.title}"?`,
@@ -237,7 +252,10 @@ const confirmDelete = (event: MouseEvent, request: any) => {
 const showOrders = () => {
 	if (!currentRequest.value) return
 	currentRequestTitle.value = currentRequest.value.title
-	const allOrders = currentRequest.value.orders || []
+	const allOrders = (currentRequest.value.orders || []).map(order => ({
+		...order,
+		unitOfMeasure: currentRequest.value!.unitOfMeasure
+	}))
 	// Exclude current user's own order
 	currentRequestOrders.value = allOrders //.filter(
 	//	(o: any) => o.userId !== session.value?.user?.id,
@@ -415,7 +433,7 @@ onMounted(async () => {
 			<div class="flex justify-content-between gap-2 w-full">
 				<div class="flex-1">
 					<Button v-if="dialogMode !== 'create'" 
-						:label="`${currentRequest.orders?.length ?? 0} requests${totalRequestedQuantity > 0 ? ` (${totalRequestedQuantity} total)` : ''}`" text @click="showOrders" />
+						:label="`${currentRequest?.orders?.length ?? 0} requests${totalRequestedQuantity > 0 ? ` (${totalRequestedQuantity} total)` : ''}`" text @click="showOrders" />
 				</div>
 				<div class="flex gap-2">
 					<Button label="Cancel" text @click="dialogVisible = false" />

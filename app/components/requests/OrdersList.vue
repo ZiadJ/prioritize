@@ -11,7 +11,7 @@ interface OrderUser {
 interface OrderWithUser {
 	id: number
 	quantity: number
-	unitOfMeasure: UnitOfMeasure
+	unitOfMeasure?: UnitOfMeasure
 	recurrencePeriod: number
 	user: OrderUser
 }
