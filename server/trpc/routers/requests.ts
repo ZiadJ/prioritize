@@ -10,7 +10,6 @@ export const requestInput = RequestSchema.pick({
   title: true,
   body: true,
   parentId: true,
-  isBasicNeed: true,
   unitOfMeasure: true,
 }).extend({
   id: z.number().optional(),
@@ -21,6 +20,7 @@ export const requestInput = RequestSchema.pick({
       recurrencePeriod: z.number().optional(),
       budget: z.number().optional(),
       dueAt: z.date().optional().nullable(),
+      isBasicNeed: z.boolean().optional(),
     })
     .optional(),
 })
@@ -125,7 +125,7 @@ export const requestsRouter = router({
 	create: protectedProcedure
 		.input(requestInput)
 		.mutation(async ({ ctx, input }) => {
-			const { tagIds, parentId, isBasicNeed, order, ...data } = input
+			const { tagIds, parentId, order, ...data } = input
 
 			if (!ctx.user!.communityId) {
 				throw new Error('User must be assigned to a community')
@@ -138,7 +138,6 @@ export const requestsRouter = router({
 					parentId,
 					communityId: ctx.user!.communityId,
 					countryId: ctx.user!.countryId,
-					isBasicNeed,
 					ownerId: ctx.user!.id,
 					tags: tagIds?.length
 						? {
@@ -153,16 +152,17 @@ export const requestsRouter = router({
 					((order.quantity !== null && order.quantity !== undefined) ||
 						(order.recurrencePeriod && order.recurrencePeriod > 0))
 				) {
-              await prisma.order.create({
-                data: {
-                  request: { connect: { id: node.id } },
-                  user: { connect: { id: ctx.user!.id } },
-                  recurrencePeriod: order.recurrencePeriod || 0,
-                  quantity: order.quantity ?? 1,
-                  budget: order.budget ?? 0,
-                  dueAt: order.dueAt ? new Date(order.dueAt) : null,
-                },
-              })
+               await prisma.order.create({
+                 data: {
+                   request: { connect: { id: node.id } },
+                   user: { connect: { id: ctx.user!.id } },
+                   recurrencePeriod: order.recurrencePeriod || 0,
+                   quantity: order.quantity ?? 1,
+                   isBasicNeed: order.isBasicNeed ?? false,
+                   budget: order.budget ?? 0,
+                   dueAt: order.dueAt ? new Date(order.dueAt) : null,
+                 },
+               })
 				}
 
 				return node
@@ -175,7 +175,7 @@ export const requestsRouter = router({
 	update: protectedProcedure
 		.input(requestInput.partial())
 		.mutation(async ({ ctx, input }) => {
-			const { id, tagIds, isBasicNeed, order, unitOfMeasure, ...data } = input
+			const { id, tagIds, order, unitOfMeasure, ...data } = input
 
 			// Fetch the request to check permissions
 			const existingRequest = await prisma.request.findUnique({
@@ -198,9 +198,6 @@ export const requestsRouter = router({
 			if (isOwnerOrEditor) {
 				if (Object.keys(data).length > 0) {
 					Object.assign(updateData, data)
-				}
-				if (isBasicNeed !== undefined) {
-					updateData.isBasicNeed = isBasicNeed
 				}
 				if (tagIds !== undefined) {
 					updateData.tags = {
@@ -240,6 +237,9 @@ export const requestsRouter = router({
                   if (order.dueAt !== undefined) {
                     orderUpdateData.dueAt = order.dueAt ? new Date(order.dueAt) : null
                   }
+                  if (order.isBasicNeed !== undefined) {
+                    orderUpdateData.isBasicNeed = order.isBasicNeed
+                  }
                   await prisma.order.update({
                     where: { id: existingOrder.id },
                     data: orderUpdateData,
@@ -254,6 +254,7 @@ export const requestsRouter = router({
                       user: { connect: { id: ctx.user!.id } },
                       recurrencePeriod: order.recurrencePeriod || 0,
                       quantity: order.quantity ?? 1,
+                      isBasicNeed: order.isBasicNeed ?? false,
                       budget: order.budget ?? 0,
                       dueAt: order.dueAt ? new Date(order.dueAt) : null,
                     },

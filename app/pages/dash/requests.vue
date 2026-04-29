@@ -64,7 +64,6 @@ const formData = ref({
 	title: '',
 	body: '',
 	isActive: true,
-	isBasicNeed: false,
 	selectedTags: [] as Tag[],
 	unitOfMeasure: 'None' as UnitOfMeasure,
 	order: {
@@ -73,12 +72,7 @@ const formData = ref({
 		budget: undefined as number | undefined,
 		estimatedDeliveryAt: undefined as Date | undefined,
 		dueAt: undefined as Date | undefined,
-	} as {
-		quantity?: number
-		recurrencePeriod: number
-		budget?: number
-		estimatedDeliveryAt?: Date
-		dueAt?: Date
+		isBasicNeed: false,
 	},
 })
 
@@ -115,7 +109,6 @@ const openNewDialog = () => {
 		title: '',
 		body: '',
 		isActive: true,
-		isBasicNeed: false,
 		selectedTags: [],
 		unitOfMeasure: 'None' as UnitOfMeasure,
 		order: {
@@ -124,6 +117,7 @@ const openNewDialog = () => {
 			budget: undefined,
 			estimatedDeliveryAt: undefined,
 			dueAt: undefined,
+			isBasicNeed: false,
 		},
 	}
 	dialogMode.value = 'create'
@@ -138,7 +132,6 @@ const editRequest = (request: Request) => {
 		title: request.title,
 		body: request.body || '',
 		isActive: request.isActive,
-		isBasicNeed: request.isBasicNeed || false,
 		selectedTags: request.tags || [],
 		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure,
 		order: {
@@ -149,6 +142,7 @@ const editRequest = (request: Request) => {
 				? new Date(order?.estimatedDeliveryAt)
 				: undefined,
 			dueAt: order?.dueAt ? new Date(order.dueAt) : undefined,
+			isBasicNeed: order?.isBasicNeed || false,
 		},
 	}
 	currentRequestId.value = request.id
@@ -472,7 +466,7 @@ onMounted(async () => {
 						<label for="isBasicNeed" class="cursor-pointer">Essential</label>
 						<Checkbox
 							inputId="isBasicNeed"
-							v-model="formData.isBasicNeed"
+							v-model="formData.order.isBasicNeed"
 							:binary="true"
 							:disabled="!isOwner" />
 					</div>

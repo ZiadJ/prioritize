@@ -438,7 +438,6 @@ model Request {
 
   isApproved    Boolean       @default(false)
   isPrivate     Boolean       @default(false)
-  isBasicNeed   Boolean       @default(false)
   unitOfMeasure UnitOfMeasure
 
   requestNodes RequestNode[]
@@ -465,8 +464,9 @@ model Order {
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
 
-  quantity Float
-  budget   Float // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
+  quantity    Float
+  budget      Float // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
+  isBasicNeed Boolean @default(false)
 
   recurrencePeriod    Int // In days even thoughDaily, Weekly, Monthly, Quaterly, Semi-anually, Anually
   dueAt               DateTime? // The order deadline
