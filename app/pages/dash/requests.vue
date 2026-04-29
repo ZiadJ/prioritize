@@ -60,26 +60,26 @@ const isOwner = computed(() => {
 	)
 })
 
-  const formData = ref({
-  title: '',
-  body: '',
-  isActive: true,
-  isBasicNeed: false,
-  selectedTags: [] as Tag[],
-  unitOfMeasure: 'None' as UnitOfMeasure,
-  order: {
-    quantity: undefined as number | undefined,
-    recurrencePeriod: 0,
-    budget: undefined as number | undefined,
-    estimatedDeliveryAt: undefined as Date | undefined,
-    dueAt: undefined as Date | undefined,
-  } as {
-    quantity?: number
-    recurrencePeriod: number
-    budget?: number
-    estimatedDeliveryAt?: Date
-    dueAt?: Date
-  },
+const formData = ref({
+	title: '',
+	body: '',
+	isActive: true,
+	isBasicNeed: false,
+	selectedTags: [] as Tag[],
+	unitOfMeasure: 'None' as UnitOfMeasure,
+	order: {
+		quantity: undefined as number | undefined,
+		recurrencePeriod: 0,
+		budget: undefined as number | undefined,
+		estimatedDeliveryAt: undefined as Date | undefined,
+		dueAt: undefined as Date | undefined,
+	} as {
+		quantity?: number
+		recurrencePeriod: number
+		budget?: number
+		estimatedDeliveryAt?: Date
+		dueAt?: Date
+	},
 })
 
 const fetchRequests = async () => {
@@ -110,51 +110,51 @@ const debouncedSearch = () => {
 	}, 300)
 }
 
-  const openNewDialog = () => {
-  formData.value = {
-    title: '',
-    body: '',
-    isActive: true,
-    isBasicNeed: false,
-    selectedTags: [],
-    unitOfMeasure: 'None' as UnitOfMeasure,
-    order: {
-      quantity: 1,
-      recurrencePeriod: 0,
-      budget: undefined,
-      estimatedDeliveryAt: undefined,
-      dueAt: undefined,
-    },
-  }
-  dialogMode.value = 'create'
-  dialogVisible.value = true
+const openNewDialog = () => {
+	formData.value = {
+		title: '',
+		body: '',
+		isActive: true,
+		isBasicNeed: false,
+		selectedTags: [],
+		unitOfMeasure: 'None' as UnitOfMeasure,
+		order: {
+			quantity: 1,
+			recurrencePeriod: 0,
+			budget: undefined,
+			estimatedDeliveryAt: undefined,
+			dueAt: undefined,
+		},
+	}
+	dialogMode.value = 'create'
+	dialogVisible.value = true
 }
 
-  const editRequest = (request: Request) => {
-  const order = request.orders?.find(
-    (o: RequestOrder) => o.userId === session.value?.user?.id,
-  )
-  formData.value = {
-    title: request.title,
-    body: request.body || '',
-    isActive: request.isActive,
-    isBasicNeed: request.isBasicNeed || false,
-    selectedTags: request.tags || [],
-    unitOfMeasure: request.unitOfMeasure as UnitOfMeasure,
-    order: {
-      quantity: order?.quantity ?? undefined,
-      recurrencePeriod: order?.recurrencePeriod || 0,
-      budget: order?.budget ?? undefined,
-      estimatedDeliveryAt: order?.estimatedDeliveryAt
-        ? new Date(order?.estimatedDeliveryAt)
-        : undefined,
-      dueAt: order?.dueAt ? new Date(order.dueAt) : undefined,
-    },
-  }
-  currentRequestId.value = request.id
-  currentRequest.value = request
-  dialogMode.value = 'update'
-  dialogVisible.value = true
+const editRequest = (request: Request) => {
+	const order = request.orders?.find(
+		(o: RequestOrder) => o.userId === session.value?.user?.id,
+	)
+	formData.value = {
+		title: request.title,
+		body: request.body || '',
+		isActive: request.isActive,
+		isBasicNeed: request.isBasicNeed || false,
+		selectedTags: request.tags || [],
+		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure,
+		order: {
+			quantity: order?.quantity ?? undefined,
+			recurrencePeriod: order?.recurrencePeriod || 0,
+			budget: order?.budget ?? undefined,
+			estimatedDeliveryAt: order?.estimatedDeliveryAt
+				? new Date(order?.estimatedDeliveryAt)
+				: undefined,
+			dueAt: order?.dueAt ? new Date(order.dueAt) : undefined,
+		},
+	}
+	currentRequestId.value = request.id
+	currentRequest.value = request
+	dialogMode.value = 'update'
+	dialogVisible.value = true
 }
 
 const saveRequest = async () => {
@@ -496,22 +496,22 @@ onMounted(async () => {
 							optionValue="value"
 							placeholder="Select recurrence" />
 					</div>
-                <div class="form-field flex-1">
-                  <label for="estimatedDeliveryAt">Estimated Delivery Date</label>
-                  <DatePicker
-                    id="estimatedDeliveryAt"
-                    v-model="formData.order.estimatedDeliveryAt"
-                    dateFormat="mm/dd/yy"
-                    disabled />
-                </div>
-                <div class="form-field flex-1">
-                  <label for="dueAt">Due Date</label>
-                  <DatePicker
-                    id="dueAt"
-                    v-model="formData.order.dueAt"
-                    dateFormat="mm/dd/yy"
-                    :disabled="!isOwner" />
-                </div>
+					<div class="form-field flex-1">
+						<label for="dueAt">Due Date</label>
+						<DatePicker
+							id="dueAt"
+							v-model="formData.order.dueAt"
+							dateFormat="mm/dd/yy"
+							:disabled="!isOwner" />
+					</div>
+					<div class="form-field flex-1">
+						<label for="estimatedDeliveryAt">Est. Delivery Date</label>
+						<DatePicker
+							id="estimatedDeliveryAt"
+							v-model="formData.order.estimatedDeliveryAt"
+							dateFormat="mm/dd/yy"
+							disabled />
+					</div>
 				</div>
 				<div class="form-field">
 					<label for="tags">Tags</label>
