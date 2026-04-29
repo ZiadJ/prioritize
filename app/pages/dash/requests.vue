@@ -142,7 +142,7 @@ const editRequest = (request: Request) => {
 		order: {
 			quantity: order?.quantity ?? undefined,
 			recurrencePeriod: order?.recurrencePeriod || 0,
-			budget: order?.budget ?? undefined,
+			budget: order?.budget ?? 0,
 			estimatedDeliveryAt: order?.estimatedDeliveryAt
 				? new Date(order?.estimatedDeliveryAt)
 				: undefined,
