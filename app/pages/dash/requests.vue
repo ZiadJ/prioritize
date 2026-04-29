@@ -501,8 +501,7 @@ onMounted(async () => {
 						<DatePicker
 							id="dueAt"
 							v-model="formData.order.dueAt"
-							dateFormat="mm/dd/yy"
-							:disabled="!isOwner" />
+							dateFormat="mm/dd/yy" />
 					</div>
 					<div class="form-field flex-1">
 						<label for="estimatedDeliveryAt">Est. Delivery Date</label>
