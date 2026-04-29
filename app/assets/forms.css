@@ -58,5 +58,5 @@
 .slide-fade-enter-to,
 .slide-fade-leave-from {
 	opacity: 1;
-	max-width: 500px;
+	max-width: 150px;
 }

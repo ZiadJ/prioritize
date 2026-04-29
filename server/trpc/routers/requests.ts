@@ -6,22 +6,23 @@ import { createTreeNode, buildTreeSelectDataFromNodes } from '~~/lib/tree'
 import { RequestSchema } from '~~/prisma/generated/zod/schemas/models/Request.schema'
 
 export const requestInput = RequestSchema.pick({
-	isActive: true,
-	title: true,
-	body: true,
-	parentId: true,
-	isBasicNeed: true,
-	unitOfMeasure: true,
+  isActive: true,
+  title: true,
+  body: true,
+  parentId: true,
+  isBasicNeed: true,
+  unitOfMeasure: true,
 }).extend({
-	id: z.number().optional(),
-	tagIds: z.array(z.number()).optional().default([]),
-	order: z
-		.object({
-			quantity: z.number().optional().nullable(),
-			recurrencePeriod: z.number().optional(),
-			budget: z.number().optional(),
-		})
-		.optional(),
+  id: z.number().optional(),
+  tagIds: z.array(z.number()).optional().default([]),
+  order: z
+    .object({
+      quantity: z.number().optional().nullable(),
+      recurrencePeriod: z.number().optional(),
+      budget: z.number().optional(),
+      dueAt: z.date().optional().nullable(),
+    })
+    .optional(),
 })
 
 export const requestsRouter = router({
@@ -152,15 +153,16 @@ export const requestsRouter = router({
 					((order.quantity !== null && order.quantity !== undefined) ||
 						(order.recurrencePeriod && order.recurrencePeriod > 0))
 				) {
-					await prisma.order.create({
-						data: {
-							request: { connect: { id: node.id } },
-							user: { connect: { id: ctx.user!.id } },
-							recurrencePeriod: order.recurrencePeriod || 0,
-							quantity: order.quantity ?? 1,
-							budget: order.budget ?? 0,
-						},
-					})
+              await prisma.order.create({
+                data: {
+                  request: { connect: { id: node.id } },
+                  user: { connect: { id: ctx.user!.id } },
+                  recurrencePeriod: order.recurrencePeriod || 0,
+                  quantity: order.quantity ?? 1,
+                  budget: order.budget ?? 0,
+                  dueAt: order.dueAt ? new Date(order.dueAt) : null,
+                },
+              })
 				}
 
 				return node
@@ -227,32 +229,36 @@ export const requestsRouter = router({
 					where: { requestId: id, userId: ctx.user!.id },
 				})
 
-				if (existingOrder) {
-					const orderUpdateData: Prisma.OrderUpdateInput = {}
-					if (order.recurrencePeriod !== undefined) {
-						orderUpdateData.recurrencePeriod = order.recurrencePeriod
-					}
-					if (order.quantity != null) {
-						orderUpdateData.quantity = order.quantity
-					}
-					await prisma.order.update({
-						where: { id: existingOrder.id },
-						data: orderUpdateData,
-					})
-				} else if (
-					(order.quantity !== null && order.quantity !== undefined) ||
-					(order.recurrencePeriod !== undefined && order.recurrencePeriod > 0)
-				) {
-					await prisma.order.create({
-						data: {
-							request: { connect: { id } },
-							user: { connect: { id: ctx.user!.id } },
-							recurrencePeriod: order.recurrencePeriod || 0,
-							quantity: order.quantity ?? 1,
-							budget: order.budget ?? 0,
-						},
-					})
-				}
+                if (existingOrder) {
+                  const orderUpdateData: Prisma.OrderUpdateInput = {}
+                  if (order.recurrencePeriod !== undefined) {
+                    orderUpdateData.recurrencePeriod = order.recurrencePeriod
+                  }
+                  if (order.quantity != null) {
+                    orderUpdateData.quantity = order.quantity
+                  }
+                  if (order.dueAt !== undefined) {
+                    orderUpdateData.dueAt = order.dueAt ? new Date(order.dueAt) : null
+                  }
+                  await prisma.order.update({
+                    where: { id: existingOrder.id },
+                    data: orderUpdateData,
+                  })
+                } else if (
+                  (order.quantity !== null && order.quantity !== undefined) ||
+                  (order.recurrencePeriod !== undefined && order.recurrencePeriod > 0)
+                ) {
+                  await prisma.order.create({
+                    data: {
+                      request: { connect: { id } },
+                      user: { connect: { id: ctx.user!.id } },
+                      recurrencePeriod: order.recurrencePeriod || 0,
+                      quantity: order.quantity ?? 1,
+                      budget: order.budget ?? 0,
+                      dueAt: order.dueAt ? new Date(order.dueAt) : null,
+                    },
+                  })
+                }
 			}
 
 			return updatedRequest

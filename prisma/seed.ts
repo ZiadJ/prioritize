@@ -5,13 +5,30 @@ import { createTreeNode } from '../lib/tree'
 async function main() {
   console.log('Starting seed...')
 
+  // Delete existing data in correct order to avoid foreign key constraint violations
+  await prisma.feedback.deleteMany()
+  await prisma.revisionNode.deleteMany()
+  await prisma.order.deleteMany()
+  await prisma.request.deleteMany()
+  await prisma.requestNode.deleteMany()
+  await prisma.proposal.deleteMany()
+  await prisma.stepNode.deleteMany()
+  await prisma.stepCost.deleteMany()
+  await prisma.effect.deleteMany()
+  await prisma.effector.deleteMany()
+  await prisma.resourceNode.deleteMany()
+  await prisma.expertiseNode.deleteMany()
+  await prisma.communityNode.deleteMany()
+  await prisma.user.deleteMany()
+  await prisma.tag.deleteMany()
+  await prisma.token.deleteMany()
+  await prisma.country.deleteMany()
+
   const hashedPassword = await bcrypt.hash('aaa', 10)
 
     // Create countries
-    const usa = await prisma.country.upsert({
-      where: { name: 'United States of America' },
-      update: {},
-      create: {
+    const usa = await prisma.country.create({
+      data: {
         name: 'United States of America',
         code: 'US',
         phoneCode: '1',
@@ -19,10 +36,8 @@ async function main() {
       },
     })
 
-    const canada = await prisma.country.upsert({
-      where: { name: 'Canada' },
-      update: {},
-      create: {
+    const canada = await prisma.country.create({
+      data: {
         name: 'Canada',
         code: 'CA',
         phoneCode: '1',
@@ -185,24 +200,26 @@ async function main() {
 
   console.log('Requests created')
 
-   // Create orders
-    await prisma.order.create({
-      data: {
-        requestId: request1.id,
-        userId: adminUser.id,
-        quantity: 1,
-        recurrencePeriod: 7,
-      },
-    })
-  
-    await prisma.order.create({
-      data: {
-        requestId: request2.id,
-        userId: regularUser.id,
-        quantity: 1,
-        recurrencePeriod: 30,
-      },
-    })
+    // Create orders
+     await prisma.order.create({
+       data: {
+         requestId: request1.id,
+         userId: adminUser.id,
+         quantity: 1,
+         budget: 100.0,
+         recurrencePeriod: 7,
+       },
+     })
+   
+     await prisma.order.create({
+       data: {
+         requestId: request2.id,
+         userId: regularUser.id,
+         quantity: 1,
+         budget: 500.0,
+         recurrencePeriod: 30,
+       },
+     })
 
   console.log('Orders created')
 

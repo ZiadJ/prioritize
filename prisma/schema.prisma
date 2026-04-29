@@ -468,10 +468,11 @@ model Order {
   quantity Float
   budget   Float // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
 
-  recurrencePeriod   Int // Daily, Weekly, Monthly, Quaterly, Semi-anually, Anually
-  dueDeliveryDate    DateTime  @default(now())
-  deliveryDate       DateTime? // Is reset based on the recurrence period using a cron job
-  missedDeliveryDate DateTime? // For tracking missed deliveries and adjusting the next delivery date accordingly
+  recurrencePeriod    Int // In days even thoughDaily, Weekly, Monthly, Quaterly, Semi-anually, Anually
+  dueAt               DateTime? // The order deadline
+  deliveredAt         DateTime? // Is reset based on the recurrence period using a cron job
+  estimatedDeliveryAt DateTime?
+  missedDeliveryAt    DateTime? // For tracking missed deliveries and adjusting the next delivery date accordingly
 
   @@unique([requestId, userId])
   @@index([requestId])
