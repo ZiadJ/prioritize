@@ -30,7 +30,7 @@ const searchQuery = ref('')
 const selectedRequests = ref<Request[]>([])
 
 const dialogVisible = ref(false)
-const dialogMode = ref<'create' | 'update' | 'view'>('create')
+const dialogMode = ref<'create' | 'update'>('create')
 const currentRequestId = ref<number | null>(null)
 const currentRequest = ref<Request | null>(null)
 const ordersDialogVisible = ref(false)
@@ -47,21 +47,26 @@ const totalRequestedQuantity = computed(() => {
 	}, 0)
 })
 
-const formData = ref({
-	title: '',
-	body: '',
-	isActive: true,
-	isBasicNeed: false,
-	selectedTags: [] as Tag[],
-	unitOfMeasure: 'None' as UnitOfMeasure,
-	order: {
-		quantity: undefined as number | undefined,
-		recurrencePeriod: 0,
-	} as { quantity?: number | null; recurrencePeriod: number }
+const isOwner = computed(() => {
+	return currentRequest.value && (
+		session.value?.user?.id === currentRequest.value.ownerId //||
+		// currentRequest.value.editors?.some(editor => editor.id === session.value?.user?.id)
+	)
 })
 
-const viewCommunity = ref('')
-const viewCountry = ref('')
+const formData = ref({
+		title: '',
+		body: '',
+		isActive: true,
+		isBasicNeed: false,
+		selectedTags: [] as Tag[],
+		unitOfMeasure: 'None' as UnitOfMeasure,
+		order: {
+			quantity: undefined as number | undefined,
+			recurrencePeriod: 0,
+			budget: undefined as number | undefined,
+		} as { quantity?: number | null; recurrencePeriod: number; budget?: number | null }
+	})
 
 const fetchRequests = async () => {
 	loading.value = true
@@ -91,7 +96,7 @@ const debouncedSearch = () => {
 	}, 300)
 }
 
-const openNewDialog = () => {
+const 	openNewDialog = () => {
 	formData.value = {
 		title: '',
 		body: '',
@@ -102,30 +107,10 @@ const openNewDialog = () => {
 		order: {
 			quantity: 1,
 			recurrencePeriod: 0,
+			budget: undefined,
 		}
 	}
 	dialogMode.value = 'create'
-	dialogVisible.value = true
-}
-
-const viewRequest = (request: Request) => {
-	const order = request.orders?.find((o: RequestOrder) => o.userId === session.value?.user?.id)
-	formData.value = {
-		title: request.title,
-		body: request.body || '',
-		isActive: request.isActive,
-		isBasicNeed: request.isBasicNeed || false,
-		selectedTags: request.tags || [],
-		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure,
-		order: {
-			quantity: order?.quantity ?? undefined,
-			recurrencePeriod: order?.recurrencePeriod || 0,
-		}
-	}
-	viewCommunity.value = request.communityNode?.title || '-'
-	// viewCountry.value = request?.name || '-'
-	currentRequest.value = request
-	dialogMode.value = 'view'
 	dialogVisible.value = true
 }
 
@@ -322,11 +307,8 @@ onMounted(async () => {
 				<Column header="Actions" :exportable="false" style="min-width: 0rem">
 				<template #body="{ data }">
 					<div class="flex gap-1">
-						<Button icon="pi pi-eye" text rounded severity="info" @click="viewRequest(data)" v-tooltip.top="'View'" />
-						<Button v-if="
-							session?.user.id === data.ownerId ||
-							data.editors?.some((e: any) => e.id === session?.user.id)
-						" icon="pi pi-pencil" text rounded severity="success" @click="editRequest(data)" v-tooltip.top="'Edit'" />
+
+						<Button icon="pi pi-pencil" text rounded severity="success" @click="editRequest(data)" v-tooltip.top="'Edit'" />
 						<Button v-if="
 							session?.user.id === data.ownerId ||
 							data.editors?.some((e: any) => e.id === session?.user.id)
@@ -342,23 +324,23 @@ onMounted(async () => {
 			</template>
 		</DataTable>
 
-		<Dialog v-model:visible="dialogVisible" :header="dialogMode === 'create'
-				? 'New Request'
-				: dialogMode === 'update'
-					? 'Edit Request'
-					: 'View Request'
-			" :modal="true" dismissableMask :style="{ width: '500px' }" :breakpoints="{ '960px': '90vw', '640px': '95vw' }"
-			show-effect="fadeIn" hide-effect="fadeOut">
+	<Dialog v-model:visible="dialogVisible" :header="dialogMode === 'create'
+			? 'New Request'
+			: isOwner
+				? 'Edit Request'
+				: 'Join Request'"
+		:modal="true" dismissableMask :style="{ width: '500px' }" :breakpoints="{ '960px': '90vw', '640px': '95vw' }"
+		show-effect="fadeIn" hide-effect="fadeOut">
 			<div class="form-content gap-3">
 				<div class="form-field">
 					<label for="title">Title *</label>
 					<InputText id="title" placeholder="Enter a question, issue or request" v-model="formData.title"
-						:disabled="dialogMode === 'view'" v-bind:autofocus="dialogMode === 'create'" />
+						:disabled="!isOwner" v-bind:autofocus="dialogMode === 'create'" />
 				</div>
 				<div class="form-field">
 					<label for="body">Description</label>
 					<Textarea id="body" placeholder="A brief description of the question, issue or request"
-						v-model="formData.body" :disabled="dialogMode === 'view'" rows="3" />
+						v-model="formData.body" :disabled="!isOwner" rows="3" />
 				</div>
 				<div class="form-field">
 					<label for="recurrence">Recurrence</label>
@@ -370,56 +352,48 @@ onMounted(async () => {
 						{ label: 'Quarterly', value: 90 },
 						{ label: 'Semi-annually', value: 180 },
 						{ label: 'Annually', value: 365 },
-					]" optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" placeholder="Select recurrence" />
+					]" optionLabel="label" optionValue="value" :disabled="!isOwner" placeholder="Select recurrence" />
 				</div>
-                <div class="flex gap-4">
-                    <Transition name="slide-fade" mode="out-in">
-                        <div v-if="formData.unitOfMeasure !== UnitOfMeasure.None" key="quantity-input" class="form-field flex-1">
-                            <label for="quantity">Quantity</label>
-                            <InputNumber id="quantity" v-model="formData.order.quantity"
-                                :disabled="dialogMode === 'view'" @input="e => (formData.order.quantity = e.value as number | undefined)" />
-                        </div>
-                        <div v-else-if="dialogMode !== 'create'" key="join-button" class="form-field flex-1">
-                            <label for="quantity">&nbsp;</label>
-                            <Button :label="formData.order.quantity ? 'Joined' : 'Join'"
-                                :disabled="dialogMode === 'view'" class="w-full" @click="formData.order.quantity = formData.order.quantity ? 0 : 1" />
-                        </div>
-                    </Transition>
-                    <div class="form-field flex-1">
-                            <label for="unitOfMeasure">Unit of Measure</label>
-                            <Dropdown id="unitOfMeasure" v-model="formData.unitOfMeasure" :options="Object.keys(UnitOfMeasure).map(key => ({
-                                label: key,
-                                value: key as UnitOfMeasure,
-                            }))"
-                                    optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" placeholder="Select unit" />
-                    </div>
-                    <div class="form-field flex-1">
-                        <label for="isBasicNeed" class="cursor-pointer">Essential</label>
-                        <Checkbox inputId="isBasicNeed" v-model="formData.isBasicNeed" :binary="true"
-                            :disabled="dialogMode === 'view'" />
-                    </div>
-                </div>
+				<div class="flex gap-4">
+						<Transition name="slide-fade" mode="out-in">
+								<div v-if="formData.unitOfMeasure !== UnitOfMeasure.None" key="quantity-input" class="form-field flex-1">
+										<label for="quantity">Quantity</label>
+										<InputNumber id="quantity" v-model="formData.order.quantity"
+												@input="e => (formData.order.quantity = e.value as number | undefined)" />
+								</div>
+								<div v-else-if="dialogMode !== 'create'" key="join-button" class="form-field flex-1">
+										<label for="quantity">&nbsp;</label>
+										<Button :label="formData.order.quantity ? 'Joined' : 'Join'"
+												class="w-full" @click="formData.order.quantity = formData.order.quantity ? 0 : 1" />
+								</div>
+						</Transition>
+						<div class="form-field flex-1">
+										<label for="unitOfMeasure">Unit of Measure</label>
+										<Dropdown id="unitOfMeasure" v-model="formData.unitOfMeasure" :options="Object.keys(UnitOfMeasure).map(key => ({
+												label: key,
+												value: key as UnitOfMeasure,
+										}))"
+														optionLabel="label" optionValue="value" :disabled="!isOwner" placeholder="Select unit" />
+						</div>
+						<div class="form-field flex-1">
+								<label for="isBasicNeed" class="cursor-pointer">Essential</label>
+								<Checkbox inputId="isBasicNeed" v-model="formData.isBasicNeed" :binary="true"
+										:disabled="!isOwner" />
+						</div>
+				</div>
 
 				<div class="form-field">
 					<label for="tags">Tags</label>
-					<Tags v-model="formData.selectedTags" :tags="allTags" :disabled="dialogMode === 'view'"
+					<Tags v-model="formData.selectedTags" :tags="allTags" :disabled="!isOwner"
 						placeholder="Search or create tags" />
 				</div>
-				<div v-if="dialogMode === 'view'" class="form-field">
-					<label>Community and Country</label>
-					<div class="flex items-baseline">
-						<span>{{ viewCommunity }}</span>
-						<span class="mx-2">/</span>
-						<span>{{ viewCountry || 'global' }}</span>
-					</div>
-				</div>
-				<div v-if="dialogMode === 'update'" class="form-field">
+				<!-- <div v-if="dialogMode === 'update'" class="form-field">
 					<label for="isActive">Status</label>
 					<SelectButton id="isActive" v-model="formData.isActive" :options="[
 						{ label: 'Active', value: true },
 						{ label: 'Inactive', value: false },
-					]" optionLabel="label" optionValue="value" />
-				</div>
+					]" optionLabel="label" optionValue="value" :disabled="!isOwner" />
+				</div> -->
 			</div>
 				<template #footer>
 			<div class="flex justify-content-between gap-2 w-full">
@@ -429,7 +403,7 @@ onMounted(async () => {
 				</div>
 				<div class="flex gap-2">
 					<Button label="Cancel" text @click="dialogVisible = false" />
-					<Button v-if="dialogMode !== 'view'" :label="dialogMode === 'create' ? 'Create' : 'Update'"
+					<Button :label="isOwner ? (dialogMode === 'create' ? 'Create' : 'Update') : 'Join'"
 						@click="saveRequest" :loading="saving" />
 				</div>
 			</div>

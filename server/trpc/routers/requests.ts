@@ -19,6 +19,7 @@ export const requestInput = RequestSchema.pick({
 		.object({
 			quantity: z.number().optional().nullable(),
 			recurrencePeriod: z.number().optional(),
+			budget: z.number().optional(),
 		})
 		.optional(),
 })
@@ -64,7 +65,7 @@ export const requestsRouter = router({
 					},
 					editors: true,
 					_count: {
-						select: { children: true, feedback: true },
+						select: { children: true },
 					},
 				},
 			})
@@ -110,17 +111,9 @@ export const requestsRouter = router({
 					},
 					communityNode: true,
 					country: true,
-					feedback: {
-						include: {
-							user: {
-								select: { username: true, firstname: true, lastname: true },
-							},
-						},
-					},
 					_count: {
 						select: {
 							children: true,
-							feedback: true,
 							revisions: true,
 						},
 					},
@@ -165,6 +158,7 @@ export const requestsRouter = router({
 							user: { connect: { id: ctx.user!.id } },
 							recurrencePeriod: order.recurrencePeriod || 0,
 							quantity: order.quantity ?? 1,
+							budget: order.budget ?? 0,
 						},
 					})
 				}
@@ -180,32 +174,54 @@ export const requestsRouter = router({
 		.input(requestInput.partial())
 		.mutation(async ({ ctx, input }) => {
 			const { id, tagIds, isBasicNeed, order, unitOfMeasure, ...data } = input
-			const updateData: Prisma.RequestUpdateInput = { ...data }
-			if (isBasicNeed !== undefined) {
-				updateData.isBasicNeed = isBasicNeed
-			}
-			if (tagIds !== undefined) {
-				updateData.tags = {
-					set: tagIds.map(tagId => ({ id: tagId })),
-				}
-			}
-			if (unitOfMeasure !== undefined) {
-				updateData.unitOfMeasure = unitOfMeasure
-			}
 
-			// Update the request
-			const updatedRequest = await prisma.request.update({
-				where: {
-					id,
-					OR: [
-						{ ownerId: ctx.user!.id },
-						{ editors: { some: { id: ctx.user!.id } } },
-					],
-				},
-				data: updateData,
+			// Fetch the request to check permissions
+			const existingRequest = await prisma.request.findUnique({
+				where: { id },
+				include: { editors: true },
 			})
 
-			// Handle Order update/creation
+			if (!existingRequest) {
+				throw new Error('Request not found')
+			}
+
+			// Only the owner or editors can edit request fields
+			const isOwnerOrEditor =
+				existingRequest.ownerId === ctx.user!.id ||
+				existingRequest.editors.some(editor => editor.id === ctx.user!.id)
+
+			const updateData: Prisma.RequestUpdateInput = {}
+
+			// Only update request fields if user is the owner or an editor
+			if (isOwnerOrEditor) {
+				if (Object.keys(data).length > 0) {
+					Object.assign(updateData, data)
+				}
+				if (isBasicNeed !== undefined) {
+					updateData.isBasicNeed = isBasicNeed
+				}
+				if (tagIds !== undefined) {
+					updateData.tags = {
+						set: tagIds.map(tagId => ({ id: tagId })),
+					}
+				}
+				if (unitOfMeasure !== undefined) {
+					updateData.unitOfMeasure = unitOfMeasure
+				}
+			}
+
+			let updatedRequest: any
+
+			if (Object.keys(updateData).length > 0) {
+				updatedRequest = await prisma.request.update({
+					where: { id },
+					data: updateData,
+				})
+			} else {
+				updatedRequest = existingRequest
+			}
+
+			// Handle Order update/creation - allowed for any user
 			if (order !== undefined) {
 				const existingOrder = await prisma.order.findFirst({
 					where: { requestId: id, userId: ctx.user!.id },
@@ -233,6 +249,7 @@ export const requestsRouter = router({
 							user: { connect: { id: ctx.user!.id } },
 							recurrencePeriod: order.recurrencePeriod || 0,
 							quantity: order.quantity ?? 1,
+							budget: order.budget ?? 0,
 						},
 					})
 				}
