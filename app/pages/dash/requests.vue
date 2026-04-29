@@ -65,7 +65,7 @@ const formData = ref({
 			quantity: undefined as number | undefined,
 			recurrencePeriod: 0,
 			budget: undefined as number | undefined,
-		} as { quantity?: number | null; recurrencePeriod: number; budget?: number | null }
+		} as { quantity?: number; recurrencePeriod: number; budget?: number }
 	})
 
 const fetchRequests = async () => {
@@ -114,25 +114,26 @@ const 	openNewDialog = () => {
 	dialogVisible.value = true
 }
 
-const editRequest = (request: Request) => {
-	const order = request.orders?.find((o: RequestOrder) => o.userId === session.value?.user?.id)
-	formData.value = {
-		title: request.title,
-		body: request.body || '',
-		isActive: request.isActive,
-		isBasicNeed: request.isBasicNeed || false,
-		selectedTags: request.tags || [],
-		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure,
-		order: {
-			quantity: order?.quantity ?? undefined,
-			recurrencePeriod: order?.recurrencePeriod || 0,
+	const editRequest = (request: Request) => {
+		const order = request.orders?.find((o: RequestOrder) => o.userId === session.value?.user?.id)
+		formData.value = {
+			title: request.title,
+			body: request.body || '',
+			isActive: request.isActive,
+			isBasicNeed: request.isBasicNeed || false,
+			selectedTags: request.tags || [],
+			unitOfMeasure: request.unitOfMeasure as UnitOfMeasure,
+			order: {
+				quantity: order?.quantity ?? undefined,
+				recurrencePeriod: order?.recurrencePeriod || 0,
+				budget: order?.budget ?? undefined,
+			}
 		}
+		currentRequestId.value = request.id
+		currentRequest.value = request
+		dialogMode.value = 'update'
+		dialogVisible.value = true
 	}
-	currentRequestId.value = request.id
-	currentRequest.value = request
-	dialogMode.value = 'update'
-	dialogVisible.value = true
-}
 
 const saveRequest = async () => {
 	if (!formData.value.title) {
@@ -354,32 +355,38 @@ onMounted(async () => {
 						{ label: 'Annually', value: 365 },
 					]" optionLabel="label" optionValue="value" :disabled="!isOwner" placeholder="Select recurrence" />
 				</div>
-				<div class="flex gap-4">
-						<Transition name="slide-fade" mode="out-in">
-								<div v-if="formData.unitOfMeasure !== UnitOfMeasure.None" key="quantity-input" class="form-field flex-1">
-										<label for="quantity">Quantity</label>
-										<InputNumber id="quantity" v-model="formData.order.quantity"
-												@input="e => (formData.order.quantity = e.value as number | undefined)" />
-								</div>
-								<div v-else-if="dialogMode !== 'create'" key="join-button" class="form-field flex-1">
-										<label for="quantity">&nbsp;</label>
-										<Button :label="formData.order.quantity ? 'Joined' : 'Join'"
-												class="w-full" @click="formData.order.quantity = formData.order.quantity ? 0 : 1" />
-								</div>
-						</Transition>
-						<div class="form-field flex-1">
-										<label for="unitOfMeasure">Unit of Measure</label>
-										<Dropdown id="unitOfMeasure" v-model="formData.unitOfMeasure" :options="Object.keys(UnitOfMeasure).map(key => ({
-												label: key,
-												value: key as UnitOfMeasure,
-										}))"
-														optionLabel="label" optionValue="value" :disabled="!isOwner" placeholder="Select unit" />
-						</div>
-						<div class="form-field flex-1">
-								<label for="isBasicNeed" class="cursor-pointer">Essential</label>
-								<Checkbox inputId="isBasicNeed" v-model="formData.isBasicNeed" :binary="true"
-										:disabled="!isOwner" />
-						</div>
+			<div class="flex gap-4">
+					<div class="form-field flex-1">
+							<label for="budget">Budget</label>
+							<InputNumber id="budget" v-model="formData.order.budget"
+											:placeholder="isOwner ? 'Enter budget (optional)' : ''"
+											:disabled="!isOwner" />
+					</div>
+					<Transition name="slide-fade" mode="out-in">
+							<div v-if="formData.unitOfMeasure !== UnitOfMeasure.None" key="quantity-input" class="form-field flex-1">
+									<label for="quantity">Quantity</label>
+									<InputNumber id="quantity" v-model="formData.order.quantity"
+											@input="e => (formData.order.quantity = e.value as number | undefined)" />
+							</div>
+							<div v-else-if="dialogMode !== 'create'" key="join-button" class="form-field flex-1">
+									<label for="quantity">&nbsp;</label>
+									<Button :label="formData.order.quantity ? 'Joined' : 'Join'"
+											class="w-full" @click="formData.order.quantity = formData.order.quantity ? 0 : 1" />
+							</div>
+					</Transition>
+					<div class="form-field flex-1">
+									<label for="unitOfMeasure">Unit</label>
+									<Dropdown id="unitOfMeasure" v-model="formData.unitOfMeasure" :options="Object.keys(UnitOfMeasure).map(key => ({
+											label: key,
+											value: key as UnitOfMeasure,
+									}))"
+													optionLabel="label" optionValue="value" :disabled="!isOwner" placeholder="Select unit" />
+					</div>
+					<div class="form-field flex-1">
+							<label for="isBasicNeed" class="cursor-pointer">Essential</label>
+							<Checkbox inputId="isBasicNeed" v-model="formData.isBasicNeed" :binary="true"
+									:disabled="!isOwner" />
+					</div>
 				</div>
 
 				<div class="form-field">
