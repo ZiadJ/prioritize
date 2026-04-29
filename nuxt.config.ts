@@ -59,6 +59,7 @@ export default defineNuxtConfig({
 		'primeicons/primeicons.css',
 		'~/assets/tailwind.css',
 		'~/assets/styles.css',
+		'~/assets/forms.css',
 	],
 	future: {
 		compatibilityVersion: 4,

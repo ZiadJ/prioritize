@@ -257,7 +257,7 @@ onMounted(async () => {
 
 <template>
 	<div class="requests-page">
-		<div class="header-actions flex justify-content-between align-items-center mb-4">
+		<div class="header-actions flex justify-content-between align-items-center m-6">
 			<!-- <h2 class="text-xl font-semibold m-0">Requests</h2> -->
 			<div class="flex gap-2">
 				<IconField>
@@ -426,66 +426,5 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.requests-page {
-	padding: 1rem;
-}
 
-.form-content {
-	display: flex;
-	flex-direction: column;
-}
-
-.form-content>*:not(.form-row) {
-	flex: 0 0 auto;
-	width: 100%;
-}
-
-.form-row {
-	display: flex;
-	gap: 1rem;
-}
-
-.form-row>* {
-	flex: 1;
-}
-
-.form-field {
-	display: flex;
-	flex-direction: column;
-	gap: 0.25rem;
-}
-
-.form-field label {
-	font-size: 0.875rem;
-	font-weight: 600;
-	color: var(--text-color);
-}
-
-.form-field :deep(.p-inputtext),
-.form-field :deep(.p-dropdown),
-.form-field :deep(.p-inputnumber),
-.form-field :deep(.p-textarea),
-.form-field :deep(.p-multiselect),
-.form-field :deep(.p-selectbutton),
-.form-field :deep(.p-autocomplete) {
-	width: 100%;
-}
-
-/* Slide-fade transition for quantity/join elements */
-/* Width animation for quantity/join elements */
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-	transition: opacity 0.6s ease, max-width 0.6s ease;
-	overflow: hidden;
-}
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-	opacity: 0;
-	max-width: 0;
-}
-.slide-fade-enter-to,
-.slide-fade-leave-from {
-	opacity: 1;
-	max-width: 500px;
-}
 </style>

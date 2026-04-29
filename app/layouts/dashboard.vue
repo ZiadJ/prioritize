@@ -78,7 +78,7 @@ watch(
 
 /* Body content styling */
 .body-content-dash {
-	@apply bg-white dark:bg-zinc-900 h-full rounded-lg shadow-md p-1 px-3;
+	@apply bg-white dark:bg-zinc-900 h-full rounded-lg shadow-md;
 }
 
 .fade-enter-active {

@@ -1,0 +1,62 @@
+.form-field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.form-field label {
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+/* PrimeVue component width overrides */
+.form-field .p-inputtext,
+.form-field .p-dropdown,
+.form-field .p-inputnumber,
+.form-field .p-textarea,
+.form-field .p-multiselect,
+.form-field .p-selectbutton,
+.form-field .p-autocomplete {
+	width: 100%;
+}
+
+/* Form content layout */
+.form-content {
+	display: flex;
+	flex-direction: column;
+}
+
+.form-content>*:not(.form-row) {
+	flex: 0 0 auto;
+	width: 100%;
+}
+
+/* Form row layout for side-by-side fields */
+.form-row {
+	display: flex;
+	gap: 1rem;
+}
+
+.form-row>* {
+	flex: 1;
+}
+
+/* Slide-fade transition for quantity/join elements */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+	transition: opacity 0.6s ease, max-width 0.6s ease;
+	overflow: hidden;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+	opacity: 0;
+	max-width: 0;
+}
+
+.slide-fade-enter-to,
+.slide-fade-leave-from {
+	opacity: 1;
+	max-width: 500px;
+}
