@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { UnitOfMeasure } from '~~/prisma/generated/client/enums'
+import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 
 interface OrderUser {
 	id: string
@@ -18,6 +18,7 @@ interface OrderWithUser {
 
 const props = defineProps<{
 	orders: OrderWithUser[]
+	unitOfMeasure: UnitOfMeasure
 }>()
 </script>
 
@@ -34,7 +35,7 @@ const props = defineProps<{
 					{{ data.user?.username || '-' }}
 				</template>
 			</Column>
-			<Column field="quantity" header="Quantity">
+			<Column v-if="props.unitOfMeasure !== UnitOfMeasure.None" field="quantity" header="Quantity">
 				<template #body="{ data }">
 					{{ data.quantity ?? '-' }}
 				</template>

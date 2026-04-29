@@ -15,24 +15,32 @@ const toast = usePausableToast()
 const confirm = useConfirm()
 const { data: session } = useAuth()
 
-const requests = ref<any[]>([])
-const loading = ref(true)
-const saving = ref(false)
-const deleting = ref(false)
-const searchQuery = ref('')
-const selectedRequests = ref<any[]>([])
+	const requests = ref<any[]>([])
+	const loading = ref(true)
+	const saving = ref(false)
+	const deleting = ref(false)
+	const searchQuery = ref('')
+	const selectedRequests = ref<any[]>([])
 
-const dialogVisible = ref(false)
-const dialogMode = ref<'create' | 'update' | 'view'>('create')
-const currentRequestId = ref<number | null>(null)
-const currentRequest = ref<any>(null)
-const ordersDialogVisible = ref(false)
-const currentRequestOrders = ref<any[]>([])
-const currentRequestTitle = ref('')
+	const dialogVisible = ref(false)
+	const dialogMode = ref<'create' | 'update' | 'view'>('create')
+	const currentRequestId = ref<number | null>(null)
+	const currentRequest = ref<any>(null)
+	const ordersDialogVisible = ref(false)
+	const currentRequestOrders = ref<any[]>([])
+	const currentRequestTitle = ref('')
 
-const allTags = ref<Tag[]>([])
+	const allTags = ref<Tag[]>([])
 
-const formData = ref({
+	const totalRequestedQuantity = computed(() => {
+		if (!currentRequest.value?.orders) return 0
+		return currentRequest.value.orders.reduce((sum: number, order: any) => {
+			const qty = order.quantity || 0
+			return sum + qty
+		}, 0)
+	})
+
+	const formData = ref({
 	title: '',
 	body: '',
 	isActive: true,
@@ -405,7 +413,8 @@ onMounted(async () => {
 				<template #footer>
 			<div class="flex justify-content-between gap-2 w-full">
 				<div class="flex-1">
-					<Button v-if="dialogMode !== 'create'" :label="`${currentRequest.orders?.length ?? 0} requests`" text @click="showOrders" />
+					<Button v-if="dialogMode !== 'create'" 
+						:label="`${currentRequest.orders?.length ?? 0} requests${totalRequestedQuantity > 0 ? ` (${totalRequestedQuantity} total)` : ''}`" text @click="showOrders" />
 				</div>
 				<div class="flex gap-2">
 					<Button label="Cancel" text @click="dialogVisible = false" />
@@ -420,7 +429,8 @@ onMounted(async () => {
 			dismissableMask :style="{ width: '700px' }" :breakpoints="{ '960px': '90vw', '640px': '95vw' }"
 			show-effect="fadeIn" hide-effect="fadeOut"
 			@update:visible="closeOrdersDialog">
-			<OrdersList :orders="currentRequestOrders" />
+			<OrdersList :orders="currentRequestOrders" 
+				:unitOfMeasure="currentRequest?.unitOfMeasure || UnitOfMeasure.None" />
 		</Dialog>
 	</div>
 </template>
