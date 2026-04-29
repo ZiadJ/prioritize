@@ -15,32 +15,32 @@ const toast = usePausableToast()
 const confirm = useConfirm()
 const { data: session } = useAuth()
 
-	const requests = ref<any[]>([])
-	const loading = ref(true)
-	const saving = ref(false)
-	const deleting = ref(false)
-	const searchQuery = ref('')
-	const selectedRequests = ref<any[]>([])
+const requests = ref<any[]>([])
+const loading = ref(true)
+const saving = ref(false)
+const deleting = ref(false)
+const searchQuery = ref('')
+const selectedRequests = ref<any[]>([])
 
-	const dialogVisible = ref(false)
-	const dialogMode = ref<'create' | 'update' | 'view'>('create')
-	const currentRequestId = ref<number | null>(null)
-	const currentRequest = ref<any>(null)
-	const ordersDialogVisible = ref(false)
-	const currentRequestOrders = ref<any[]>([])
-	const currentRequestTitle = ref('')
+const dialogVisible = ref(false)
+const dialogMode = ref<'create' | 'update' | 'view'>('create')
+const currentRequestId = ref<number | null>(null)
+const currentRequest = ref<any>(null)
+const ordersDialogVisible = ref(false)
+const currentRequestOrders = ref<any[]>([])
+const currentRequestTitle = ref('')
 
-	const allTags = ref<Tag[]>([])
+const allTags = ref<Tag[]>([])
 
-	const totalRequestedQuantity = computed(() => {
-		if (!currentRequest.value?.orders) return 0
-		return currentRequest.value.orders.reduce((sum: number, order: any) => {
-			const qty = order.quantity || 0
-			return sum + qty
-		}, 0)
-	})
+const totalRequestedQuantity = computed(() => {
+	if (!currentRequest.value?.orders) return 0
+	return currentRequest.value.orders.reduce((sum: number, order: any) => {
+		const qty = order.quantity || 0
+		return sum + qty
+	}, 0)
+})
 
-	const formData = ref({
+const formData = ref({
 	title: '',
 	body: '',
 	isActive: true,
@@ -286,9 +286,9 @@ onMounted(async () => {
 					<span class="font-semibold">{{ data.title }}</span>
 				</template>
 			</Column>
-			<Column field="body" header="Description">
+			<Column field="isBasicNeed" header="Essential">
 				<template #body="{ data }">
-					<span>{{ data.body || '-' }}</span>
+					<Tag :value="data.isBasicNeed ? 'Yes' : 'No'" :severity="data.isBasicNeed ? 'danger' : 'secondary'" />
 				</template>
 			</Column>
 			<Column field="communityNode" header="Community">
@@ -296,19 +296,20 @@ onMounted(async () => {
 					<span>{{ data.communityNode?.title || '-' }}</span>
 				</template>
 			</Column>
-			<Column field="isBasicNeed" header="Basic Need">
-				<template #body="{ data }">
-					<Tag :value="data.isBasicNeed ? 'Yes' : 'No'" :severity="data.isBasicNeed ? 'danger' : 'secondary'" />
-				</template>
-			</Column>
+
 			<Column field="tags" header="Tags">
 				<template #body="{ data }">
 					<div class="flex flex-wrap gap-1">
 						<Tag v-for="tag in data.tags" :key="tag.id" :value="tag.name" severity="info" />
 					</div>
 				</template>
-			</Column>
-			<Column header="Actions" :exportable="false" style="min-width: 0rem">
+				</Column>
+				<Column field="body" header="Description">
+					<template #body="{ data }">
+						<span>{{ data.body || '-' }}</span>
+					</template>
+				</Column>			
+				<Column header="Actions" :exportable="false" style="min-width: 0rem">
 				<template #body="{ data }">
 					<div class="flex gap-1">
 						<Button icon="pi pi-eye" text rounded severity="info" @click="viewRequest(data)" v-tooltip.top="'View'" />
@@ -383,7 +384,7 @@ onMounted(async () => {
                                     optionLabel="label" optionValue="value" :disabled="dialogMode === 'view'" placeholder="Select unit" />
                     </div>
                     <div class="form-field flex-1">
-                        <label for="isBasicNeed" class="cursor-pointer">Basic Need</label>
+                        <label for="isBasicNeed" class="cursor-pointer">Essential</label>
                         <Checkbox inputId="isBasicNeed" v-model="formData.isBasicNeed" :binary="true"
                             :disabled="dialogMode === 'view'" />
                     </div>
