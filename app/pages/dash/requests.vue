@@ -420,17 +420,23 @@ onMounted(async () => {
 						rows="3" />
 				</div>
 				<div v-if="formData.title.endsWith('?')">
-					<div v-if="dialogMode !== 'create'" key="join-button" class="w-full">
-						<Button
-							:label="formData.order.quantity ? 'Joined' : 'Join'"
-							class="w-full"
-							@click="
-								formData.order.quantity = formData.order.quantity ? 0 : 1
-							" />
-					</div>
-					<div class="form-field flex-1">
-						<label for="budget">Budget</label>
-						<InputNumber id="budget" v-model="formData.order.budget" />
+					<div class="flex gap-4">
+						<div
+							v-if="dialogMode !== 'create'"
+							key="join-button"
+							class="form-field flex-1">
+							<label for="quantity">&nbsp;</label>
+							<Button
+								:label="formData.order.quantity ? 'Joined' : 'Join'"
+								class="w-full"
+								@click="
+									formData.order.quantity = formData.order.quantity ? 0 : 1
+								" />
+						</div>
+						<div class="form-field flex-1">
+							<label for="budget">Budget</label>
+							<InputNumber id="budget" v-model="formData.order.budget" />
+						</div>
 					</div>
 				</div>
 				<div v-if="!formData.title.endsWith('?')" class="flex gap-4">
@@ -443,9 +449,7 @@ onMounted(async () => {
 							<InputNumber
 								id="quantity"
 								v-model="formData.order.quantity"
-								@input="
-									e => (formData.order.quantity = e.value as number )
-								" />
+								@input="e => (formData.order.quantity = e.value as number)" />
 						</div>
 						<div
 							v-else-if="dialogMode !== 'create'"
