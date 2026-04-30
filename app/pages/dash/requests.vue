@@ -421,62 +421,20 @@ onMounted(async () => {
 						rows="3" />
 				</div>
 
-<div v-if="formData.title.endsWith('?')">
-  <div class="flex gap-4">
-    <div class="form-field flex-1">
-      <Transition name="slide-fade" mode="out-in">
-        <div
-          v-if="formData.unitOfMeasure !== UnitOfMeasure.None"
-          key="quantity-input"
-          class="w-full">
-          <InputNumber
-            id="quantity"
-            v-model="formData.order.quantity"
-            @input="
-              e =>
-                (formData.order.quantity = e.value as
-                  | number
-                  | undefined)
-            " />
-        </div>
-        <div
-          v-else-if="dialogMode !== 'create'"
-          key="join-button"
-          class="w-full">
-          <Button
-            :label="formData.order.quantity ? 'Joined' : 'Join'"
-            class="w-full"
-            @click="
-              formData.order.quantity = formData.order.quantity ? 0 : 1
-            " />
-        </div>
-      </Transition>
-    </div>
-    <div class="form-field flex-1">
-      <label for="budget">Budget</label>
-      <InputNumber id="budget" v-model="formData.order.budget" />
-    </div>
-  </div>
-</div>
-        <div
-          v-else-if="dialogMode !== 'create'"
-          key="join-button"
-          class="w-full">
-          <Button
-            :label="formData.order.quantity ? 'Joined' : 'Join'"
-            class="w-full"
-            @click="
-              formData.order.quantity = formData.order.quantity ? 0 : 1
-            " />
-        </div>
-      </Transition>
-    </div>
-    <div class="form-field flex-1">
-      <label for="budget">Budget</label>
-      <InputNumber id="budget" v-model="formData.order.budget" />
-    </div>
-  </div>
-</div>
+				<div v-if="formData.title.endsWith('?')">
+					<div v-if="dialogMode !== 'create'" key="join-button" class="w-full">
+						<Button
+							:label="formData.order.quantity ? 'Joined' : 'Join'"
+							class="w-full"
+							@click="
+								formData.order.quantity = formData.order.quantity ? 0 : 1
+							" />
+					</div>
+					<div class="form-field flex-1">
+						<label for="budget">Budget</label>
+						<InputNumber id="budget" v-model="formData.order.budget" />
+					</div>
+				</div>
 				<div v-else class="request-details-section flex flex-col gap-3">
 					<div class="flex gap-4">
 						<div class="form-field flex-1">
