@@ -316,7 +316,6 @@ onMounted(async () => {
 			v-model:selection="selectedRequests"
 			dataKey="id"
 			:rowHover="true"
-			resizableColumns
 			stripedRows
 			tableStyle="min-width: 50rem"
 			class="p-datatable-sm">
@@ -406,7 +405,7 @@ onMounted(async () => {
 					<label for="title">Title *</label>
 					<InputText
 						id="title"
-						placeholder="A request, issue or decisional question"
+						placeholder="Enter a question, issue or request"
 						v-model="formData.title"
 						:disabled="!isOwner"
 						v-bind:autofocus="dialogMode === 'create'" />
@@ -415,12 +414,11 @@ onMounted(async () => {
 					<label for="body">Description</label>
 					<Textarea
 						id="body"
-						placeholder="A brief description of the matter"
+						placeholder="A brief description of the question, issue or request"
 						v-model="formData.body"
 						:disabled="!isOwner"
 						rows="3" />
 				</div>
-
 				<div v-if="formData.title.endsWith('?')">
 					<div v-if="dialogMode !== 'create'" key="join-button" class="w-full">
 						<Button
@@ -435,100 +433,94 @@ onMounted(async () => {
 						<InputNumber id="budget" v-model="formData.order.budget" />
 					</div>
 				</div>
-				<div v-else class="request-details-section flex flex-col gap-3">
-					<div class="flex gap-4">
-						<div class="form-field flex-1">
+				<div v-if="!formData.title.endsWith('?')" class="flex gap-4">
+					<Transition name="slide-fade" mode="out-in">
+						<div
+							v-if="formData.unitOfMeasure !== UnitOfMeasure.None"
+							key="quantity-input"
+							class="form-field flex-1">
+							<label for="quantity">Quantity</label>
+							<InputNumber
+								id="quantity"
+								v-model="formData.order.quantity"
+								@input="
+									e => (formData.order.quantity = e.value as number )
+								" />
+						</div>
+						<div
+							v-else-if="dialogMode !== 'create'"
+							key="join-button"
+							class="form-field flex-1">
 							<label for="quantity">&nbsp;</label>
-							<Transition name="slide-fade" mode="out-in">
-								<div
-									v-if="formData.unitOfMeasure !== UnitOfMeasure.None"
-									key="quantity-input"
-									class="w-full">
-									<InputNumber
-										id="quantity"
-										v-model="formData.order.quantity"
-										@input="
-											e =>
-												(formData.order.quantity = e.value as
-													| number
-													| undefined)
-										" />
-								</div>
-								<div
-									v-else-if="dialogMode !== 'create'"
-									key="join-button"
-									class="w-full">
-									<Button
-										:label="formData.order.quantity ? 'Joined' : 'Join'"
-										class="w-full"
-										@click="
-											formData.order.quantity = formData.order.quantity ? 0 : 1
-										" />
-								</div>
-							</Transition>
+							<Button
+								:label="formData.order.quantity ? 'Joined' : 'Join'"
+								class="w-full"
+								@click="
+									formData.order.quantity = formData.order.quantity ? 0 : 1
+								" />
 						</div>
-						<div class="form-field flex-1">
-							<label for="unitOfMeasure">Unit</label>
-							<Dropdown
-								id="unitOfMeasure"
-								v-model="formData.unitOfMeasure"
-								:options="
-									Object.keys(UnitOfMeasure).map(key => ({
-										label: key,
-										value: key as UnitOfMeasure,
-									}))
-								"
-								optionLabel="label"
-								optionValue="value"
-								:disabled="!isOwner"
-								placeholder="Select unit" />
-						</div>
-						<div class="form-field flex-1">
-							<label for="budget">Budget</label>
-							<InputNumber id="budget" v-model="formData.order.budget" />
-						</div>
-						<div class="form-field flex-1">
-							<label for="isBasicNeed" class="cursor-pointer">Essential</label>
-							<Checkbox
-								inputId="isBasicNeed"
-								v-model="formData.order.isBasicNeed"
-								:binary="true" />
-						</div>
+					</Transition>
+					<div class="form-field flex-1">
+						<label for="unitOfMeasure">Unit</label>
+						<Dropdown
+							id="unitOfMeasure"
+							v-model="formData.unitOfMeasure"
+							:options="
+								Object.keys(UnitOfMeasure).map(key => ({
+									label: key,
+									value: key as UnitOfMeasure,
+								}))
+							"
+							optionLabel="label"
+							optionValue="value"
+							:disabled="!isOwner"
+							placeholder="Select unit" />
 					</div>
-					<div class="flex gap-4">
-						<div class="form-field flex-1">
-							<label for="recurrence">Recurrence</label>
-							<Dropdown
-								id="recurrence"
-								v-model="formData.order.recurrencePeriod"
-								:options="[
-									{ label: 'None', value: 0 },
-									{ label: 'Daily', value: 1 },
-									{ label: 'Weekly', value: 7 },
-									{ label: 'Monthly', value: 30 },
-									{ label: 'Quarterly', value: 90 },
-									{ label: 'Semi-annually', value: 180 },
-									{ label: 'Annually', value: 365 },
-								]"
-								optionLabel="label"
-								optionValue="value"
-								placeholder="Select recurrence" />
-						</div>
-						<div class="form-field flex-1">
-							<label for="dueAt">Due Date</label>
-							<DatePicker
-								id="dueAt"
-								v-model="formData.order.dueAt"
-								dateFormat="mm/dd/yy" />
-						</div>
-						<div v-if="dialogMode !== 'create'" class="form-field flex-1">
-							<label for="estimatedDeliveryAt">Est. Delivery Date</label>
-							<DatePicker
-								id="estimatedDeliveryAt"
-								v-model="formData.order.estimatedDeliveryAt"
-								dateFormat="mm/dd/yy"
-								disabled />
-						</div>
+					<div class="form-field flex-1">
+						<label for="budget">Budget</label>
+						<InputNumber id="budget" v-model="formData.order.budget" />
+					</div>
+					<div class="form-field flex-1">
+						<label for="isBasicNeed" class="cursor-pointer">Essential</label>
+						<Checkbox
+							inputId="isBasicNeed"
+							v-model="formData.order.isBasicNeed"
+							:binary="true" />
+					</div>
+				</div>
+				<div v-if="!formData.title.endsWith('?')" class="flex gap-4">
+					<div class="form-field flex-1">
+						<label for="recurrence">Recurrence</label>
+						<Dropdown
+							id="recurrence"
+							v-model="formData.order.recurrencePeriod"
+							:options="[
+								{ label: 'None', value: 0 },
+								{ label: 'Daily', value: 1 },
+								{ label: 'Weekly', value: 7 },
+								{ label: 'Monthly', value: 30 },
+								{ label: 'Quarterly', value: 90 },
+								{ label: 'Semi-annually', value: 180 },
+								{ label: 'Annually', value: 365 },
+							]"
+							optionLabel="label"
+							optionValue="value"
+							placeholder="Select recurrence" />
+					</div>
+					<div class="form-field flex-1">
+						<label for="dueAt">Due Date</label>
+						<DatePicker
+							id="dueAt"
+							v-model="formData.order.dueAt"
+							dateFormat="mm/dd/yy" />
+					</div>
+					<div class="form-field flex-1">
+						<label for="estimatedDeliveryAt">Est. Delivery Date</label>
+						<DatePicker
+							id="estimatedDeliveryAt"
+							v-model="formData.order.estimatedDeliveryAt"
+							dateFormat="mm/dd/yy"
+							disabled />
 					</div>
 				</div>
 				<div class="form-field">
