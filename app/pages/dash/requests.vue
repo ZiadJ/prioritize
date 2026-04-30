@@ -26,7 +26,6 @@ const { data: session } = useAuth()
 const requests = ref<Request[]>([])
 const loading = ref(true)
 const saving = ref(false)
-const deleting = ref(false)
 const searchQuery = ref('')
 const selectedRequests = ref<Request[]>([])
 
@@ -233,7 +232,6 @@ const confirmDelete = (event: MouseEvent, request: Request) => {
 			severity: 'danger',
 		},
 		accept: async () => {
-			deleting.value = true
 			try {
 				await $trpcClient.requests.delete.mutate({ id: request.id })
 				toast.add('success', 'Success', 'Request deleted successfully', 3000)
@@ -246,8 +244,6 @@ const confirmDelete = (event: MouseEvent, request: Request) => {
 					error.message || 'Failed to delete request',
 					5000,
 				)
-			} finally {
-				deleting.value = false
 			}
 		},
 	})
@@ -282,9 +278,20 @@ onMounted(async () => {
 		console.error('Failed to fetch tags:', error.message || error)
 	}
 })
+
+const onRowClick = (event: any) => {
+	// 	const request = event.data
+	// 	const index = selectedRequests.value.findIndex((r: Request) => r.id === request.id)
+	// 	if (index > -1) {
+	// 		selectedRequests.value = selectedRequests.value.filter((r: Request) => r.id !== request.id)
+	// 	} else {
+	// 		selectedRequests.value = [...selectedRequests.value, request]
+	// 	}
+}
 </script>
 
-<template>
+<template> 
+   <!-- <pre>{{ selectedRequests }}</pre> -->
 	<div class="requests-page">
 		<div
 			class="header-actions flex justify-content-between align-items-center m-6">
@@ -312,14 +319,16 @@ onMounted(async () => {
 			:value="requests"
 			:loading="loading"
 			:paginator="true"
-			:rows="10"
-			v-model:selection="selectedRequests"
+			:rows="25"
 			dataKey="id"
 			:rowHover="true"
 			stripedRows
 			tableStyle="min-width: 50rem"
-			class="p-datatable-sm">
-			<Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+			class="p-datatable-sm"
+			>
+			<!-- v-model:selection="selectedRequests"
+			selectionMode="multiple" -->
+			<!-- <Column selectionMode="multiple" headerStyle="width: 3rem"></Column> -->
 			<Column field="title" header="Title" sortable>
 				<template #body="{ data }">
 					<span class="font-semibold">{{ data.title }}</span>
@@ -405,7 +414,7 @@ onMounted(async () => {
 					<label for="title">Title *</label>
 					<InputText
 						id="title"
-						placeholder="Enter a question, issue or request"
+						placeholder="A request, issue or decisional question"
 						v-model="formData.title"
 						:disabled="!isOwner"
 						v-bind:autofocus="dialogMode === 'create'" />
@@ -414,7 +423,7 @@ onMounted(async () => {
 					<label for="body">Description</label>
 					<Textarea
 						id="body"
-						placeholder="A brief description of the question, issue or request"
+						placeholder="A brief description of the matter"
 						v-model="formData.body"
 						:disabled="!isOwner"
 						rows="3" />
