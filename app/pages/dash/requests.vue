@@ -7,7 +7,7 @@ import Tags from '~/components/Tags.vue'
 import OrdersList from '~/components/requests/OrdersList.vue'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { useConfirm } from 'primevue/useconfirm'
-import { number } from 'zod'
+import type { DataTableSortEvent } from 'primevue/datatable'
 
 type RequestRouterInput = inferRouterInputs<AppRouter>['requests']
 type RequestRouterOutput = inferRouterOutputs<AppRouter>['requests']
@@ -28,6 +28,8 @@ const loading = ref(true)
 const saving = ref(false)
 const searchQuery = ref('')
 const selectedRequests = ref<Request[]>([])
+const sortField = ref<string>('totalPriority')
+const sortOrder = ref<number>(-1) // -1 for desc, 1 for asc
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'create' | 'update'>('create')
@@ -55,27 +57,34 @@ const isOwner = computed(() => {
 })
 
 const formData = ref({
-  title: '',
-  body: '',
-  isActive: true,
-  // totalPriority: 0,
-  selectedTags: [] as Tag[],
-  unitOfMeasure: 'None' as UnitOfMeasure,
-  order: {
-    quantity: undefined as number | undefined,
-    recurrencePeriod: 0,
-    priority: 0,
-    estimatedDeliveryAt: undefined as Date | undefined,
-    dueAt: undefined as Date | undefined,
-    isBasicNeed: false,
-  },
+	title: '',
+	body: '',
+	isActive: true,
+	// totalPriority: 0,
+	selectedTags: [] as Tag[],
+	unitOfMeasure: 'None' as UnitOfMeasure,
+	order: {
+		quantity: undefined as number | undefined,
+		recurrencePeriod: 0,
+		priority: 0,
+		estimatedDeliveryAt: undefined as Date | undefined,
+		dueAt: undefined as Date | undefined,
+		isBasicNeed: false,
+	},
 })
 
 const fetchRequests = async () => {
 	loading.value = true
 	try {
+		// Map column field names to API sort fields
+		const fieldMap: Record<string, string> = {
+			totalPriority: 'totalPriority',
+		}
+		const apiSortBy = fieldMap[sortField.value] || sortField.value
 		const result = await $trpcClient.requests.list.query({
 			search: searchQuery.value || undefined,
+			sortBy: apiSortBy as 'title' | 'totalPriority' | 'createdAt',
+			sortOrder: sortOrder.value === -1 ? 'desc' : 'asc',
 		})
 		requests.value = result || []
 	} catch (error: any) {
@@ -263,6 +272,18 @@ const closeOrdersDialog = () => {
 	currentRequestTitle.value = ''
 }
 
+const onSort = (event: DataTableSortEvent) => {
+	if (!event.sortField || typeof event.sortField !== 'string') return
+	// Map column field names to API sort fields
+	const fieldMap: Record<string, string> = {
+		totalPriority: 'priority',
+		communityNode: 'community',
+	}
+	sortField.value = fieldMap[event.sortField] || event.sortField
+	sortOrder.value = event.sortOrder || 1
+	fetchRequests()
+}
+
 onMounted(async () => {
 	fetchRequests()
 	try {
@@ -318,7 +339,10 @@ const onRowClick = (event: any) => {
 			:rowHover="true"
 			stripedRows
 			tableStyle="min-width: 50rem"
-			class="p-datatable-sm">
+			class="p-datatable-sm"
+			:sortField="sortField"
+			:sortOrder="sortOrder"
+			@sort="onSort">
 			<!-- v-model:selection="selectedRequests"
 			selectionMode="multiple" -->
 			<!-- <Column selectionMode="multiple" headerStyle="width: 3rem"></Column> -->
@@ -333,12 +357,12 @@ const onRowClick = (event: any) => {
 					<span class="font-semibold">{{ data.title }}</span>
 				</template>
 			</Column>
-			<Column field="priority" header="Priority" sortable>
+			<Column field="totalPriority" header="Priority" sortable>
 				<template #body="{ data }">
 					<span class="">{{ data.totalPriority }}</span>
 				</template>
 			</Column>
-			<Column field="communityNode" header="Community">
+			<Column field="communityNode" header="Community" sortable>
 				<template #body="{ data }">
 					<span>{{ data.communityNode?.title || '-' }}</span>
 				</template>

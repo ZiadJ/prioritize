@@ -53,6 +53,8 @@ import { RequestSchema } from '~~/prisma/generated/zod/schemas/models/Request.sc
 						search: z.string().optional(),
 						isActive: z.boolean().optional(),
 						communityId: z.number().optional(),
+						sortBy: z.enum(['title', 'totalPriority', 'createdAt']).optional(),
+						sortOrder: z.enum(['asc', 'desc']).optional(),
 					})
 					.optional(),
 			)
@@ -72,10 +74,25 @@ import { RequestSchema } from '~~/prisma/generated/zod/schemas/models/Request.sc
 					where.communityId = input.communityId
 				}
 
+				// Build ORDER BY conditions
+				const orderBy: Prisma.RequestOrderByWithRelationInput = {}
+				if (input?.sortBy) {
+					if (input.sortBy === 'totalPriority') {
+						orderBy.totalPriority = input.sortOrder || 'desc'
+					} else if (input.sortBy === 'title') {
+						orderBy.title = input.sortOrder || 'asc'
+					} else if (input.sortBy === 'createdAt') {
+						orderBy.createdAt = input.sortOrder || 'desc'
+					}
+				} else {
+					// Default sorting
+					orderBy.totalPriority = 'desc'
+				}
+
 				// Fetch all matching requests, sorted by denormalized totalPriority
 				const result = await prisma.request.findMany({
 					where,
-					orderBy: { totalPriority: 'desc' },
+					orderBy,
 					include: {
 						tags: true,
 						communityNode: true,
