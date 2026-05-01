@@ -409,7 +409,7 @@ const onRowClick = (event: any) => {
 			</Column>
 			<Column field="body" header="Description" style="max-width: 400px" bodyStyle="overflow: hidden">
 				<template #body="{ data }">
-					<span class="description-cell">{{ data.body || '-' }}</span>
+					<span class="auto-ellipsis">{{ data.body || '-' }}</span>
 				</template>
 			</Column>
 			<Column header="Actions" :exportable="false" style="min-width: 0rem">
@@ -651,7 +651,7 @@ const onRowClick = (event: any) => {
 </template>
 
 <style scoped>
-.description-cell {
+.auto-ellipsis {
 	display: block;
 	overflow: hidden;
 	text-overflow: ellipsis;
