@@ -93,21 +93,12 @@ const checkOverflowAndSetTitle = (event: MouseEvent, text: string | undefined) =
 const fetchRequests = async () => {
 	loading.value = true
 	try {
-		// Map column field names to API sort fields
-		const fieldMap: Record<string, string> = {
-			totalPriority: 'totalPriority',
-		}
-		const apiSortBy = fieldMap[sortField.value] || sortField.value
 
 		const result = await $trpcClient.requests.list.query({
 			search: searchQuery.value || undefined,
 			scope: selectedScope.value,
-			sortBy: apiSortBy as
-				| 'title'
-				| 'totalPriority'
-				| 'createdAt'
-				| 'communityNode',
-			sortOrder: sortOrder.value === -1 ? 'desc' : 'asc',
+			sortBy: sortField.value,
+			sortOrder: sortOrder.value,
 		})
 		requests.value = result || []
 	} catch (error: any) {

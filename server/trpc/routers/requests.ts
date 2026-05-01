@@ -59,7 +59,7 @@ export const requestsRouter = router({
 						.optional()
 						.default('global'),
 					sortBy: z.string().optional(),
-					sortOrder: z.enum(['asc', 'desc']).optional(),
+					sortOrder: z.number().optional(),
 				})
 				.optional(),
 		)
@@ -124,7 +124,7 @@ export const requestsRouter = router({
 
 			// Build ORDER BY conditions
 			const orderBy: Record<string, string | {}> = {}
-			const sortOrder = input?.sortOrder || 'desc'
+			const sortOrder = input?.sortOrder === -1 ? 'desc' : 'asc'
 			const sortBy = input?.sortBy || 'totalPriority'
 
 			// Handle dot notation for nested sorting (e.g., 'communityNode.title')
