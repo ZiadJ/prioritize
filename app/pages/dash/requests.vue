@@ -27,6 +27,7 @@ const requests = ref<Request[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const searchQuery = ref('')
+const selectedScope = ref<'local' | 'regional' | 'regional extended' | 'global'>('global')
 const selectedRequests = ref<Request[]>([])
 const sortField = ref<string>('totalPriority')
 const sortOrder = ref<number>(-1) // -1 for desc, 1 for asc
@@ -40,6 +41,14 @@ const currentRequestOrders = ref<RequestOrder[]>([])
 const currentRequestTitle = ref('')
 
 const allTags = ref<Tag[]>([])
+
+// Scope options for dropdown
+const scopeOptions = [
+  { label: 'Global', value: 'global' },
+  { label: 'Regional Extended', value: 'regional extended' },
+  { label: 'Regional', value: 'regional' },
+  { label: 'My Community', value: 'local' },
+]
 
 const totalRequestedQuantity = computed(() => {
 	return currentRequest.value?.totalQuantity || 0
@@ -84,6 +93,7 @@ const fetchRequests = async () => {
 
 		const result = await $trpcClient.requests.list.query({
 			search: searchQuery.value || undefined,
+			scope: selectedScope.value,
 			sortBy: apiSortBy as
 				| 'title'
 				| 'totalPriority'
@@ -312,6 +322,13 @@ const onRowClick = (event: any) => {
 			class="header-actions flex justify-content-between align-items-center m-6">
 			<!-- <h2 class="text-xl font-semibold m-0">Requests</h2> -->
 			<div class="flex gap-2">
+				<Dropdown
+					v-model="selectedScope"
+					:options="scopeOptions"
+					optionLabel="label"
+					optionValue="value"
+					@change="fetchRequests"
+					class="w-48" />
 				<IconField>
 					<InputIcon>
 						<i class="pi pi-search" />

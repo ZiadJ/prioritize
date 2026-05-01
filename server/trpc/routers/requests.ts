@@ -54,6 +54,10 @@ export const requestsRouter = router({
 					search: z.string().optional(),
 					isActive: z.boolean().optional(),
 					communityId: z.number().optional(),
+					scope: z
+						.enum(['local', 'regional', 'regional extended', 'global'])
+						.optional()
+						.default('global'),
 					sortBy: z.string().optional(),
 					sortOrder: z.enum(['asc', 'desc']).optional(),
 				})
@@ -71,9 +75,53 @@ export const requestsRouter = router({
 			if (input?.isActive !== undefined) {
 				where.isActive = input.isActive
 			}
+
 			if (input?.communityId) {
 				where.communityId = input.communityId
+			} else {
+				// Scope-based filtering
+				const scope = input?.scope || 'global'
+
+				if (scope === 'local') {
+					// Filter to user's own community only
+					if (!ctx.user?.communityId) {
+						return []
+					}
+					where.communityId = ctx.user.communityId
+				} else if (scope === 'regional' || scope === 'regional extended') {
+					// Filter by regional community IDs
+					if (!ctx.user?.communityId) {
+						return []
+					}
+
+					// Fetch user's community with relevant regional relation
+					const userCommunity = await prisma.communityNode.findUnique({
+						where: { id: ctx.user.communityId },
+						select: {
+							regionalCommunities: { select: { id: true } },
+							regionalCommunitiesExtended: { select: { id: true } },
+						},
+					})
+
+					// Get community IDs based on scope
+					let regionalIds: number[] = []
+					if (scope === 'regional') {
+						regionalIds =
+							userCommunity?.regionalCommunities.map(c => c.id) || []
+					} else {
+						regionalIds =
+							userCommunity?.regionalCommunitiesExtended.map(c => c.id) || []
+					}
+
+					// Include user's own community
+					const allCommunityIds = [ctx.user.communityId, ...regionalIds]
+
+					if (allCommunityIds.length === 0) return []
+
+					where.communityId = { in: allCommunityIds }
+				}
 			}
+			// Note: 'global' scope applies no additional filtering beyond explicit communityId if provided
 
 			// Build ORDER BY conditions
 			const orderBy: Record<string, string | {}> = {}
