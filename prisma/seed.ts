@@ -48,7 +48,7 @@ async function main() {
 	// Create community nodes using tree utility
 	const country1 = await createTreeNode(prisma.communityNode, {
 		title: 'Valley Region',
-		body: 'Region in North America',
+		body: 'Region in the northern region',
 		country: { connect: { id: countryA.id } },
 		address: 'Country A',
 		longitude: -95.7129,
@@ -80,7 +80,7 @@ async function main() {
 
 	const country2 = await createTreeNode(prisma.communityNode, {
 		title: 'Mountain Region',
-		body: 'Region in North America',
+		body: 'Region in the northern region',
 		country: { connect: { id: countryB.id } },
 		address: 'Country B',
 		longitude: -106.3468,
@@ -100,113 +100,113 @@ async function main() {
 	})
 
 	const city2 = await createTreeNode(prisma.communityNode, {
- 		title: 'Central City',
- 		body: 'City of Central City',
- 		country: { connect: { id: countryB.id } },
- 		address: 'Central City, Lake Province, Country B',
- 		longitude: -79.3832,
- 		latitude: 43.6532,
- 		parentId: state2.id,
- 		isActive: true,
- 	})
+		title: 'Central City',
+		body: 'City of Central City',
+		country: { connect: { id: countryB.id } },
+		address: 'Central City, Lake Province, Country B',
+		longitude: -79.3832,
+		latitude: 43.6532,
+		parentId: state2.id,
+		isActive: true,
+	})
 
 	console.log('Community nodes created')
 
 	// Create users
 	const adminUser = await prisma.user.upsert({
- 		where: { username: 'admin@example.com' },
- 		update: { password: hashedPassword },
- 		create: {
- 			username: 'admin@example.com',
- 			email: 'admin@example.com',
- 			password: hashedPassword,
- 			firstname: 'Admin',
- 			lastname: 'User',
- 			isActive: true,
- 			isVerified: true,
- 			role: 'admin',
- 			communityId: city1.id,
- 			countryId: countryB.id,
- 		},
- 	})
+		where: { username: 'admin@example.com' },
+		update: { password: hashedPassword },
+		create: {
+			username: 'admin@example.com',
+			email: 'admin@example.com',
+			password: hashedPassword,
+			firstname: 'Admin',
+			lastname: 'User',
+			isActive: true,
+			isVerified: true,
+			role: 'admin',
+			communityId: city1.id,
+			countryId: countryB.id,
+		},
+	})
 
 	const regularUser = await prisma.user.upsert({
- 		where: { username: 'user@example.com' },
- 		update: { password: hashedPassword },
- 		create: {
- 			username: 'user@example.com',
- 			email: 'user@example.com',
- 			password: hashedPassword,
- 			firstname: 'Regular',
- 			lastname: 'User',
- 			isActive: true,
- 			communityId: city2.id,
- 			countryId: countryA.id,
- 		},
- 	})
+		where: { username: 'user@example.com' },
+		update: { password: hashedPassword },
+		create: {
+			username: 'user@example.com',
+			email: 'user@example.com',
+			password: hashedPassword,
+			firstname: 'Regular',
+			lastname: 'User',
+			isActive: true,
+			communityId: city2.id,
+			countryId: countryA.id,
+		},
+	})
 
 	console.log('Users created')
 
 	// Create requests with orders in one go
 	const request1 = await prisma.request.create({
- 		data: {
- 			title: 'Food Assistance Needed',
- 			body: 'Need help with groceries for the week',
- 			unitOfMeasure: 'Units',
- 			ownerId: adminUser.id,
- 			communityId: city1.id,
- 			countryId: countryB.id,
- 			orders: {
- 				create: {
- 					userId: adminUser.id,
- 					quantity: 1,
- 					budget: 50.0,
- 					recurrencePeriod: 7,
- 					isBasicNeed: true,
- 				},
- 			},
- 		},
- 	})
+		data: {
+			title: 'Food Assistance Needed',
+			body: 'Need help with groceries for the week',
+			unitOfMeasure: 'Units',
+			ownerId: adminUser.id,
+			communityId: city1.id,
+			countryId: countryB.id,
+			orders: {
+				create: {
+					userId: adminUser.id,
+					quantity: 1,
+					priority: 50.0,
+					recurrencePeriod: 7,
+					isBasicNeed: true,
+				},
+			},
+		},
+	})
 
 	const request2 = await prisma.request.create({
- 		data: {
- 			title: 'Housing Support',
- 			body: 'Looking for temporary housing assistance',
- 			unitOfMeasure: 'Units',
- 			ownerId: regularUser.id,
- 			communityId: city1.id,
- 			countryId: countryB.id,
- 			orders: {
- 				create: {
- 					userId: regularUser.id,
- 					quantity: 1,
- 					budget: 150.0,
- 					recurrencePeriod: 30,
- 					isBasicNeed: true,
- 				},
- 			},
- 		},
- 	})
+		data: {
+			title: 'Housing Support',
+			body: 'Looking for temporary housing assistance',
+			unitOfMeasure: 'Units',
+			ownerId: regularUser.id,
+			communityId: city1.id,
+			countryId: countryB.id,
+			orders: {
+				create: {
+					userId: regularUser.id,
+					quantity: 1,
+					priority: 150.0,
+					recurrencePeriod: 30,
+					isBasicNeed: true,
+				},
+			},
+		},
+	})
 
 	const request3 = await prisma.request.create({
- 		data: {
- 			title: 'Community Event Planning',
- 			body: 'Help organize a community cleanup event',
- 			unitOfMeasure: 'Units',
- 			ownerId: adminUser.id,
- 			communityId: city2.id,
- 			countryId: countryB.id,
- 			orders: {
- 				create: {
- 					userId: adminUser.id,
- 					quantity: 1,
- 					budget: 200.0,
- 					recurrencePeriod: 90,
- 					isBasicNeed: false,
- 				},
- 			},
- 		},
- 	})
+		data: {
+			title: 'Community Event Planning',
+			body: 'Help organize a community cleanup event',
+			unitOfMeasure: 'Units',
+			ownerId: adminUser.id,
+			communityId: city2.id,
+			countryId: countryB.id,
+			orders: {
+				create: {
+					userId: adminUser.id,
+					quantity: 1,
+					priority: 200.0,
+					recurrencePeriod: 90,
+					isBasicNeed: false,
+				},
+			},
+		},
+	})
 
 	const request4 = await prisma.request.create({
 		data: {
@@ -215,12 +215,12 @@ async function main() {
 			unitOfMeasure: 'Units',
 			ownerId: regularUser.id,
 			communityId: city2.id,
-			countryId: canada.id,
+			countryId: country2.id,
 			orders: {
 				create: {
 					userId: regularUser.id,
 					quantity: 1,
-					budget: 300.0,
+					priority: 300.0,
 					recurrencePeriod: 60,
 					isBasicNeed: true,
 				},
