@@ -421,6 +421,7 @@ onMounted(async () => {
 							severity="success"
 							@click="editRequest(data)"
 							@mouseenter="checkOverflowAndSetTitle($event, 'Edit')"
+						/>
 						<Button
 							v-if="
 								session?.user.id === data.ownerId ||
