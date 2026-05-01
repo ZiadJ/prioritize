@@ -121,7 +121,6 @@ export const requestsRouter = router({
 					where.communityId = { in: allCommunityIds }
 				}
 			}
-			// Note: 'global' scope applies no additional filtering beyond explicit communityId if provided
 
 			// Build ORDER BY conditions
 			const orderBy: Record<string, string | {}> = {}
