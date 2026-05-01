@@ -420,8 +420,7 @@ onMounted(async () => {
 							rounded
 							severity="success"
 							@click="editRequest(data)"
-							@mouseenter="checkOverflowAndSetTitle($event, 'Edit')"
-						/>
+							v-tooltip.top="'Edit'" />						/>
 						<Button
 							v-if="
 								session?.user.id === data.ownerId ||
@@ -432,8 +431,7 @@ onMounted(async () => {
 							rounded
 							severity="danger"
 							@click="confirmDelete($event, data)"
-							@mouseenter="checkOverflowAndSetTitle($event, 'Delete')"
-							@mouseleave="clearTitle($event)" />
+							v-tooltip.top="'Delete'" />
 					</div>
 				</template>
 			</Column>
