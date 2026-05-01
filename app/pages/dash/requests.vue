@@ -420,7 +420,7 @@ onMounted(async () => {
 							rounded
 							severity="success"
 							@click="editRequest(data)"
-							v-tooltip.top="'Edit'" />						/>
+							v-tooltip.top="'Edit'" />						
 						<Button
 							v-if="
 								session?.user.id === data.ownerId ||
