@@ -407,9 +407,9 @@ const onRowClick = (event: any) => {
 					</div>
 				</template>
 			</Column>
-			<Column field="body" header="Description">
+			<Column field="body" header="Description" style="max-width: 400px" bodyStyle="overflow: hidden">
 				<template #body="{ data }">
-					<span>{{ data.body || '-' }}</span>
+					<span class="description-cell">{{ data.body || '-' }}</span>
 				</template>
 			</Column>
 			<Column header="Actions" :exportable="false" style="min-width: 0rem">
@@ -650,4 +650,11 @@ const onRowClick = (event: any) => {
 	</div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.description-cell {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	/*white-space: nowrap;*/
+}
+</style>
