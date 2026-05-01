@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick, type ComponentPublicInstance } from 'vue'
 import type { Tag } from '~/components/Tags.vue'
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
@@ -407,11 +407,11 @@ const onRowClick = (event: any) => {
 					</div>
 				</template>
 			</Column>
-			<Column field="body" header="Description" style="max-width: 400px" bodyStyle="overflow: hidden">
-				<template #body="{ data }">
-					<span class="description-cell" v-tooltip="data.body || '-'">{{ data.body || '-' }}</span>
-				</template>
-			</Column>
+            <Column field="body" header="Description" style="max-width: 400px" bodyStyle="overflow: hidden">
+                <template #body="{ data }">
+                    <span class="description-cell" :title="data.body || '-'">{{ data.body || '-' }}</span>
+                </template>
+            </Column>
 			<Column header="Actions" :exportable="false" style="min-width: 0rem">
 				<template #body="{ data }">
 					<div class="flex gap-1">
@@ -656,5 +656,5 @@ const onRowClick = (event: any) => {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-}
-</style>
+	max-width: 100%;
+}</style>
