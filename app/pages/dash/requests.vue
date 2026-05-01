@@ -41,6 +41,7 @@ const currentRequest = ref<Request | null>(null)
 const ordersDialogVisible = ref(false)
 const currentRequestOrders = ref<RequestOrder[]>([])
 const currentRequestTitle = ref('')
+const hasUserOrder = ref(false)
 
 const allTags = ref<Tag[]>([])
 
@@ -142,6 +143,7 @@ const openNewDialog = () => {
 			isBasicNeed: false,
 		},
 	}
+	hasUserOrder.value = false
 	dialogMode.value = 'create'
 	dialogVisible.value = true
 }
@@ -151,6 +153,7 @@ const editRequest = async (request: Request) => {
 		requestId: request.id,
 	})
 	const order = userOrder
+	hasUserOrder.value = !!userOrder
 	formData.value = {
 		title: request.title,
 		body: request.body || '',
@@ -482,7 +485,7 @@ const onRowClick = (event: any) => {
 							class="form-field flex-1">
 							<label for="quantity">&nbsp;</label>
 							<Button
-								:label="formData.order.quantity ? 'Joined' : 'Join'"
+								:label="formData.order.quantity ? 'Update' : 'Join'"
 								class="w-full"
 								@click="
 									formData.order.quantity = formData.order.quantity ? 0 : 1
@@ -619,6 +622,8 @@ const onRowClick = (event: any) => {
 									? dialogMode === 'create'
 										? 'Create'
 										: 'Update'
+									: hasUserOrder
+									? 'Update'
 									: 'Join'
 							"
 							@click="saveRequest"
