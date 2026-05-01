@@ -227,7 +227,7 @@ model User {
   isVerified    Boolean   @default(false)
   role          String    @default("")
 
-  balance Float @default(0) // The available budget spendable on an order within a request
+  priorityPoints Float @default(0) // The available budget spendable on an order within a request
 
   community   CommunityNode? @relation(fields: [communityId], references: [id])
   communityId Int?
@@ -450,12 +450,12 @@ model Request {
 
   // Denormalized aggregates
   totalQuantity Float @default(0)
-  totalBudget   Float @default(0)
+  totalPriority Float @default(0)
   orderCount    Int   @default(0)
 
   @@index([path])
   @@index([communityId])
-  @@index([totalBudget])
+  @@index([totalPriority])
 }
 
 // Tracks the quantity of material requested by a user 
@@ -471,7 +471,7 @@ model Order {
   userId    String
 
   quantity    Float
-  budget      Float // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
+  priority    Float // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
   isBasicNeed Boolean @default(false)
 
   recurrencePeriod    Int // In days even thoughDaily, Weekly, Monthly, Quaterly, Semi-anually, Anually

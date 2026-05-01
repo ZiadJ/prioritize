@@ -6,7 +6,7 @@ interface OrderWithUser {
 	quantity: number
 	unitOfMeasure?: UnitOfMeasure
 	recurrencePeriod: number
-	budget: number
+	priority: number
 	user: {
 		id: string
 		username: string

@@ -55,20 +55,20 @@ const isOwner = computed(() => {
 })
 
 const formData = ref({
-	title: '',
-	body: '',
-	isActive: true,
-	budget: 0,
-	selectedTags: [] as Tag[],
-	unitOfMeasure: 'None' as UnitOfMeasure,
-	order: {
-		quantity: undefined as number | undefined,
-		recurrencePeriod: 0,
-		budget: 0,
-		estimatedDeliveryAt: undefined as Date | undefined,
-		dueAt: undefined as Date | undefined,
-		isBasicNeed: false,
-	},
+  title: '',
+  body: '',
+  isActive: true,
+  // totalPriority: 0,
+  selectedTags: [] as Tag[],
+  unitOfMeasure: 'None' as UnitOfMeasure,
+  order: {
+    quantity: undefined as number | undefined,
+    recurrencePeriod: 0,
+    priority: 0,
+    estimatedDeliveryAt: undefined as Date | undefined,
+    dueAt: undefined as Date | undefined,
+    isBasicNeed: false,
+  },
 })
 
 const fetchRequests = async () => {
@@ -104,13 +104,13 @@ const openNewDialog = () => {
 		title: '',
 		body: '',
 		isActive: true,
-		budget: 0,
+		// totalPriority: 0,
 		selectedTags: [],
 		unitOfMeasure: 'None' as UnitOfMeasure,
 		order: {
 			quantity: 1,
 			recurrencePeriod: 0,
-			budget: 0,
+			priority: 0,
 			estimatedDeliveryAt: undefined,
 			dueAt: undefined,
 			isBasicNeed: false,
@@ -129,13 +129,13 @@ const editRequest = async (request: Request) => {
 		title: request.title,
 		body: request.body || '',
 		isActive: request.isActive,
-		budget: order?.budget || 0,
+		// totalPriority: order?.priority || 0,
 		selectedTags: request.tags || [],
 		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure,
 		order: {
 			quantity: order?.quantity ?? undefined,
 			recurrencePeriod: order?.recurrencePeriod || 0,
-			budget: order?.budget ?? 0,
+			priority: order?.priority ?? 0,
 			estimatedDeliveryAt: order?.estimatedDeliveryAt
 				? new Date(order?.estimatedDeliveryAt)
 				: undefined,
@@ -333,9 +333,9 @@ const onRowClick = (event: any) => {
 					<span class="font-semibold">{{ data.title }}</span>
 				</template>
 			</Column>
-			<Column field="budget" header="Priority" sortable>
+			<Column field="priority" header="Priority" sortable>
 				<template #body="{ data }">
-					<span class="">{{ data.totalBudget }}</span>
+					<span class="">{{ data.totalPriority }}</span>
 				</template>
 			</Column>
 			<Column field="communityNode" header="Community">
@@ -440,8 +440,8 @@ const onRowClick = (event: any) => {
 								" />
 						</div>
 						<div class="form-field flex-1">
-							<label for="budget">Budget</label>
-							<InputNumber id="budget" v-model="formData.order.budget" />
+							<label for="priority">Priority Points</label>
+							<InputNumber id="priority" v-model="formData.order.priority" />
 						</div>
 					</div>
 				</div>
@@ -487,8 +487,8 @@ const onRowClick = (event: any) => {
 							placeholder="Select unit" />
 					</div>
 					<div class="form-field flex-1">
-						<label for="budget">Budget</label>
-						<InputNumber id="budget" v-model="formData.order.budget" />
+						<label for="priority">Priority</label>
+						<InputNumber id="priority" v-model="formData.order.priority" />
 					</div>
 					<div class="form-field flex-1">
 						<label for="isBasicNeed" class="cursor-pointer">Essential</label>
