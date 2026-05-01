@@ -81,9 +81,14 @@ const fetchRequests = async () => {
 			totalPriority: 'totalPriority',
 		}
 		const apiSortBy = fieldMap[sortField.value] || sortField.value
+
 		const result = await $trpcClient.requests.list.query({
 			search: searchQuery.value || undefined,
-			sortBy: apiSortBy as 'title' | 'totalPriority' | 'createdAt',
+			sortBy: apiSortBy as
+				| 'title'
+				| 'totalPriority'
+				| 'createdAt'
+				| 'communityNode',
 			sortOrder: sortOrder.value === -1 ? 'desc' : 'asc',
 		})
 		requests.value = result || []
@@ -274,13 +279,8 @@ const closeOrdersDialog = () => {
 
 const onSort = (event: DataTableSortEvent) => {
 	if (!event.sortField || typeof event.sortField !== 'string') return
-	// Map column field names to API sort fields
-	const fieldMap: Record<string, string> = {
-		totalPriority: 'priority',
-		communityNode: 'community',
-	}
-	sortField.value = fieldMap[event.sortField] || event.sortField
-	sortOrder.value = event.sortOrder || 1
+	sortField.value = event.sortField
+	sortOrder.value = event.sortOrder ?? 1
 	fetchRequests()
 }
 
@@ -362,9 +362,14 @@ const onRowClick = (event: any) => {
 					<span class="">{{ data.totalPriority }}</span>
 				</template>
 			</Column>
-			<Column field="communityNode" header="Community" sortable>
+			<Column field="communityNode.title" header="Community" sortable>
 				<template #body="{ data }">
 					<span>{{ data.communityNode?.title || '-' }}</span>
+				</template>
+			</Column>
+			<Column field="createdAt" header="Created" sortable>
+				<template #body="{ data }">
+					<span>{{ new Date(data.createdAt).toLocaleDateString() }}</span>
 				</template>
 			</Column>
 
