@@ -87,20 +87,7 @@ const formData = ref({
 
 const checkOverflowAndSetTitle = (event: MouseEvent, text: string | undefined) => {
   const el = event.currentTarget as HTMLElement
-  if (!el) return
-  const isOverflowing = el.scrollWidth > el.clientWidth
-  if (isOverflowing) {
-    el.title = text || '-'
-  } else {
-    el.title = ''
-  }
-}
-
-const clearTitle = (event: MouseEvent) => {
-  const el = event.currentTarget as HTMLElement
-  if (el) {
-    el.title = ''
-  }
+  if (el) el.title = el.scrollWidth > el.clientWidth ? text || '-' : ''
 }
 
 const fetchRequests = async () => {
@@ -421,7 +408,6 @@ onMounted(async () => {
                     <span 
                       class="description-cell" 
                       @mouseenter="checkOverflowAndSetTitle($event, data.body)"
-                      @mouseleave="clearTitle($event)"
                     >{{ data.body || '-' }}</span>
                 </template>
             </Column>
@@ -435,7 +421,6 @@ onMounted(async () => {
 							severity="success"
 							@click="editRequest(data)"
 							@mouseenter="checkOverflowAndSetTitle($event, 'Edit')"
-							@mouseleave="clearTitle($event)" />
 						<Button
 							v-if="
 								session?.user.id === data.ownerId ||
