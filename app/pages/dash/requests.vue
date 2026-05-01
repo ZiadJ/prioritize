@@ -27,7 +27,9 @@ const requests = ref<Request[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const searchQuery = ref('')
-const selectedScope = ref<'local' | 'regional' | 'regional extended' | 'global'>('global')
+const selectedScope = ref<
+	'local' | 'regional' | 'regional extended' | 'global'
+>('global')
 const selectedRequests = ref<Request[]>([])
 const sortField = ref<string>('totalPriority')
 const sortOrder = ref<number>(-1) // -1 for desc, 1 for asc
@@ -44,10 +46,10 @@ const allTags = ref<Tag[]>([])
 
 // Scope options for dropdown
 const scopeOptions = [
-  { label: 'Global', value: 'global' },
-  { label: 'Regional Extended', value: 'regional extended' },
-  { label: 'Regional', value: 'regional' },
-  { label: 'My Community', value: 'local' },
+	{ label: 'Global', value: 'global' },
+	{ label: 'Regional Extended', value: 'regional extended' },
+	{ label: 'Regional', value: 'regional' },
+	{ label: 'My Community', value: 'local' },
 ]
 
 const totalRequestedQuantity = computed(() => {
@@ -357,6 +359,7 @@ const onRowClick = (event: any) => {
 			stripedRows
 			tableStyle="min-width: 50rem"
 			class="p-datatable-sm"
+			resizableColumns
 			:sortField="sortField"
 			:sortOrder="sortOrder"
 			@sort="onSort">
@@ -600,9 +603,9 @@ const onRowClick = (event: any) => {
 					<div class="flex-1">
 						<Button
 							v-if="dialogMode !== 'create'"
-							:label="`${currentRequest?.orderCount ?? 0} requests${
+							:label="`${currentRequest?.orderCount ?? 0} ${(currentRequest?.orderCount ?? 0) === 1 ? 'request' : 'requests'}${
 								totalRequestedQuantity > 0
-									? ` (${totalRequestedQuantity} items total)`
+									? ` (${totalRequestedQuantity} ${totalRequestedQuantity === 1 ? 'item' : 'items'} total)`
 									: ''
 							}`"
 							text
