@@ -69,21 +69,39 @@ const isOwner = computed(() => {
 })
 
 const formData = ref({
-	title: '',
-	body: '',
-	isActive: true,
-	// totalPriority: 0,
-	selectedTags: [] as Tag[],
-	unitOfMeasure: 'None' as UnitOfMeasure,
-	order: {
-		quantity: undefined as number | undefined,
-		recurrencePeriod: 0,
-		priority: 0,
-		estimatedDeliveryAt: undefined as Date | undefined,
-		dueAt: undefined as Date | undefined,
-		isBasicNeed: false,
-	},
+  title: '',
+  body: '',
+  isActive: true,
+  // totalPriority: 0,
+  selectedTags: [] as Tag[],
+  unitOfMeasure: 'None' as UnitOfMeasure,
+  order: {
+    quantity: undefined as number | undefined,
+    recurrencePeriod: 0,
+    priority: 0,
+    estimatedDeliveryAt: undefined as Date | undefined,
+    dueAt: undefined as Date | undefined,
+    isBasicNeed: false,
+  },
 })
+
+const checkOverflowAndSetTitle = (event: MouseEvent, text: string | undefined) => {
+  const el = event.currentTarget as HTMLElement
+  if (!el) return
+  const isOverflowing = el.scrollWidth > el.clientWidth
+  if (isOverflowing) {
+    el.title = text || '-'
+  } else {
+    el.title = ''
+  }
+}
+
+const clearTitle = (event: MouseEvent) => {
+  const el = event.currentTarget as HTMLElement
+  if (el) {
+    el.title = ''
+  }
+}
 
 const fetchRequests = async () => {
 	loading.value = true
@@ -309,15 +327,6 @@ onMounted(async () => {
 	}
 })
 
-const onRowClick = (event: any) => {
-	// 	const request = event.data
-	// 	const index = selectedRequests.value.findIndex((r: Request) => r.id === request.id)
-	// 	if (index > -1) {
-	// 		selectedRequests.value = selectedRequests.value.filter((r: Request) => r.id !== request.id)
-	// 	} else {
-	// 		selectedRequests.value = [...selectedRequests.value, request]
-	// 	}
-}
 </script>
 
 <template>
@@ -409,7 +418,11 @@ const onRowClick = (event: any) => {
 			</Column>
             <Column field="body" header="Description" style="max-width: 400px" bodyStyle="overflow: hidden">
                 <template #body="{ data }">
-                    <span class="description-cell" :title="data.body || '-'">{{ data.body || '-' }}</span>
+                    <span 
+                      class="description-cell" 
+                      @mouseenter="checkOverflowAndSetTitle($event, data.body)"
+                      @mouseleave="clearTitle($event)"
+                    >{{ data.body || '-' }}</span>
                 </template>
             </Column>
 			<Column header="Actions" :exportable="false" style="min-width: 0rem">
@@ -421,7 +434,8 @@ const onRowClick = (event: any) => {
 							rounded
 							severity="success"
 							@click="editRequest(data)"
-							v-tooltip.top="'Edit'" />
+							@mouseenter="checkOverflowAndSetTitle($event, 'Edit')"
+							@mouseleave="clearTitle($event)" />
 						<Button
 							v-if="
 								session?.user.id === data.ownerId ||
@@ -432,7 +446,8 @@ const onRowClick = (event: any) => {
 							rounded
 							severity="danger"
 							@click="confirmDelete($event, data)"
-							v-tooltip.top="'Delete'" />
+							@mouseenter="checkOverflowAndSetTitle($event, 'Delete')"
+							@mouseleave="clearTitle($event)" />
 					</div>
 				</template>
 			</Column>
