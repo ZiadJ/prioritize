@@ -539,7 +539,7 @@ const onRowClick = (event: any) => {
 							placeholder="Select unit" />
 					</div>
 					<div class="form-field flex-1">
-						<label for="priority">Priority</label>
+						<label for="priority">Priority Points</label>
 						<InputNumber id="priority" v-model="formData.order.priority" />
 					</div>
 					<div class="form-field flex-1">
