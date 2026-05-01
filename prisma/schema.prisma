@@ -448,8 +448,14 @@ model Request {
 
   editors User[] @relation("requestEditors")
 
+  // Denormalized aggregates
+  totalQuantity Float @default(0)
+  totalBudget   Float @default(0)
+  orderCount    Int   @default(0)
+
   @@index([path])
   @@index([communityId])
+  @@index([totalBudget])
 }
 
 // Tracks the quantity of material requested by a user 

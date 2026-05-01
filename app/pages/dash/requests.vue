@@ -12,7 +12,7 @@ import { number } from 'zod'
 type RequestRouterInput = inferRouterInputs<AppRouter>['requests']
 type RequestRouterOutput = inferRouterOutputs<AppRouter>['requests']
 type Request = RequestRouterOutput['list'][number]
-type RequestOrder = Request['orders'][number]
+type RequestOrder = RequestRouterOutput['getOrders'][number]
 
 definePageMeta({
 	layout: 'dashboard',
@@ -40,14 +40,7 @@ const currentRequestTitle = ref('')
 const allTags = ref<Tag[]>([])
 
 const totalRequestedQuantity = computed(() => {
-	if (!currentRequest.value?.orders) return 0
-	return currentRequest.value.orders.reduce(
-		(sum: number, order: RequestOrder) => {
-			const qty = order.quantity || 0
-			return sum + qty
-		},
-		0,
-	)
+	return currentRequest.value?.totalQuantity || 0
 })
 
 const isOwner = computed(() => {
@@ -127,10 +120,11 @@ const openNewDialog = () => {
 	dialogVisible.value = true
 }
 
-const editRequest = (request: Request) => {
-	const order = request.orders?.find(
-		(o: RequestOrder) => o.userId === session.value?.user?.id,
-	)
+const editRequest = async (request: Request) => {
+	const userOrder = await $trpcClient.requests.getUserOrder.query({
+		requestId: request.id,
+	})
+	const order = userOrder
 	formData.value = {
 		title: request.title,
 		body: request.body || '',
@@ -249,17 +243,17 @@ const confirmDelete = (event: MouseEvent, request: Request) => {
 	})
 }
 
-const showOrders = () => {
+const showOrders = async () => {
 	if (!currentRequest.value) return
 	currentRequestTitle.value = currentRequest.value.title
-	const allOrders = (currentRequest.value.orders || []).map(order => ({
+	const orders = await $trpcClient.requests.getOrders.query({
+		requestId: currentRequest.value.id,
+	})
+	const allOrders = (orders || []).map(order => ({
 		...order,
 		unitOfMeasure: currentRequest.value!.unitOfMeasure,
 	}))
-	// Exclude current user's own order
-	currentRequestOrders.value = allOrders //.filter(
-	//	(o: any) => o.userId !== session.value?.user?.id,
-	//)
+	currentRequestOrders.value = allOrders
 	ordersDialogVisible.value = true
 }
 
@@ -290,8 +284,8 @@ const onRowClick = (event: any) => {
 }
 </script>
 
-<template> 
-   <!-- <pre>{{ selectedRequests }}</pre> -->
+<template>
+	<!-- <pre>{{ selectedRequests }}</pre> -->
 	<div class="requests-page">
 		<div
 			class="header-actions flex justify-content-between align-items-center m-6">
@@ -324,21 +318,24 @@ const onRowClick = (event: any) => {
 			:rowHover="true"
 			stripedRows
 			tableStyle="min-width: 50rem"
-			class="p-datatable-sm"
-			>
+			class="p-datatable-sm">
 			<!-- v-model:selection="selectedRequests"
 			selectionMode="multiple" -->
 			<!-- <Column selectionMode="multiple" headerStyle="width: 3rem"></Column> -->
+			<!-- <Column header="Essential">
+				<template #body="{ data }">
+					<Checkbox v-if="data.orders?.[0]" :modelValue="data.orders[0].isBasicNeed" :binary="true" disabled />
+					<span v-else>-</span>
+				</template>
+			</Column>			 -->
 			<Column field="title" header="Title" sortable>
 				<template #body="{ data }">
 					<span class="font-semibold">{{ data.title }}</span>
 				</template>
 			</Column>
-			<Column field="isBasicNeed" header="Essential">
+			<Column field="budget" header="Priority" sortable>
 				<template #body="{ data }">
-					<Tag
-						:value="data.isBasicNeed ? 'Yes' : 'No'"
-						:severity="data.isBasicNeed ? 'danger' : 'secondary'" />
+					<span class="">{{ data.totalBudget }}</span>
 				</template>
 			</Column>
 			<Column field="communityNode" header="Community">
@@ -557,7 +554,11 @@ const onRowClick = (event: any) => {
 					<div class="flex-1">
 						<Button
 							v-if="dialogMode !== 'create'"
-							:label="`${currentRequest?.orders?.length ?? 0} requests${totalRequestedQuantity > 0 ? ` (${totalRequestedQuantity} total)` : ''}`"
+							:label="`${currentRequest?.orderCount ?? 0} requests${
+								totalRequestedQuantity > 0
+									? ` (${totalRequestedQuantity} items total)`
+									: ''
+							}`"
 							text
 							@click="showOrders" />
 					</div>

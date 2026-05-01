@@ -5,28 +5,48 @@ import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { createTreeNode, buildTreeSelectDataFromNodes } from '~~/lib/tree'
 import { RequestSchema } from '~~/prisma/generated/zod/schemas/models/Request.schema'
 
+ // Helper to update request totals from all its orders
+ async function updateRequestTotals(requestId: number) {
+ 	const aggregates = await prisma.order.aggregate({
+ 		where: { requestId },
+ 		_sum: { quantity: true, budget: true },
+ 		_count: true,
+ 	})
+ 	await prisma.request.update({
+ 		where: { id: requestId },
+ 		data: {
+ 			totalQuantity: aggregates._sum.quantity || 0,
+ 			totalBudget: aggregates._sum.budget || 0,
+ 			orderCount: aggregates._count,
+ 		},
+ 	})
+ }
+
 export const requestInput = RequestSchema.pick({
-  isActive: true,
-  title: true,
-  body: true,
-  parentId: true,
-  unitOfMeasure: true,
+	isActive: true,
+	title: true,
+	body: true,
+	parentId: true,
+	unitOfMeasure: true,
 }).extend({
-  id: z.number().optional(),
-  tagIds: z.array(z.number()).optional().default([]),
-  order: z
-    .object({
-      quantity: z.number().optional().nullable(),
-      recurrencePeriod: z.number().optional(),
-      budget: z.number().optional(),
-      dueAt: z.date().optional().nullable(),
-      isBasicNeed: z.boolean().optional(),
-    })
-    .optional(),
+	id: z.number().optional(),
+	tagIds: z.array(z.number()).optional().default([]),
+	order: z
+		.object({
+			quantity: z.number().optional().nullable(),
+			recurrencePeriod: z.number().optional(),
+			budget: z.number().optional(),
+			dueAt: z.date().optional().nullable(),
+			isBasicNeed: z.boolean().optional(),
+		})
+		.optional(),
 })
 
+export const createInput = requestInput
+export const updateInput = requestInput.partial()
+
 export const requestsRouter = router({
-	list: publicProcedure
+	list: protectedProcedure
 		.input(
 			z
 				.object({
@@ -36,34 +56,29 @@ export const requestsRouter = router({
 				})
 				.optional(),
 		)
-		.query(async ({ input }) => {
+		.query(async ({ ctx, input }) => {
+			// Build WHERE conditions
+			const where: Prisma.RequestWhereInput = {}
+			if (input?.search) {
+				where.OR = [
+					{ title: { contains: input.search, mode: 'insensitive' } },
+					{ body: { contains: input.search, mode: 'insensitive' } },
+				]
+			}
+			if (input?.isActive !== undefined) {
+				where.isActive = input.isActive
+			}
+			if (input?.communityId) {
+				where.communityId = input.communityId
+			}
+
+			// Fetch all matching requests, sorted by denormalized totalBudget
 			const result = await prisma.request.findMany({
-				where: {
-					...(input?.search && {
-						OR: [
-							{ title: { contains: input.search, mode: 'insensitive' } },
-							{ body: { contains: input.search, mode: 'insensitive' } },
-						],
-					}),
-					isActive: input?.isActive,
-					communityId: input?.communityId,
-				},
-				orderBy: { createdAt: 'desc' },
+				where,
+				orderBy: { totalBudget: 'desc' },
 				include: {
 					tags: true,
 					communityNode: true,
-					orders: {
-						include: {
-							user: {
-								select: {
-									id: true,
-									username: true,
-									firstname: true,
-									lastname: true,
-								},
-							},
-						},
-					},
 					editors: true,
 					_count: {
 						select: { children: true },
@@ -71,14 +86,6 @@ export const requestsRouter = router({
 				},
 			})
 
-			// Attach unitOfMeasure from request to each order for frontend compatibility
-			//  (result ?? []).forEach(req => {
-			// 	if (req.orders) {
-			// 		req.orders.forEach((order: any) => {
-			// 			order.unitOfMeasure = req.unitOfMeasure
-			// 		})
-			// 	}
-			// })
 			return result
 		}),
 
@@ -123,9 +130,11 @@ export const requestsRouter = router({
 		}),
 
 	create: protectedProcedure
-		.input(requestInput)
+		.input(createInput)
 		.mutation(async ({ ctx, input }) => {
-			const { tagIds, parentId, order, ...data } = input
+			const { tagIds, parentId, order, ...data } = input as z.infer<
+				typeof createInput
+			>
 
 			if (!ctx.user!.communityId) {
 				throw new Error('User must be assigned to a community')
@@ -141,7 +150,7 @@ export const requestsRouter = router({
 					ownerId: ctx.user!.id,
 					tags: tagIds?.length
 						? {
-								connect: tagIds.map(id => ({ id })),
+								connect: tagIds.map((id: number) => ({ id })),
 							}
 						: undefined,
 				})
@@ -152,18 +161,21 @@ export const requestsRouter = router({
 					((order.quantity !== null && order.quantity !== undefined) ||
 						(order.recurrencePeriod && order.recurrencePeriod > 0))
 				) {
-               await prisma.order.create({
-                 data: {
-                   request: { connect: { id: node.id } },
-                   user: { connect: { id: ctx.user!.id } },
-                   recurrencePeriod: order.recurrencePeriod || 0,
-                   quantity: order.quantity ?? 1,
-                   isBasicNeed: order.isBasicNeed ?? false,
-                   budget: order.budget ?? 0,
-                   dueAt: order.dueAt ? new Date(order.dueAt) : null,
-                 },
-               })
+					await prisma.order.create({
+						data: {
+							request: { connect: { id: node.id } },
+							user: { connect: { id: ctx.user!.id } },
+							recurrencePeriod: order.recurrencePeriod || 0,
+							quantity: order.quantity ?? 1,
+							isBasicNeed: order.isBasicNeed ?? false,
+							budget: order.budget ?? 0,
+							dueAt: order.dueAt ? new Date(order.dueAt) : null,
+						},
+					})
 				}
+
+				// Update denormalized totals
+				await updateRequestTotals(node.id)
 
 				return node
 			} catch (e) {
@@ -173,9 +185,11 @@ export const requestsRouter = router({
 		}),
 
 	update: protectedProcedure
-		.input(requestInput.partial())
+		.input(updateInput)
 		.mutation(async ({ ctx, input }) => {
-			const { id, tagIds, order, unitOfMeasure, ...data } = input
+			const { id, tagIds, order, unitOfMeasure, ...data } = input as z.infer<
+				typeof updateInput
+			>
 
 			// Fetch the request to check permissions
 			const existingRequest = await prisma.request.findUnique({
@@ -201,7 +215,7 @@ export const requestsRouter = router({
 				}
 				if (tagIds !== undefined) {
 					updateData.tags = {
-						set: tagIds.map(tagId => ({ id: tagId })),
+						set: tagIds.map((tagId: number) => ({ id: tagId })),
 					}
 				}
 				if (unitOfMeasure !== undefined) {
@@ -226,40 +240,46 @@ export const requestsRouter = router({
 					where: { requestId: id, userId: ctx.user!.id },
 				})
 
-                if (existingOrder) {
-                  const orderUpdateData: Prisma.OrderUpdateInput = {}
-                  if (order.recurrencePeriod !== undefined) {
-                    orderUpdateData.recurrencePeriod = order.recurrencePeriod
-                  }
-                  if (order.quantity != null) {
-                    orderUpdateData.quantity = order.quantity
-                  }
-                  if (order.dueAt !== undefined) {
-                    orderUpdateData.dueAt = order.dueAt ? new Date(order.dueAt) : null
-                  }
-                  if (order.isBasicNeed !== undefined) {
-                    orderUpdateData.isBasicNeed = order.isBasicNeed
-                  }
-                  await prisma.order.update({
-                    where: { id: existingOrder.id },
-                    data: orderUpdateData,
-                  })
-                } else if (
-                  (order.quantity !== null && order.quantity !== undefined) ||
-                  (order.recurrencePeriod !== undefined && order.recurrencePeriod > 0)
-                ) {
-                  await prisma.order.create({
-                    data: {
-                      request: { connect: { id } },
-                      user: { connect: { id: ctx.user!.id } },
-                      recurrencePeriod: order.recurrencePeriod || 0,
-                      quantity: order.quantity ?? 1,
-                      isBasicNeed: order.isBasicNeed ?? false,
-                      budget: order.budget ?? 0,
-                      dueAt: order.dueAt ? new Date(order.dueAt) : null,
-                    },
-                  })
-                }
+				if (existingOrder) {
+					const orderUpdateData: Prisma.OrderUpdateInput = {}
+					if (order.recurrencePeriod !== undefined) {
+						orderUpdateData.recurrencePeriod = order.recurrencePeriod
+					}
+					if (order.quantity != null) {
+						orderUpdateData.quantity = order.quantity
+					}
+					if (order.budget !== undefined) {
+						orderUpdateData.budget = order.budget
+					}
+					if (order.dueAt !== undefined) {
+						orderUpdateData.dueAt = order.dueAt ? new Date(order.dueAt) : null
+					}
+					if (order.isBasicNeed !== undefined) {
+						orderUpdateData.isBasicNeed = order.isBasicNeed
+					}
+					await prisma.order.update({
+						where: { id: existingOrder.id },
+						data: orderUpdateData,
+					})
+				} else if (
+					(order.quantity !== null && order.quantity !== undefined) ||
+					(order.recurrencePeriod !== undefined && order.recurrencePeriod > 0)
+				) {
+					await prisma.order.create({
+						data: {
+							request: { connect: { id } },
+							user: { connect: { id: ctx.user!.id } },
+							recurrencePeriod: order.recurrencePeriod || 0,
+							quantity: order.quantity ?? 1,
+							isBasicNeed: order.isBasicNeed ?? false,
+							budget: order.budget ?? 0,
+							dueAt: order.dueAt ? new Date(order.dueAt) : null,
+						},
+					})
+				}
+
+				// Update denormalized totals after any order change
+				await updateRequestTotals(id!)
 			}
 
 			return updatedRequest
@@ -276,6 +296,46 @@ export const requestsRouter = router({
 						{ ownerId: ctx.user!.id },
 						{ editors: { some: { id: ctx.user!.id } } },
 					],
+				},
+			})
+		}),
+
+	// Get all orders for a specific request (for orders dialog)
+	getOrders: publicProcedure
+		.input(z.object({ requestId: z.number() }))
+		.query(async ({ input }) => {
+			return prisma.order.findMany({
+				where: { requestId: input.requestId },
+				include: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+							firstname: true,
+							lastname: true,
+						},
+					},
+				},
+				orderBy: { createdAt: 'desc' },
+			})
+		}),
+
+	// Get the current user's order for a specific request (for edit form)
+	getUserOrder: publicProcedure
+		.input(z.object({ requestId: z.number() }))
+		.query(async ({ ctx, input }) => {
+			if (!ctx.user) return null
+			return prisma.order.findFirst({
+				where: { requestId: input.requestId, userId: ctx.user.id },
+				include: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+							firstname: true,
+							lastname: true,
+						},
+					},
 				},
 			})
 		}),

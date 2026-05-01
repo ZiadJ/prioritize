@@ -21,8 +21,8 @@ async function main() {
 	await prisma.communityNode.deleteMany()
 	await prisma.user.deleteMany()
 	await prisma.tag.deleteMany()
-	await prisma.token.deleteMany()
 	await prisma.country.deleteMany()
+	// await prisma.token.deleteMany()
 
 	const hashedPassword = await bcrypt.hash('aaa', 10)
 
