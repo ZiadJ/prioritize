@@ -1,5 +1,11 @@
 <script lang="ts" setup>
-import { ref, onMounted, computed, nextTick, type ComponentPublicInstance } from 'vue'
+import {
+	ref,
+	onMounted,
+	computed,
+	nextTick,
+	type ComponentPublicInstance,
+} from 'vue'
 import type { Tag } from '~/components/Tags.vue'
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
@@ -69,31 +75,33 @@ const isOwner = computed(() => {
 })
 
 const formData = ref({
-  title: '',
-  body: '',
-  isActive: true,
-  // totalPriority: 0,
-  selectedTags: [] as Tag[],
-  unitOfMeasure: 'None' as UnitOfMeasure,
-  order: {
-    quantity: undefined as number | undefined,
-    recurrencePeriod: 0,
-    priority: 0,
-    estimatedDeliveryAt: undefined as Date | undefined,
-    dueAt: undefined as Date | undefined,
-    isBasicNeed: false,
-  },
+	title: '',
+	body: '',
+	isActive: true,
+	// totalPriority: 0,
+	selectedTags: [] as Tag[],
+	unitOfMeasure: 'None' as UnitOfMeasure,
+	order: {
+		quantity: undefined as number | undefined,
+		recurrencePeriod: 0,
+		priority: 0,
+		estimatedDeliveryAt: undefined as Date | undefined,
+		dueAt: undefined as Date | undefined,
+		isBasicNeed: false,
+	},
 })
 
-const checkOverflowAndSetTitle = (event: MouseEvent, text: string | undefined) => {
-  const el = event.currentTarget as HTMLElement
-  if (el) el.title = el.scrollWidth > el.clientWidth ? text || '-' : ''
+const checkOverflowAndSetTitle = (
+	event: MouseEvent,
+	text: string | undefined,
+) => {
+	const el = event.currentTarget as HTMLElement
+	if (el) el.title = el.scrollWidth > el.clientWidth ? text || '-' : ''
 }
 
 const fetchRequests = async () => {
 	loading.value = true
 	try {
-
 		const result = await $trpcClient.requests.list.query({
 			search: searchQuery.value || undefined,
 			scope: selectedScope.value,
@@ -304,7 +312,6 @@ onMounted(async () => {
 		console.error('Failed to fetch tags:', error.message || error)
 	}
 })
-
 </script>
 
 <template>
@@ -394,14 +401,19 @@ onMounted(async () => {
 					</div>
 				</template>
 			</Column>
-            <Column field="body" header="Description" style="max-width: 400px" bodyStyle="overflow: hidden">
-                <template #body="{ data }">
-                    <span 
-                      class="description-cell" 
-                      @mouseenter="checkOverflowAndSetTitle($event, data.body)"
-                    >{{ data.body || '-' }}</span>
-                </template>
-            </Column>
+			<Column
+				field="body"
+				header="Description"
+				style="max-width: 400px"
+				bodyStyle="overflow: hidden">
+				<template #body="{ data }">
+					<span
+						class="auto-ellipsis"
+						@mouseenter="checkOverflowAndSetTitle($event, data.body)"
+						>{{ data.body || '-' }}</span
+					>
+				</template>
+			</Column>
 			<Column header="Actions" :exportable="false" style="min-width: 0rem">
 				<template #body="{ data }">
 					<div class="flex gap-1">
@@ -411,7 +423,7 @@ onMounted(async () => {
 							rounded
 							severity="success"
 							@click="editRequest(data)"
-							v-tooltip.top="'Edit'" />						
+							v-tooltip.top="'Edit'" />
 						<Button
 							v-if="
 								session?.user.id === data.ownerId ||
@@ -613,8 +625,8 @@ onMounted(async () => {
 										? 'Create'
 										: 'Update'
 									: hasUserOrder
-									? 'Update'
-									: 'Join'
+										? 'Update'
+										: 'Join'
 							"
 							@click="saveRequest"
 							:loading="saving" />
@@ -641,10 +653,11 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.description-cell {
+.auto-ellipsis {
 	display: block;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	/*max-width: 100%;*/
-}</style>
+}
+</style>
