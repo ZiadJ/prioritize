@@ -82,8 +82,8 @@ export const requestsRouter = router({
 
 			// Handle dot notation for nested sorting (e.g., 'communityNode.title')
 			if (sortBy.includes('.')) {
-				const [relation, field] = sortBy.split('.')
-				orderBy[relation!] = { [field!]: sortOrder }
+				const [parentField, field] = sortBy.split('.')
+				orderBy[parentField!] = { [field!]: sortOrder }
 			} else {
 				orderBy[sortBy] = sortOrder
 			}
@@ -96,9 +96,9 @@ export const requestsRouter = router({
 					tags: true,
 					communityNode: true,
 					editors: true,
-					_count: {
-						select: { children: true },
-					},
+					// _count: {
+					// 	select: { children: true },
+					// },
 				},
 			})
 
