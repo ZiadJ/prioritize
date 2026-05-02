@@ -5,6 +5,7 @@ import prisma, { Prisma } from '~~/lib/prisma'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { createTreeNode, buildTreeSelectDataFromNodes } from '~~/lib/tree'
 import { RequestSchema } from '~~/prisma/generated/zod/schemas/models/Request.schema'
+import { OrderSchema } from '~~/prisma/generated/zod/schemas/models/Order.schema'
 
 // Helper to update request totals from all its orders
 async function updateRequestTotals(requestId: number) {
@@ -32,15 +33,13 @@ export const requestInput = RequestSchema.pick({
 }).extend({
 	id: z.number().optional(),
 	tagIds: z.array(z.number()).optional().default([]),
-	order: z
-		.object({
-			quantity: z.number().optional().nullable(),
-			recurrencePeriod: z.number().optional(),
-			priority: z.number().optional(),
-			dueAt: z.date().optional().nullable(),
-			isBasicNeed: z.boolean().optional(),
-		})
-		.optional(),
+	order: OrderSchema.pick({
+		quantity: true,
+		priority: true,
+		recurrencePeriod: true,
+		dueAt: true,
+		isBasicNeed: true,
+	}).optional(),
 })
 
 export const createInput = requestInput

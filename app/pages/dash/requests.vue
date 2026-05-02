@@ -410,7 +410,7 @@ onMounted(async () => {
 					<span
 						class="auto-ellipsis"
 						@mouseenter="checkOverflowAndSetTitle($event, data.body)"
-						>{{ data.body || '-' }}</span
+						>{{ data.body }}</span
 					>
 				</template>
 			</Column>

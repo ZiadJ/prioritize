@@ -152,16 +152,16 @@ async function main() {
 		data: {
 			title: 'Food Assistance Needed',
 			body: 'Need help with groceries for the week',
-			unitOfMeasure: 'Units',
+			unitOfMeasure: 'Hours',
 			ownerId: adminUser.id,
 			communityId: city1.id,
 			countryId: countryB.id,
 			orders: {
 				create: {
 					userId: adminUser.id,
-					quantity: 1,
+					quantity: 40,
 					priority: 50.0,
-					recurrencePeriod: 7,
+					recurrencePeriod: 0,
 					isBasicNeed: true,
 				},
 			},
@@ -192,14 +192,14 @@ async function main() {
 		data: {
 			title: 'Community Event Planning',
 			body: 'Help organize a community cleanup event',
-			unitOfMeasure: 'Units',
+			unitOfMeasure: 'Hours',
 			ownerId: adminUser.id,
 			communityId: city2.id,
 			countryId: countryB.id,
 			orders: {
 				create: {
 					userId: adminUser.id,
-					quantity: 1,
+					quantity: 2,
 					priority: 200.0,
 					recurrencePeriod: 90,
 					isBasicNeed: false,
