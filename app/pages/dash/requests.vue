@@ -353,13 +353,13 @@ onMounted(async () => {
 			:rows="25"
 			dataKey="id"
 			:rowHover="true"
-			stripedRows
 			tableStyle="min-width: 50rem"
 			class="p-datatable-sm"
 			resizableColumns
 			:sortField="sortField"
 			:sortOrder="sortOrder"
 			@sort="onSort">
+			<!-- stripedRows -->
 			<!-- v-model:selection="selectedRequests"
 			selectionMode="multiple" -->
 			<!-- <Column selectionMode="multiple" headerStyle="width: 3rem"></Column> -->
@@ -414,9 +414,9 @@ onMounted(async () => {
 					>
 				</template>
 			</Column>
-			<Column header="Actions" :exportable="false" style="min-width: 0rem">
+			<Column header="Actions" :exportable="false" class="actions-column">
 				<template #body="{ data }">
-					<div class="flex gap-1">
+					<div class="action-buttons">
 						<Button
 							icon="pi pi-pencil"
 							text
@@ -658,6 +658,32 @@ onMounted(async () => {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	/*max-width: 100%;*/
+}
+
+.action-buttons {
+	position: absolute;
+	right: 2rem;
+	top: 0;
+	display: flex;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+.actions-column {
+	max-width: 0;
+	padding: 0;
+	border: none;
+}
+
+.actions-column .p-column-title {
+	display: none;
+}
+
+::v-deep(.p-datatable-table tr:hover) .action-buttons {
+	opacity: 1;
+}
+
+::v-deep(.p-datatable-table tr) {
+	position: relative;
 }
 </style>

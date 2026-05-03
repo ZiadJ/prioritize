@@ -54,6 +54,7 @@ export default defineNuxtConfig({
 		'@nuxtjs/color-mode',
 		'@nuxt/icon',
 		'@primevue/nuxt-module',
+		'@vueuse/nuxt',
 	],
 	css: [
 		'primeicons/primeicons.css',
