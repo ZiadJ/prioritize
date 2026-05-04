@@ -100,7 +100,7 @@ datasource db {
 //   createdAt    DateTime
 //   isActive     Boolean
 // title String @unique
-//   description  String
+//   body  String
 // 
 //   isDirty      Boolean? // Client-server-clients sync flag
 //   revisions Revision[]
@@ -176,7 +176,7 @@ model Feedback {
   // type             Int // FeedbackType // User, Revision, RequestNode, Effect, ProposalStep
   // targetId         String
   title               String
-  description         String
+  body                String
   requireCommentOnNeg Boolean // Require a comment for negative feedback unless a related rating is specified
 
   Revisions RevisionNode[]
@@ -336,7 +336,7 @@ model CognitiveBias {
   isActive   Boolean
 
   title            String  @unique
-  description      String
+  body             String
   isLogicalFallacy Boolean
   courseUrl        String
 
