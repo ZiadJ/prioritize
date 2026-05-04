@@ -16,7 +16,7 @@ import {
 	ReactiveFlags,
 } from 'vue'
 import type { TreeNode } from 'primevue/treenode'
-import Editor, { type EditorTextChangeEvent } from 'primevue/editor'
+import type { EditorTextChangeEvent } from 'primevue/editor'
 import {
 	useRefHistory,
 	useWindowSize,
@@ -164,10 +164,12 @@ const jsonData = computed({
 	},
 	set: newValue => {
 		const parsed = JSON.parse(newValue)
-		requestNodes.value = (parsed?.data || [])// as RequestNode[]
+		requestNodes.value = parsed?.data || [] // as RequestNode[]
 
 		const id = props.requestId
-		const node = (requestNodes.value as RequestNode[]).find(req => req.id === id)
+		const node = (requestNodes.value as RequestNode[]).find(
+			req => req.id === id,
+		)
 
 		if (node) requestNode.value = node
 
@@ -360,7 +362,7 @@ const addNode = (event: MouseEvent) => {
 		selectedNode.value = rootNode.value[0]!
 	}
 
-	const newKey = (-Date.now()).toString() 
+	const newKey = (-Date.now()).toString()
 
 	const title = prompt('Add Node', 'Enter a name for the new node')
 
