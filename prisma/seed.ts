@@ -19,10 +19,10 @@ async function main() {
 	await prisma.resourceNode.deleteMany()
 	await prisma.expertiseNode.deleteMany()
 	await prisma.communityNode.deleteMany()
+	await prisma.token.deleteMany()
 	await prisma.user.deleteMany()
 	await prisma.tag.deleteMany()
 	await prisma.country.deleteMany()
-	// await prisma.token.deleteMany()
 
 	const hashedPassword = await bcrypt.hash('aaa', 10)
 
@@ -215,7 +215,7 @@ async function main() {
 			unitOfMeasure: 'Units',
 			ownerId: regularUser.id,
 			communityId: city2.id,
-			countryId: country2.id,
+			countryId: countryA.id,
 			orders: {
 				create: {
 					userId: regularUser.id,
@@ -229,6 +229,146 @@ async function main() {
 	})
 
 	console.log('Requests and orders created')
+
+	// Create RequestNodes associated with requests (hierarchical structure)
+	// Main request nodes for each request
+	const requestNode1 = await createTreeNode(prisma.requestNode, {
+		title: 'Food Assistance Needed',
+		body: 'Need help with groceries for the week',
+		isActive: true,
+		isTemplate: false,
+		isVariantsGroup: false,
+		isNonNegotiable: false,
+		request: { connect: { id: request1.id } },
+		owner: { connect: { id: adminUser.id } },
+		position: 1,
+	})
+
+	const requestNode2 = await createTreeNode(prisma.requestNode, {
+		title: 'Housing Support',
+		body: 'Looking for temporary housing assistance',
+		isActive: true,
+		isTemplate: false,
+		isVariantsGroup: false,
+		isNonNegotiable: false,
+		request: { connect: { id: request2.id } },
+		owner: { connect: { id: regularUser.id } },
+		position: 1,
+	})
+
+	const requestNode3 = await createTreeNode(prisma.requestNode, {
+		title: 'Community Event Planning',
+		body: 'Help organize a community cleanup event',
+		isActive: true,
+		isTemplate: false,
+		isVariantsGroup: false,
+		isNonNegotiable: false,
+		request: { connect: { id: request3.id } },
+		owner: { connect: { id: adminUser.id } },
+		position: 1,
+	})
+
+	const requestNode4 = await createTreeNode(prisma.requestNode, {
+		title: 'Healthcare Access',
+		body: 'Need information about local healthcare services',
+		isActive: true,
+		isTemplate: false,
+		isVariantsGroup: false,
+		isNonNegotiable: false,
+		request: { connect: { id: request4.id } },
+		owner: { connect: { id: regularUser.id } },
+		position: 1,
+	})
+
+	console.log('RequestNodes created')
+
+	// Create a hierarchical child node for request1 (sub-request)
+	const childNode1 = await createTreeNode(prisma.requestNode, {
+		title: 'Grocery Shopping Assistance',
+		body: 'Help with carrying and selecting groceries',
+		isActive: true,
+		isTemplate: false,
+		isVariantsGroup: false,
+		isNonNegotiable: true,
+		parentId: requestNode1.id,
+		request: { connect: { id: request1.id } },
+		owner: { connect: { id: adminUser.id } },
+		position: 1,
+	})
+
+	// Create another child node for request1
+	const childNode2 = await createTreeNode(prisma.requestNode, {
+		title: 'Meal Planning',
+		body: 'Help plan nutritious meals for the week',
+		isActive: true,
+		isTemplate: false,
+		isVariantsGroup: false,
+		isNonNegotiable: false,
+		parentId: requestNode1.id,
+		request: { connect: { id: request1.id } },
+		owner: { connect: { id: adminUser.id } },
+		position: 2,
+	})
+
+	// Create a variants group node for request2 (housing support variants)
+	const variantsGroup = await createTreeNode(prisma.requestNode, {
+		title: 'Housing Support Variants',
+		body: 'Different housing support options',
+		isActive: true,
+		isTemplate: false,
+		isVariantsGroup: true,
+		isNonNegotiable: false,
+		parentId: requestNode2.id,
+		request: { connect: { id: request2.id } },
+		owner: { connect: { id: regularUser.id } },
+		position: 1,
+	})
+
+	// Create child variant nodes
+	await createTreeNode(prisma.requestNode, {
+		title: 'Emergency Shelter',
+		body: 'Immediate emergency housing needed',
+		isActive: true,
+		isTemplate: false,
+		isVariantsGroup: false,
+		isNonNegotiable: true,
+		parentId: variantsGroup.id,
+		request: { connect: { id: request2.id } },
+		owner: { connect: { id: regularUser.id } },
+		position: 1,
+	})
+
+	await createTreeNode(prisma.requestNode, {
+		title: 'Long-term Housing',
+		body: 'Sustainable housing solution for 6+ months',
+		isActive: true,
+		isTemplate: false,
+		isVariantsGroup: false,
+		isNonNegotiable: false,
+		parentId: variantsGroup.id,
+		request: { connect: { id: request2.id } },
+		owner: { connect: { id: regularUser.id } },
+		position: 2,
+	})
+
+	// Create related nodes between different requests
+	// Link requestNode1 (food) as a related problem to requestNode3 (community event)
+	await prisma.requestNode.update({
+		where: { id: requestNode1.id },
+		data: {
+			relatedProblems: { connect: { id: requestNode3.id } },
+		},
+	})
+
+	// Link requestNode3 as a related solution to requestNode1
+	await prisma.requestNode.update({
+		where: { id: requestNode3.id },
+		data: {
+			relatedSolutions: { connect: { id: requestNode1.id } },
+		},
+	})
+
+	console.log('RequestNode hierarchy and relationships created')
 
 	// Create tags
 	const tag1 = await prisma.tag.create({
