@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { RequestNode, Proposal } from '~~/prisma/generated/interfaces'
+import type {
+	RequestNode,
+	Proposal,
+	Request,
+} from '~~/prisma/generated/interfaces'
 import type { ColumnProps } from 'primevue/column'
 import type {
 	TreeTableSelectionKeys,
@@ -34,10 +38,10 @@ import type { RatingChangeEvent } from 'primevue/rating'
 import vote from '~/components/proposal/Vote.vue'
 import { useVueConsole, str, json } from '@/methods/console'
 import { useConfirm } from 'primevue/useconfirm'
-import { utils } from '@/methods/utils'
-
 import { useToast } from 'primevue/usetoast'
 import { useRoute } from 'vue-router'
+import { utils } from '@/methods/utils'
+import { useNuxtApp } from '#app'
 
 const route = useRoute()
 const toast = useToast()
@@ -70,10 +74,12 @@ const state = reactive({
 let treeTableEl: HTMLElement | null = null
 
 onMounted(async () => {
-	const res = await fetch('src/services/json/requests.json')
-	const data = await res.text()
-  setRequestNodes(data)
-  
+	const { $trpcClient } = useNuxtApp()
+
+	const requestId = parseInt(route.params.id as string)
+	const request = await $trpcClient.requests.byId.query({ id: requestId })
+
+	if (request) setRequestNodes(request as unknown as Request)
 
 	setTimeout(() => (state.hasChange = false))
 
@@ -124,29 +130,26 @@ const jsonData = computed(() => {
 	)
 })
 
-function setRequestNodes(newValue: string) {
-	const parsed = JSON.parse(newValue)
-	requestNodes.value = (parsed?.data || []) as RequestNode[]
+function setRequestNodes(request: Request) {
+	// requestNodes.value = request.requestNodes
+	// const node = requestNodes.find(req => req.id === id)
 
-	const id = requestId.value
-	const node = (requestNodes.value as RequestNode[]).find(req => req.id === id)
+	// if (node) requestNode.value = node
 
-	if (node) requestNode.value = node
+	//if (requestNode.value) {
+	// const children = requestNode.value.children || []
+	const treeNodes = utils.tree.buildTree(request.requestNodes ?? [])
 
-	if (requestNode.value) {
-		const children = requestNode.value.children || []
-		const treeNodes = utils.tree.buildTree(children)
+	rootNode.value = treeNodes as unknown as TreeNodeEx[]
 
-		rootNode.value = treeNodes as unknown as TreeNodeEx[]
-
-		const proposals = requestNode.value.proposals
-		if (proposals) {
-			const cols = columnsInit.concat(
-				proposals.map((p: Proposal) => mapProposalToColumn(p)),
-			)
-			cols.forEach(col => columns.value.push(col))
-		}
+	const proposals = request.proposals
+	if (proposals) {
+		const cols = columnsInit.concat(
+			proposals.map((p: Proposal) => mapProposalToColumn(p)),
+		)
+		cols.forEach(col => columns.value.push(col))
 	}
+	//}
 }
 
 let rootNode = useStorage<TreeNodeEx[]>('rootNode', [])
@@ -691,7 +694,7 @@ watch(rootNode, e => {
 	</div>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .knob,
 .slider {
 	width: 100%;

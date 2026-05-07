@@ -114,7 +114,7 @@ datasource db {
 //   Interest
 //   RequestNode
 //   Effect
-//   ProposalNode
+//   Proposal
 // }
 
 enum RevisionType {
@@ -181,15 +181,15 @@ model Feedback {
 
   Revisions RevisionNode[]
 
-  RequestNode    RequestNode? @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
-  requestNodeId  Int?
-  proposalNode   Proposal?    @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
-  proposalNodeId Int?
-  effect         Effect?      @relation(fields: [effectId], references: [id], onDelete: Cascade)
-  effectId       Int?
+  RequestNode   RequestNode? @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
+  requestNodeId Int?
+  proposal      Proposal?    @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId    Int?
+  effect        Effect?      @relation(fields: [effectId], references: [id], onDelete: Cascade)
+  effectId      Int?
 
   // Omitting userId to allow a user to offer multiple feedbacks to another user
-  @@unique([requestNodeId, proposalNodeId, effectId])
+  @@unique([requestNodeId, proposalId, effectId])
   @@map("FeedbackNode")
 }
 
@@ -242,18 +242,18 @@ model User {
   fromRelationships UserRelation[]  @relation("from")
   toRelationships   UserRelation[]  @relation("to")
 
-  editableRequests      Request[]      @relation("requestEditors")
-  ownedRequests         Request[]      @relation("RequestOwner")
-  editableRequestNodes  RequestNode[]  @relation("RequestNodeEditors")
-  ownedRequestNodes     RequestNode[]  @relation("RequestNodeOwner")
-  editableProposals     Proposal[]     @relation("ProposalEditors")
-  ownedProposals        Proposal[]     @relation("ProposalOwner")
-  editableStepNodes     StepNode[]     @relation("StepNodeEditors")
-  ownedStepNodes        StepNode[]     @relation("StepNodeOwner")
-  editableStepCosts     StepCost[]     @relation("StepCostEditors")
-  ownedStepCosts        StepCost[]     @relation("StepCostOwner")
-  editableResourceNodes ResourceNode[] @relation("ResourceNodeEditors")
-  ownedResourceNodes    ResourceNode[] @relation("ResourceNodeOwner")
+  editableRequests     Request[]     @relation("requestEditors")
+  ownedRequests        Request[]     @relation("RequestOwner")
+  editableRequestNodes RequestNode[] @relation("RequestNodeEditors")
+  ownedRequestNodes    RequestNode[] @relation("RequestNodeOwner")
+  editableProposals    Proposal[]    @relation("ProposalEditors")
+  ownedProposals       Proposal[]    @relation("ProposalOwner")
+  editableStepNodes    StepNode[]    @relation("StepNodeEditors")
+  ownedStepNodes       StepNode[]    @relation("StepNodeOwner")
+  editableStepCosts    StepCost[]    @relation("StepCostEditors")
+  ownedStepCosts       StepCost[]    @relation("StepCostOwner")
+  editableResources    Resource[]    @relation("ResourceEditors")
+  ownedResources       Resource[]    @relation("ResourceOwner")
 
   orders Order[]
   tokens Token[]
@@ -310,8 +310,8 @@ model RevisionNode {
   requestId       Int?
   RequestNode     RequestNode?   @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
   requestNodeId   Int?
-  proposalNode    Proposal?      @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
-  proposalNodeId  Int?
+  proposal        Proposal?      @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId      Int?
   Step            StepNode?      @relation(fields: [stepId], references: [id], onDelete: Cascade)
   stepId          Int?
   stepCost        StepCost?      @relation(fields: [stepCostId], references: [id], onDelete: Cascade)
@@ -320,12 +320,12 @@ model RevisionNode {
   effectId        Int?
   expertiseNode   ExpertiseNode? @relation(fields: [expertiseNodeId], references: [id], onDelete: Cascade)
   expertiseNodeId Int?
-  resourceNode    ResourceNode?  @relation(fields: [resourceNodeId], references: [id], onDelete: Cascade)
-  resourceNodeId  Int?
+  resource        Resource?      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  resourceId      Int?
   effectHook      Effector?      @relation(fields: [effectHookId], references: [id], onDelete: Cascade)
   effectHookId    Int?
 
-  //@@unique([userId, requestId, requestId, requestNodeId, proposalId, proposalNodeId, stepId, stepCostId, effectId, expertiseNodeId, resourceNodeId, effectHookId])
+  //@@unique([userId, requestId, requestId, requestNodeId, proposalId, proposalId, stepId, stepCostId, effectId, expertiseNodeId, resourceId, effectHookId])
   @@index([path])
 }
 
@@ -355,8 +355,8 @@ model AssignedCognitiveBias {
 
   cognitiveBias   CognitiveBias @relation(fields: [cognitiveBiasId], references: [id], onDelete: Cascade)
   cognitiveBiasId Int
-  proposalNode    Proposal      @relation(fields: [proposalNodeId], references: [id], onDelete: Cascade)
-  proposalNodeId  Int
+  proposal        Proposal      @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId      Int
   requestNode     RequestNode   @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
   requestNodeId   Int
 }
@@ -366,14 +366,14 @@ model Tag {
   name String @unique
   type String @default("request")
 
-  users        User[]
-  request      Request[]
-  requestNode  RequestNode[]
-  proposalNode Proposal[]
-  step         StepNode[]
-  stepCost     StepCost[]
-  effect       Effect[]
-  resourceNode ResourceNode[]
+  users       User[]
+  request     Request[]
+  requestNode RequestNode[]
+  proposal    Proposal[]
+  step        StepNode[]
+  stepCost    StepCost[]
+  effect      Effect[]
+  resource    Resource[]
 
   @@unique([name, type])
   @@index([name])
@@ -445,6 +445,7 @@ model Request {
   tags         Tag[]
   effects      Effect[]
   orders       Order[]
+  proposals    Proposal[] // Auto-generated when adding proposed steps
 
   editors User[] @relation("requestEditors")
 
@@ -526,13 +527,11 @@ model RequestNode {
   deliveryAt  DateTime? // Urgency
 
   // conflictingInterests Request[]      @relation("ConflictOfInterest") // Can be auto-generated from the requestNodes tree
-  proposals Proposal[] // Auto-generated when adding proposed steps
-
   // Auto-generated when adding feedback to proposed steps
   feedback          Feedback[]
   requiredExpertise ExpertiseNode[] // Required expertise for providing feedback
 
-  owner   User   @relation("RequestNodeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  owner   User   @relation("RequestNodeOwner", fields: [ownerId], references: [id])
   ownerId String
   editors User[] @relation("RequestNodeEditors")
 
@@ -557,16 +556,12 @@ model Proposal {
   revisions RevisionNode[]
 
   // Variants
-  path     String     @unique
-  depth    Int        @default(0)
-  numchild Int        @default(0)
   parent   Proposal?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  parentId Int?
+  parentId Int? 
   children Proposal[] @relation("Self")
 
-  requestNodeId Int
-  step          StepNode @relation(fields: [stepNodeId], references: [id])
-  stepNodeId    Int
+  request   Request @relation(fields: [requestId], references: [id])
+  requestId Int
 
   isComplete Boolean // Is true upon completion of all children if any
   stepCount  Int // Determines the amount of resources required depending on associated step
@@ -587,15 +582,15 @@ model Proposal {
   isUnavailable Boolean?
 
   requestNodeImpact     Feedback[] // Voted feedback from experts based on the related interests
-  requests              RequestNode[]
   tags                  Tag[]
+  stepNodes             StepNode[]
   assignedCognitiveBias AssignedCognitiveBias[]
 
-  owner   User   @relation("ProposalOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  owner   User   @relation("ProposalOwner", fields: [ownerId], references: [id])
   ownerId String
   editors User[] @relation("ProposalEditors")
 
-  @@index([path])
+  // @@index([path])
 }
 
 // An action item or task which is referenced by proposals to 
@@ -625,19 +620,19 @@ model StepNode {
   next     StepNode? @relation("Sibbling", fields: [nextId], references: [id])
   previous StepNode? @relation("Sibbling")
 
-  ResourceNode   ResourceNode? @relation(fields: [resourceNodeId], references: [id])
-  resourceNodeId Int?
+  Resource   Resource? @relation(fields: [resourceId], references: [id])
+  resourceId Int?
 
   duration         Int
   durationVariance Int
 
-  proposalNodes Proposal[]
-  costs         StepCost[]
-  effects       Effect[]
-  assignedTo    User[]     @relation("AssignedSteps")
-  tags          Tag[]
+  proposals  Proposal[]
+  costs      StepCost[]
+  effects    Effect[]
+  assignedTo User[]     @relation("AssignedSteps")
+  tags       Tag[]
 
-  owner   User   @relation("StepNodeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  owner   User   @relation("StepNodeOwner", fields: [ownerId], references: [id])
   ownerId String
   editors User[] @relation("StepNodeEditors")
 
@@ -657,10 +652,10 @@ model StepCost {
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
-  resourceNode   ResourceNode? @relation(fields: [resourceNodeId], references: [id])
-  resourceNodeId Int?
-  stepNode       StepNode?     @relation(fields: [stepNodeId], references: [id])
-  stepNodeId     Int?
+  resource   Resource? @relation(fields: [resourceId], references: [id])
+  resourceId Int?
+  stepNode   StepNode? @relation(fields: [stepNodeId], references: [id])
+  stepNodeId Int?
 
   duration          Int
   riskFactor        Int
@@ -671,12 +666,87 @@ model StepCost {
 
   tags Tag[]
 
-  owner   User   @relation("StepCostOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  owner   User   @relation("StepCostOwner", fields: [ownerId], references: [id])
   ownerId String
   editors User[] @relation("StepCostEditors")
 
-  @@unique([resourceNodeId, stepNodeId])
+  @@unique([resourceId, stepNodeId])
 }
+
+// Availability of a specific resource used or produced through 
+// associated proposal steps
+
+model Resource {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  title     String         @unique
+  body      String
+  isDirty   Boolean? // Client-server-clients sync flag
+  revisions RevisionNode[]
+
+  // path     String         @unique
+  // depth    Int            @default(0)
+  // numchild Int            @default(0)
+  // parent   Resource?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  // parentId Int?
+  // children Resource[] @relation("Self")
+
+  type                   Int // ResourceType // ServiceTime, Material, Digital
+  unitOfMeasure          UnitOfMeasure
+  quantityAvailable      Float
+  monthlyCapacity        Float // Amount that can be renewed within a month (includes volunteer time)
+  managedMonthlyCapacity Float
+  minQuantity            Float
+  reservedQuantity       Float
+  monetaryValue          Float // Per specified unit
+
+  // components ResourceComponent[] // "used as ingredient in these BOMs"
+
+  stepsPerAdditionalRenewalCapacity StepNode[] //
+  stepCosts                         StepCost[] // Step cost referencing this resource node
+  tags                              Tag[]
+
+  owner   User   @relation("ResourceOwner", fields: [ownerId], references: [id])
+  ownerId String
+  editors User[] @relation("ResourceEditors")
+
+  //@@index([path])
+}
+
+/**
+ * model ResourceComponent {
+ * id         Int      @id @default(autoincrement())
+ * modifiedAt DateTime @updatedAt
+ * createdAt  DateTime @default(now())
+ * isActive   Boolean
+ * title   String   @unique
+ * body    String
+ * isDirty Boolean?
+ * //revisions RevisionNode[]
+ * // Tree structure — each node is one ingredient in its parent's composition
+ * path     String              @unique
+ * depth    Int                 @default(0)
+ * numchild Int                 @default(0)
+ * parent   ResourceComponent?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+ * parentId Int?
+ * children ResourceComponent[] @relation("Self")
+ * // What resource this component node represents (the ingredient) (e.g. "Glass", "Sand", "Fuel")
+ * resource   Resource? @relation(fields: [resourceId], references: [id])
+ * resourceId Int?
+ * // How much of this resource is required to produce one unit of the parent
+ * quantity       Float  @default(1)
+ * unit           String @default("unit") // "g", "kg", "hr", "L", etc.
+ * quantityMargin Float  @default(0)
+ * // tags      Tag[]
+ * // owner   User   @relation("ResourceComponentOwner", fields: [ownerId], references: [id])
+ * // ownerId String
+ * // editors User[] @relation("ResourceComponentEditors")
+ * @@index([path])
+ * }
+ */
 
 // A impacting side-effect when a request node is enacted upon
 
@@ -730,47 +800,6 @@ model Effector {
   strength Int
 
   @@unique([fromId, toId])
-}
-
-// Availability of a specific resource used or produced through 
-// associated proposal steps
-
-model ResourceNode {
-  id         Int      @id @default(autoincrement())
-  modifiedAt DateTime @updatedAt
-  createdAt  DateTime @default(now())
-  isActive   Boolean
-
-  title     String         @unique
-  body      String
-  isDirty   Boolean? // Client-server-clients sync flag
-  revisions RevisionNode[]
-
-  path     String         @unique
-  depth    Int            @default(0)
-  numchild Int            @default(0)
-  parent   ResourceNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  parentId Int?
-  children ResourceNode[] @relation("Self")
-
-  type                   Int // ResourceType // ServiceTime, Material, Digital
-  unitOfMeasure          UnitOfMeasure
-  quantityAvailable      Float
-  monthlyCapacity        Float // Amount that can be renewed within a month (includes volunteer time)
-  managedMonthlyCapacity Float
-  minQuantity            Float
-  reservedQuantity       Float
-  monetaryValue          Float // Per specified unit
-
-  stepsPerAdditionalRenewalCapacity StepNode[] //
-  stepCosts                         StepCost[] // Step cost referencing this resource node
-  tags                              Tag[]
-
-  owner   User   @relation("ResourceNodeOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId String
-  editors User[] @relation("ResourceNodeEditors")
-
-  @@index([path])
 }
 
 // A community organization with hierarchical structure and location data

@@ -124,7 +124,7 @@ function changeUserVote(event: any) {
   margin-right: -18px;
 }
 </style>
-<style lang="scss">
+<style>
 .knob {
   position: absolute;
 }

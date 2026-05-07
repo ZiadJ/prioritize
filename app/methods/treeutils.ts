@@ -47,7 +47,7 @@ export default class treeUtils {
 		// in the lookup object and fill it with the data of the parent later
 		// if an item has no parentId, add it as a root element to rootItems
 		for (const item of items) {
-			const itemId = isUpper ? item.Id : item.Id
+			const itemId = isUpper ? item.Id : item.id
 			const parentId = isUpper ? item.ParentId : item.parentId
 
 			// look whether item already exists in the lookup table

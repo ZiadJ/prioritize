@@ -65,6 +65,8 @@
 </template>
 
 <script setup lang="ts">
+import { useRoute } from 'vue-router'
+
 definePageMeta({
 	auth: {
 		unauthenticatedOnly: true,
@@ -72,6 +74,7 @@ definePageMeta({
 	},
 });
 
+const route = useRoute()
 const { status, signIn } = useAuth();
 
 const serverError = ref<string | null>(null);
@@ -102,7 +105,8 @@ const resolver = ({ values }: { values: Record<string, any> }) => {
 		e.values.remember = e.values.remember ?? false;
 
 		try {
-			await signIn(e.values, { callbackUrl: '/dash' });
+			const callbackUrl = (route.query.callbackUrl as string) || '/dash'
+			await signIn(e.values, { callbackUrl })
 		} catch (thrown: any) {
 			serverError.value = thrown.response?._data?.message || thrown.message || 'Sign in failed';
 		} finally {
@@ -111,6 +115,9 @@ const resolver = ({ values }: { values: Record<string, any> }) => {
 	};
 
 onBeforeMount(() => {
-	if (status.value === 'authenticated') navigateTo('/dash');
+	if (status.value === 'authenticated') {
+		const callbackUrl = (route.query.callbackUrl as string) || '/dash'
+		navigateTo(callbackUrl)
+	}
 });
 </script>

@@ -15,8 +15,7 @@ async function main() {
 	await prisma.stepNode.deleteMany()
 	await prisma.stepCost.deleteMany()
 	await prisma.effect.deleteMany()
-	await prisma.effector.deleteMany()
-	await prisma.resourceNode.deleteMany()
+await prisma.effector.deleteMany()
 	await prisma.expertiseNode.deleteMany()
 	await prisma.communityNode.deleteMany()
 	await prisma.token.deleteMany()
@@ -248,6 +247,7 @@ async function main() {
 		title: 'Housing Support',
 		body: 'Looking for temporary housing assistance',
 		isActive: true,
+
 		isTemplate: false,
 		isVariantsGroup: false,
 		isNonNegotiable: false,
