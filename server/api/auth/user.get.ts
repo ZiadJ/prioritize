@@ -1,6 +1,6 @@
 export default defineEventHandler(async (event) => {
   try {
-    const user = await getAtuhUser(event);
+    const user = await getAuthUser(event);
     return {
       user,
     };

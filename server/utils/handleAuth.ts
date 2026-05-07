@@ -154,7 +154,7 @@ export const handleRefreshToken = async (event: H3Event) => {
  * @returns  UserSession user = {id, email, username}
  * @throws 401 Authorization token is missing or invalid
  */
-export const getAtuhUser = async (event: H3Event): Promise<UserSession> => {
+export const getAuthUser = async (event: H3Event): Promise<UserSession> => {
 	const jwtTokenValidated = await verifyToken(getTokenHeader(event))
 	return await returnUserJwtPayload(jwtTokenValidated)
 }
