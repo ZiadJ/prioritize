@@ -525,7 +525,7 @@ watch(rootNode, e => {
 				</div>
 			</template>
 		</Toolbar>
-		<!-- <TreeTable
+		<TreeTable
 			class="goals-treetable p-treetable p-treetable-sm"
 			@mousemove="highlightColumn"
 			@mouseout="highlightColumn"
@@ -669,7 +669,7 @@ watch(rootNode, e => {
 						:max="5" />
 				</template>
 			</Column>
-		</TreeTable> -->
+		</TreeTable>
 		<br />
 		<div v-if="state.isEditMode">
 			<Textarea
