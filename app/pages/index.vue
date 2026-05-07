@@ -1,6 +1,7 @@
 <template>
   <div class="">
-    <Timeline :value="events" align="alternate" class="customized-timeline">
+    Landing page
+    <!-- <Timeline :value="events" align="alternate" class="customized-timeline">
       <template #marker="slotProps">
         <span
           class="flex w-8 h-8 items-center justify-center text-white rounded-full z-10 shadow-sm"
@@ -35,7 +36,7 @@
           </template>
         </Card>
       </template>
-    </Timeline>
+    </Timeline> -->
   </div>
 </template>
 
