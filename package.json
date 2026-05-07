@@ -33,6 +33,7 @@
 		"pinia": "^3.0.4",
 		"primeicons": "^7.0.0",
 		"primevue": "^4.5.5",
+		"quill": "^2.0.3",
 		"trpc-nuxt": "^2.0.2",
 		"vue": "latest",
 		"vue-router": "latest",
