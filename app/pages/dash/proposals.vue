@@ -153,37 +153,37 @@ const rootNodeHistory = useRefHistory(rootNode, {
 })
 
 const columnsInit: ProposalColumn[] = [
-	{
-		columnKey: '0',
-		header: ' ',
-		style: 'width: 1px !important;',
-		class: 'button-column',
-		dataType: 'button',
-		sortable: false,
-		frozen: true,
-		body: '',
-	},
-	{
-		columnKey: '1',
-		field: 'title',
-		header: 'Standards & Impacts',
-		dataType: 'html',
-		expander: true,
-		style: 'width: 50% !important; min-width: 50% !important',
-		class: 'name-column',
-		frozen: true,
-		body: '',
-	},
-	{
-		columnKey: '2',
-		field: 'weight',
-		header: 'Appeal',
-		dataType: 'vote',
-		style: 'width: 150px !important',
-		class: 'weight-column',
-		body: '',
-		sortField: {} as ColumnFieldType,
-	},
+	// {
+	// 	columnKey: '0',
+	// 	header: ' ',
+	// 	style: 'width: 1px !important;',
+	// 	class: 'button-column',
+	// 	dataType: 'button',
+	// 	sortable: false,
+	// 	frozen: true,
+	// 	body: '',
+	// },
+	// {
+	// 	columnKey: '1',
+	// 	field: 'title',
+	// 	header: 'Standards & Impacts',
+	// 	dataType: 'html',
+	// 	expander: true,
+	// 	style: 'width: 50% !important; min-width: 50% !important',
+	// 	class: 'name-column',
+	// 	frozen: true,
+	// 	body: '',
+	// },
+	// {
+	// 	columnKey: '2',
+	// 	field: 'weight',
+	// 	header: 'Appeal',
+	// 	dataType: 'vote',
+	// 	style: 'width: 150px !important',
+	// 	class: 'weight-column',
+	// 	body: '',
+	// 	sortField: {} as ColumnFieldType,
+	// },
 ]
 
 type ColumnFieldType = string | ((item: any) => string) | undefined
@@ -458,12 +458,12 @@ watch(rootNode, e => {
 		<ConfirmDialog></ConfirmDialog>
 		<Toast style="opacity: 0.9" />
 		<br />
-		<div style="margin: 15px">
+		<!-- <div style="margin: 15px">
 			<span style="margin: 10px 40px; position: absolute; font-size: 12px">
 				Id: {{ requestId }} Data: {{ jsonData }}
 			</span>
 			<div style="position: absolute; right: 0; top: -3px"></div>
-		</div>
+		</div> -->
 		<Toolbar>
 			<template #start>
 				<div class="col-8 md:col-8 sm:col-5 xs:col-2" style="float: right">
@@ -539,81 +539,50 @@ watch(rootNode, e => {
 			filterMode="lenient"
 			:resizableColumns="true"
 			:showGridlines="false"
-			columnResizeMode="expand"
+			columnResizeMode="expand""
 			:scrollable="true"
 			sortMode="single"
 			removableSort
 			responsiveLayout="scroll"
 			:scrollHeight="treeTableHeight">
-			<template #header style="padding: 0">
-				<Splitter style="height: 300px">
-					<SplitterPanel
-						class="flex align-items-center justify-content-center"
-						:size="20"
-						:minSize="10">
-						Panel 1
-					</SplitterPanel>
-					<Splitter style="height: 85px">
-						<SplitterPanel>
-							<Editor
-								v-model="selectedNode.data.content"
-								editorStyle="height: 80px; font-size: 14px;"
-								:autoResize="true" />
-						</SplitterPanel>
-						<SplitterPanel>
-							<Editor
-								:readonly="true"
-								v-model="hoveredProposal.body"
-								editorStyle="height: 80px; font-size: 14px;"
-								:autoResize="true" />
-						</SplitterPanel>
-					</Splitter>
-				</Splitter>
-			</template>
 			<Column
-				v-for="(col, index) of visibleColumns"
-				:key="col.columnKey"
-				:frozen="col.frozen"
-				:field="col.field"
-				:header="col.header"
-				:expander="col.expander"
-				:headerClass="col.headerClass"
-				:bodyClass="col.bodyClass"
-				:class="col.class"
-				:headerStyle="col.bodyStyle"
-				:bodyStyle="col.bodyStyle"
-				:style="col.style"
-				:sortable="col.sortable != undefined ? col.sortable : true"
-				:rowEditor="true">
-				<template #header="slotProps" v-if="col.dataType == 'button'">
-				</template>
-
-				<template #header="slotProps" v-else-if="col.class == 'name-column'">
-				</template>
-
-				<template #body="slotProps" v-if="col.dataType == 'button'">
+				:key="0"
+				header="aaa"
+				style="width: 30px !important; height: 50px"
+				class="button-column"
+				:sortable="false"
+				:frozen="true">
+				<template #body="slotProps">
 					<Button
 						type="button"
 						icon="pi pi-ellipsis-v"
 						class="p-button"
 						style=""></Button>
 				</template>
-
-				<template #body="slotProps" v-if="col.dataType == 'html'">
+			</Column>
+			<Column
+				:key="1"
+				field="title"
+				header="Standards & Impacts"
+				expander
+				style="width: 50% !important; min-width: 50% !important"
+				class="name-column"
+				frozen>
+				<template #body="slotProps">
 					<div
 						style="width: 100%; margin: -58px -8px -60px 0; min-height: 45px"
 						class="show-on-hover-parent">
 						<div v-if="state.isEditMode">
 							<div>
 								<Editor
-									v-model.lazy="slotProps.node.data[col.field + '']"
+									v-model.lazy="slotProps.node.data['title']"
 									editorStyle="font-size: 14px;"
 									:autoResize="true"
 									@text-change="onEditorChanged"
 									v-tooltip="slotProps.node.data.content" />
 							</div>
 						</div>
-						<span v-else v-html="slotProps.node.data[col.field + '']"> </span>
+						<span v-else v-html="slotProps.node.data['title']"> </span>
 						<div class="node-count">
 							<span
 								class="show-on-hover-child"
@@ -628,8 +597,23 @@ watch(rootNode, e => {
 						</div>
 					</div>
 				</template>
-
-				<template #body="slotProps" v-else-if="col.dataType == 'star'">
+			</Column>
+			<!-- <Column
+				v-for="(col, index) of visibleColumns"
+				:key="col.columnKey"
+				:frozen="col.frozen"
+				:field="col.field"
+				:header="col.header"
+				:expander="col.expander"
+				:headerClass="col.headerClass"
+				:bodyClass="col.bodyClass"
+				:class="col.class"
+				:headerStyle="col.bodyStyle"
+				:bodyStyle="col.bodyStyle"
+				:style="col.style"
+				:sortable="col.sortable != undefined ? col.sortable : true"
+				:rowEditor="true">
+				<template #body="slotProps" v-if="col.dataType == 'star'">
 					<Rating
 						class="slider"
 						v-model.number="slotProps.node.data[col.field + '']"
@@ -668,7 +652,7 @@ watch(rootNode, e => {
 						:min="-5"
 						:max="5" />
 				</template>
-			</Column>
+			</Column> -->
 		</TreeTable>
 		<br />
 		<div v-if="state.isEditMode">
