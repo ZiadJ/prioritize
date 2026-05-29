@@ -68,7 +68,9 @@ onMounted(async () => {
 	const { $trpcClient } = useNuxtApp()
 
 	// const requestId = parseInt(route.params.id as string)
-	const request = await $trpcClient.requests.byId.query({ id: requestId.value })
+	const request = await $trpcClient.requests.byId.query({ id: 2 })
+	console.log('Fetched request:', request)
+
 
 	if (request) setRequestNodes(request as unknown as Request)
 
@@ -443,9 +445,9 @@ function editButtonClicked() {
 	}
 }
 
-watch(rootNode, e => {
-	state.hasChange = true
-})
+// watch(rootNode, e => {
+// 	state.hasChange = true
+// })
 </script>
 
 <template>
@@ -556,7 +558,7 @@ watch(rootNode, e => {
 			</Column>
 			<Column
 				field="title"
-				header="Criteria & Impacts"
+				header="Request Criteria & Impacts"
 				expander
 				style="min-width: 50%; z-index: 1"
 				class="name-column"
@@ -624,7 +626,7 @@ watch(rootNode, e => {
 						:min="-4"
 						:max="4"
 						@change="onProposalRateChange($event, slotProps.node)"
-						class="knob"
+						class="knob relative w-full flex justify-center"
 						:class="{ 'null-value': !slotProps.node.data[col.field + ''] }" />
 				</template>
 
@@ -668,13 +670,6 @@ watch(rootNode, e => {
 </template>
 
 <style scoped>
-.knob,
-.slider {
-	width: 100%;
-	text-align: center;
-	margin: -5px 0px -15px 0;
-}
-
 .show-on-hover-parent .show-on-hover-child {
 	display: none;
 }
@@ -756,5 +751,10 @@ watch(rootNode, e => {
 }
 td.weight-column {
 	border-right: 1px solid #ffffff30;
+}
+
+
+.null-value .p-knob-text {
+	display: none;
 }
 </style>

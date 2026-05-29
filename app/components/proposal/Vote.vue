@@ -68,8 +68,8 @@ function changeUserVote(event: any) {
 </script>
 
 <template>
-  <DynamicDialog />
-  <div style="width: 100%" @click="toggle" class="centre">
+  <!-- <DynamicDialog /> -->
+  <div class="vote w-full relative" @click="toggle">
     <progress-bar
       class="user-vote"
       :class="{ active: userProgress !== 0, negative: userProgress < 2 }"
@@ -93,15 +93,17 @@ function changeUserVote(event: any) {
       />
     </Popover>
     <Knob
-      class="knob"
+      readonly
+      class="knob absolute"
       v-model.number="props.userVote"
       :step="1"
       :size="35"
       :min="-(props.stars || 0)"
       :max="stars"
-    />
+    />aa
     <Knob
-      class="knob"
+      readonly
+      class="knob absolute"
       v-model="props.globalVote"
       :step="1"
       :size="25"
@@ -125,9 +127,9 @@ function changeUserVote(event: any) {
 }
 </style>
 <style>
-.knob {
+/* .knob {
   position: absolute;
-}
+} */
 .user-vote,
 .global-vote {
   position: absolute !important;
