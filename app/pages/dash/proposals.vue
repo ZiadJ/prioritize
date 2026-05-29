@@ -216,7 +216,7 @@ function mapProposalToColumn(p: Proposal): ProposalColumn {
 		body: p.body,
 		dataType: state.ratingControlType,
 		class: 'proposal-rating key_' + p.id,
-		headerClass: 'proposal-rating key_' + p.id,
+		// headerClass: 'proposal-rating key_' + p.id, // prop class applies to the header already
 	}
 }
 
@@ -355,7 +355,7 @@ function toggleNode(
 	}
 }
 
-const hoveredProposal = ref({} as ProposalColumn)
+const hoveredProposal = ref<ProposalColumn | undefined>()
 
 const highlightColumn = utils.uiElements.delayedHover(
 	(el: HTMLElement) => {
@@ -364,23 +364,20 @@ const highlightColumn = utils.uiElements.delayedHover(
 				c.startsWith('key_'),
 			)
 
-			const color = document.body.classList.contains('dark')
-				? ['#ffffff08', '1.15']
-				: ['#00000010', '0.95']
-			useStyleTag(
-				`td.${keyClass} { background: ${color[0]}; transition: 250ms; }
-        th.${keyClass} { filter: brightness(${color[1]}); transition: 250ms; }`,
-				{
-					id: 'column-highlight',
-				},
-			)
+			const color = document.documentElement.classList.contains('dark')
+				? '#ffffff08'
+				: '#00000010'
+			const styleContent = `
+				td.${keyClass} { background: ${color}; transition: background 250ms; }
+				th.${keyClass} { background: ${color}; transition: background 250ms; }
+			`
+			useStyleTag(styleContent,	{	id: 'proposal-column-highlight'})
 
-			const key = 'p' + keyClass?.split('_').slice(-1)[0]
-			const treeColumn = columns.value.find(col => col.columnKey === key)
-			hoveredProposal.value = treeColumn || ({} as ProposalColumn)
+			const key = 'p' + keyClass?.split('_')[1]
+			hoveredProposal.value = columns.value.find(col => col.columnKey === key)
 		}
 	},
-	'td.proposal-rating',
+	'.proposal-rating',
 	50,
 )
 
@@ -480,9 +477,8 @@ watch(rootNode, e => {
 							v-tooltip="'Filter by Expertise'" />
 					</div>
 				</div>
-
 				<Button
-					:label="state.hasChange ? 'Save' : state.isEditMode ? 'Lock' : 'Edit'"
+				:label="state.hasChange ? 'Save' : state.isEditMode ? 'Lock' : 'Edit'"
 					:icon="
 						'pi pi-' +
 						(state.hasChange ? 'check' : state.isEditMode ? 'lock' : 'pencil')
@@ -499,6 +495,7 @@ watch(rootNode, e => {
 								? 'Lock Data'
 								: 'Edit Data'
 					" />
+				<div class="p-3">{{ hoveredProposal?.body }}</div>
 			</template>
 
 			<template #end>
@@ -528,7 +525,6 @@ watch(rootNode, e => {
 		<TreeTable
 			class="goals-treetable p-treetable p-treetable-sm"
 			@mousemove="highlightColumn"
-			@mouseout="highlightColumn"
 			:value="rootNode"
 			:selectionMode="state.isEditMode ? 'checkbox' : 'multiple'"
 			v-model:selectionKeys="selectedKeys"
@@ -546,9 +542,8 @@ watch(rootNode, e => {
 			responsiveLayout="scroll"
 			:scrollHeight="treeTableHeight">
 			<Column
-				:key="0"
-				header="aaa"
-				style="width: 30px !important; height: 50px"
+				style="width: 30px !important; max-width: 30px !important; min-width: 30px !important; box-sizing: border-box;"
+				headerStyle="width: 30px !important; max-width: 30px !important; min-width: 30px !important;"
 				class="button-column"
 				:sortable="false"
 				:frozen="true">
@@ -561,11 +556,10 @@ watch(rootNode, e => {
 				</template>
 			</Column>
 			<Column
-				:key="1"
 				field="title"
-				header="Standards & Impacts"
+				header="Criteria & Impacts"
 				expander
-				style="width: 50% !important; min-width: 50% !important"
+				style="min-width: 50%; z-index: 1"
 				class="name-column"
 				frozen>
 				<template #body="slotProps">
@@ -590,7 +584,7 @@ watch(rootNode, e => {
 							</span>
 							<span
 								style="padding: 5px"
-								v-if="slotProps.node.children"
+								v-if="slotProps.node.children?.length"
 								@click="toggleNode(slotProps.node, undefined, true)">
 								({{ slotProps.node.children?.length }})
 							</span>
@@ -598,7 +592,7 @@ watch(rootNode, e => {
 					</div>
 				</template>
 			</Column>
-			<!-- <Column
+			<Column
 				v-for="(col, index) of visibleColumns"
 				:key="col.columnKey"
 				:frozen="col.frozen"
@@ -608,7 +602,7 @@ watch(rootNode, e => {
 				:headerClass="col.headerClass"
 				:bodyClass="col.bodyClass"
 				:class="col.class"
-				:headerStyle="col.bodyStyle"
+				headerStyle="max-width: 100px"
 				:bodyStyle="col.bodyStyle"
 				:style="col.style"
 				:sortable="col.sortable != undefined ? col.sortable : true"
@@ -652,7 +646,9 @@ watch(rootNode, e => {
 						:min="-5"
 						:max="5" />
 				</template>
-			</Column> -->
+			</Column>
+			<Column>
+			</Column>
 		</TreeTable>
 		<br />
 		<div v-if="state.isEditMode">
@@ -666,7 +662,10 @@ watch(rootNode, e => {
 				"></Textarea>
 			<div style="position: relative; height: 200px; margin-top: 200px"></div>
 		</div>
-	</div>
+	</div><ClientOnly>aa
+	    <div class="card">
+        <Editor v-model="jsonData" editorStyle="height: 320px" />
+    </div></ClientOnly>
 </template>
 
 <style scoped>
@@ -702,34 +701,10 @@ watch(rootNode, e => {
 .p-treetable .p-treetable-header {
 	padding: 0 !important;
 }
-.p-treetable tr.p-highlight {
-	background: #ffffffcc !important;
-	color: #111 !important;
-}
-/** Prevent hover highlight on frozen columns */
-.p-treetable-scrollable td.p-frozen-column {
-	background: unset !important;
-}
-.p-treetable .p-treetable-thead > tr > th:hover {
-	background: #323c49 !important;
-}
 
-.p-treetable tr.p-highlight .ql-editor {
-	background: transparent !important;
-	color: #181818 !important;
-}
-
-.p-treetable tr .ql-editor {
-	background: transparent !important;
-}
-
-:root .p-highlight {
-	--text-color-secondary: #111;
-}
 .p-treetable.p-treetable-sm .p-treetable-thead > tr > th {
-	text-align: center;
-	display: inline-block;
-}
+  text-align: center;
+ }
 
 .p-treetable .p-treetable-thead button.p-button:first-child {
 	margin-right: 18px;
@@ -744,26 +719,19 @@ watch(rootNode, e => {
 	margin-left: 0rem;
 	height: 44px !important;
 }
-.goals-treetable .p-treetable-tbody td:nth-child(1),
-.goals-treetable th:nth-child(1) {
-	width: 34px !important;
-	max-width: 34px !important;
-	padding-left: 4px;
-	display: block !important;
-}
 .goals-treetable .p-treetable-tbody td:nth-child(1) button {
-	position: absolute;
-	width: 23px;
-	height: 46px;
-	top: 50%;
-	transform: translateY(-50%);
+  position: absolute;
+  width: 23px;
+  height: 46px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 .goals-treetable .p-treetable-tbody td:nth-child(1) {
 	cursor: n-resize;
 }
 .goals-treetable .p-treetable-tbody th,
 .goals-treetable .p-treetable-tbody td {
-	left: 0 !important;
+  left: 0 !important;
 }
 .goals-multiselect-panel li.p-multiselect-item:nth-child(1),
 .goals-multiselect-panel li.p-multiselect-item:nth-child(2),
