@@ -215,8 +215,7 @@ function mapProposalToColumn(p: Proposal): ProposalColumn {
 		header: p.title,
 		body: p.body,
 		dataType: state.ratingControlType,
-		class: 'proposal-rating key_' + p.id,
-		// headerClass: 'proposal-rating key_' + p.id, // prop class applies to the header already
+		class: 'proposal-rating key_' + p.id,// headerClass + bodyClass
 	}
 }
 
