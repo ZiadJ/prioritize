@@ -54,9 +54,9 @@ const allTags = ref<Tag[]>([])
 // Scope options for dropdown
 const scopeOptions = [
 	{ label: 'Global', value: 'global' },
-	{ label: 'Regional Extended', value: 'regional extended' },
+	{ label: 'Local', value: 'local' },
 	{ label: 'Regional', value: 'regional' },
-	{ label: 'My Community', value: 'local' },
+	{ label: 'My Community', value: 'community' },
 ]
 
 const totalRequestedQuantity = computed(() => {

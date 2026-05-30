@@ -1,3 +1,6 @@
+import { prisma } from '~~/lib/prisma'
+import { log } from './../app/methods/console'
+import { proposalsRouter } from './../server/trpc/routers/proposals'
 import prisma from '../lib/prisma'
 import bcrypt from 'bcrypt'
 import { createTreeNode } from '../lib/tree'
@@ -9,13 +12,14 @@ async function main() {
 	await prisma.feedback.deleteMany()
 	await prisma.revisionNode.deleteMany()
 	await prisma.order.deleteMany()
+	await prisma.proposal.deleteMany()
 	await prisma.request.deleteMany()
 	await prisma.requestNode.deleteMany()
-	await prisma.proposal.deleteMany()
+	// await prisma.proposal.deleteMany()
 	await prisma.stepNode.deleteMany()
 	await prisma.stepCost.deleteMany()
 	await prisma.effect.deleteMany()
-await prisma.effector.deleteMany()
+	await prisma.effector.deleteMany()
 	await prisma.expertiseNode.deleteMany()
 	await prisma.communityNode.deleteMany()
 	await prisma.token.deleteMany()
@@ -149,6 +153,7 @@ await prisma.effector.deleteMany()
 	// Create requests with orders in one go
 	const request1 = await prisma.request.create({
 		data: {
+			id: 1,
 			title: 'Food Assistance Needed',
 			body: 'Need help with groceries for the week',
 			unitOfMeasure: 'Hours',
@@ -169,6 +174,7 @@ await prisma.effector.deleteMany()
 
 	const request2 = await prisma.request.create({
 		data: {
+			id: 2,
 			title: 'Housing Support',
 			body: 'Looking for temporary housing assistance',
 			unitOfMeasure: 'Units',
@@ -189,6 +195,7 @@ await prisma.effector.deleteMany()
 
 	const request3 = await prisma.request.create({
 		data: {
+			id: 3,
 			title: 'Community Event Planning',
 			body: 'Help organize a community cleanup event',
 			unitOfMeasure: 'Hours',
@@ -209,6 +216,7 @@ await prisma.effector.deleteMany()
 
 	const request4 = await prisma.request.create({
 		data: {
+			id: 4,
 			title: 'Healthcare Access',
 			body: 'Need information about local healthcare services',
 			unitOfMeasure: 'Units',
@@ -388,6 +396,57 @@ await prisma.effector.deleteMany()
 	await prisma.request.update({
 		where: { id: request2.id },
 		data: { tags: { connect: [{ id: tag1.id }] } },
+	})
+
+	console.log('Create proposals')
+
+	const proposal1 = await prisma.proposal.create({
+		data: {
+			isActive: true,
+			isComplete: false,
+			stepCount: 2,
+			duration: 30,
+			priority: 100,
+			riskFactor: 20,
+			deliveryDays: 7,
+			minRating: 3,
+			maxRating: 5,
+			isTemplate: false,
+			title: 'Organize Grocery Delivery',
+			body: 'Help with grocery delivery',
+			owner: { connect: { id: adminUser.id } },
+			request: { connect: { id: request1.id } },
+		},
+	})
+
+	const proposal2 = await prisma.proposal.create({
+		data: {
+			isActive: true,
+			isComplete: false,
+			stepCount: 3,
+			duration: 60,
+			priority: 100,
+			riskFactor: 30,
+			deliveryDays: 11,
+			minRating: 4,
+			maxRating: 5,
+			isTemplate: false,
+			title: 'Set Up Community Carpool',
+			body: 'Help set up a community carpool',
+			owner: { connect: { id: adminUser.id } },
+			request: { connect: { id: request2.id } },
+		},
+	})
+
+	// assign proposals
+	await prisma.request.update({
+		where: { id: request2.id },
+		data: { proposals: { connect: { id: proposal1.id } } },
+	})
+
+	await prisma.request.update({
+		where: { id: request2.id },
+		data: { proposals: { connect: { id: proposal2.id } } },
 	})
 
 	console.log('Seed completed!')

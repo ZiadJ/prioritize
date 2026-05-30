@@ -39,8 +39,8 @@ const toast = useToast()
 const confirm = useConfirm()
 
 const requestId = computed(() => {
-	const id = Number(route.params.id) ?? 1
-	return isNaN(id) ? 1 : id
+	const id = Number(route.params.id)
+	return isNaN(id) ? 2 : id
 })
 
 function notify(title: string, content: string, severity: string = 'success') {
@@ -64,28 +64,24 @@ const state = reactive({
 
 let treeTableEl: HTMLElement | null = null
 
+const { $trpcClient } = useNuxtApp()
+// const requestId = parseInt(route.params.id as string)
+const request = await $trpcClient.requests.byId.query({ id: requestId.value })
+console.log('Fetched request:', request)
+
 onMounted(async () => {
-	const { $trpcClient } = useNuxtApp()
-
-	// const requestId = parseInt(route.params.id as string)
-	const request = await $trpcClient.requests.byId.query({ id: 2 })
-	console.log('Fetched request:', request)
-
-
 	if (request) setRequestNodes(request as unknown as Request)
-
-	setTimeout(() => (state.hasChange = false))
-
+	
 	treeTableEl = document.querySelector('.goals-treetable') as HTMLElement
 })
 
-const wiindowHeight = useWindowSize()
+const windowHeight = useWindowSize()
 const windowScrollHeight = useWindowSize().height
 const treeTableHeight = computed<string>(() => {
 	if (treeTableEl) {
 		const treeTableTop = treeTableEl.getBoundingClientRect().top
 		const height =
-			(wiindowHeight.height.value - treeTableTop + 15).toFixed() + 'px'
+			(windowHeight.height.value - treeTableTop + 15).toFixed() + 'px'
 		if (windowScrollHeight) console.log(height)
 		return height
 	} else return '500px'
@@ -104,8 +100,8 @@ interface TreeNodeEx extends TreeNode {
 	isDirty?: boolean
 }
 
-const requestNodes = ref<RequestNode[]>([])
-const requestNode = ref<RequestNode>()
+//const requestNodes = ref<RequestNode[]>([])
+//const requestNode = ref<RequestNode>()
 
 const jsonData = computed(() => {
 	return json(
@@ -124,17 +120,11 @@ const jsonData = computed(() => {
 })
 
 function setRequestNodes(request: Request) {
-	// requestNodes.value = request.requestNodes
-	// const node = requestNodes.find(req => req.id === id)
-
-	// if (node) requestNode.value = node
-
-	//if (requestNode.value) {
-	// const children = requestNode.value.children || []
 	const treeNodes = utils.tree.buildTree(request.requestNodes ?? [])
+	rootNode.value = treeNodes as TreeNodeEx[]
 
-	rootNode.value = treeNodes as unknown as TreeNodeEx[]
-
+	toggleNode(treeNodes[0] as TreeNodeEx, true, false)
+	
 	const proposals = request.proposals
 	if (proposals) {
 		const cols = columnsInit.concat(
@@ -217,7 +207,7 @@ function mapProposalToColumn(p: Proposal): ProposalColumn {
 		header: p.title,
 		body: p.body,
 		dataType: state.ratingControlType,
-		class: 'proposal-rating key_' + p.id,// headerClass + bodyClass
+		class: 'proposal-rating key_' + p.id // headerClass + bodyClass
 	}
 }
 
@@ -241,11 +231,11 @@ function onColumnVisibilityToggle(filteredProposals: any) {
 	visibleColumns.value = columns.value.filter(col =>
 		filteredProposals.includes(col),
 	)
-	if (visibleColumns.value[0] !== columns.value[0]) {
+	/*if (visibleColumns.value[0] !== columns.value[0]) {
 		visibleColumns.value.unshift(columns.value[2]!)
 		visibleColumns.value.unshift(columns.value[1]!)
 		visibleColumns.value.unshift(columns.value[0]!)
-	}
+	}*/
 }
 
 function onNodeSelect(node: TreeNodeEx) {
@@ -302,7 +292,7 @@ const getParentArray = (
 	return (parent?.children as TreeNodeEx[]) || rootNode
 }
 
-const addNode = (event: MouseEvent) => {
+const addChildNode = (event: MouseEvent) => {
 	if (!selectedNode.value && rootNode.value.length > 0) {
 		selectedNode.value = rootNode.value[0]!
 	}
@@ -314,8 +304,8 @@ const addNode = (event: MouseEvent) => {
 	const newNode: TreeNodeEx = {
 		key: newKey,
 		data: {
-			title: title || 'New goal item',
-			content: 'New content',
+			title: title || 'New request',
+			body: 'New content',
 		},
 	}
 
@@ -365,21 +355,23 @@ const highlightColumn = utils.uiElements.delayedHover(
 				c.startsWith('key_'),
 			)
 
-			const color = document.documentElement.classList.contains('dark')
-				? '#ffffff08'
-				: '#00000010'
-			const styleContent = `
+			if (keyClass) {
+				const color = document.documentElement.classList.contains('dark')
+					? '#ffffff08'
+					: '#00000010'
+				const styleContent = `
 				td.${keyClass} { background: ${color}; transition: background 250ms; }
 				th.${keyClass} { background: ${color}; transition: background 250ms; }
 			`
-			useStyleTag(styleContent,	{	id: 'proposal-column-highlight'})
+				useStyleTag(styleContent, { id: 'proposal-column-highlight' })
 
-			const key = 'p' + keyClass?.split('_')[1]
-			hoveredProposal.value = columns.value.find(col => col.columnKey === key)
+				const key = 'p' + keyClass?.split('_')[1]
+				hoveredProposal.value = columns.value.find(col => col.columnKey === key)
+			}
 		}
 	},
 	'.proposal-rating',
-	50,
+	100,
 )
 
 const debounceNotify = useDebounceFn((title: any, content: any) => {
@@ -387,19 +379,17 @@ const debounceNotify = useDebounceFn((title: any, content: any) => {
 }, 2000)
 
 function onEditorChanged(e: EditorTextChangeEvent) {
-	state.hasChange = true
 	debounceNotify(`Text changed for goal`, json(e.delta))
 }
 
 function onProposalRateChange(e: RatingChangeEvent | number, args: any) {
-	state.hasChange = true
 	debounceNotify(
 		'Rating changed',
 		`${typeof e == 'number' ? e : e.value} for goal ${args.key}`,
 	)
 }
 
-const goalOperationsMenu = computed(() => {
+const requestNodeMenu = computed(() => {
 	return [
 		{
 			label: 'Edit Mode',
@@ -421,33 +411,13 @@ const goalOperationsMenu = computed(() => {
 			command: () => {
 				state.isEditMode = !state.isEditMode
 			},
-		},
-		{
-			label: state.isEditMode ? 'View Mode' : 'Edit Mode',
-			icon: state.isEditMode ? 'pi pi-key' : 'pi pi-pencil',
-			command: () => {
-				state.isEditMode = !state.isEditMode
-			},
-		},
+		}
 	]
 })
 
 function saveData() {
 	alert('Saved')
 }
-
-function editButtonClicked() {
-	if (state.hasChange) {
-		saveData()
-		state.hasChange = false
-	} else {
-		state.isEditMode = !state.isEditMode
-	}
-}
-
-// watch(rootNode, e => {
-// 	state.hasChange = true
-// })
 </script>
 
 <template>
@@ -478,7 +448,7 @@ function editButtonClicked() {
 							v-tooltip="'Filter by Expertise'" />
 					</div>
 				</div>
-				<Button
+				<!-- <Button
 				:label="state.hasChange ? 'Save' : state.isEditMode ? 'Lock' : 'Edit'"
 					:icon="
 						'pi pi-' +
@@ -495,20 +465,18 @@ function editButtonClicked() {
 							: state.isEditMode
 								? 'Lock Data'
 								: 'Edit Data'
-					" />
-				<div class="p-3">{{ hoveredProposal?.body }}</div>
+					" /> -->
 			</template>
-
+			
 			<template #end>
 				<div class="" style="float: right">
 					<div class="p-inputgroup">
-						<Button type="button" label="Proposals" class="p-button" />
 						<Button
 							type="button"
 							icon="pi pi-plus"
 							class="p-button"
 							@click="addProposal()"
-							v-tooltip="'Add new proposal'" />
+							v-tooltip.left="'Add new proposal'" />
 						<MultiSelect
 							panelClass="goals-multiselect-panel"
 							class="goals-multiselect p-button p-component"
@@ -519,12 +487,18 @@ function editButtonClicked() {
 							placeholder="Select Columns"
 							v-tooltip="'Show/Hide Columns'"
 							style="width: 43px" />
+						</div>
 					</div>
-				</div>
-			</template>
-		</Toolbar>
-		<TreeTable
-			class="goals-treetable p-treetable p-treetable-sm"
+				</template>
+			</Toolbar>
+		
+			<div class="flex"> 
+				<div class="p-4 w-1/2">{{ request?.body }}</div> 
+				<div class="p-4 w-1/2">{{ hoveredProposal?.body }}</div> 
+			</div>
+
+			<TreeTable
+			class="goals-treetable"
 			@mousemove="highlightColumn"
 			:value="rootNode"
 			:selectionMode="state.isEditMode ? 'checkbox' : 'multiple'"
@@ -570,14 +544,17 @@ function editButtonClicked() {
 						<div v-if="state.isEditMode">
 							<div>
 								<Editor
-									v-model.lazy="slotProps.node.data['title']"
+									v-model.lazy="slotProps.node.data.title"
 									editorStyle="font-size: 14px;"
 									:autoResize="true"
 									@text-change="onEditorChanged"
-									v-tooltip="slotProps.node.data.content" />
+									v-tooltip="slotProps.node.data.body" />
 							</div>
 						</div>
-						<span v-else v-html="slotProps.node.data['title']"> </span>
+						<div v-else v-html="slotProps.node.data.title"
+							class="w-full"
+							v-tooltip="slotProps.node.data.body">
+						</div>
 						<div class="node-count">
 							<span
 								class="show-on-hover-child"
@@ -663,10 +640,7 @@ function editButtonClicked() {
 				"></Textarea>
 			<div style="position: relative; height: 200px; margin-top: 200px"></div>
 		</div>
-	</div><ClientOnly>aa
-	    <div class="card">
-        <Editor v-model="jsonData" editorStyle="height: 320px" />
-    </div></ClientOnly>
+	</div>
 </template>
 
 <style scoped>
@@ -685,6 +659,7 @@ function editButtonClicked() {
 .ql-toolbar.ql-snow + .ql-container.ql-snow {
 	border: none;
 }
+
 .p-treetable .node-count {
 	font-size: 11px;
 	position: absolute;
@@ -695,10 +670,6 @@ function editButtonClicked() {
 .p-treetable .p-treetable-header {
 	padding: 0 !important;
 }
-
-.p-treetable.p-treetable-sm .p-treetable-thead > tr > th {
-  text-align: center;
- }
 
 .p-treetable .p-treetable-thead button.p-button:first-child {
 	margin-right: 18px;
@@ -715,7 +686,7 @@ function editButtonClicked() {
 }
 .goals-treetable .p-treetable-tbody td:nth-child(1) button {
   position: absolute;
-  width: 23px;
+  width: 14px;
   height: 46px;
   top: 50%;
   transform: translateY(-50%);

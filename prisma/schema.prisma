@@ -27,6 +27,7 @@
 generator typescriptInterfaces {
   provider = "prisma-generator-typescript-interfaces"
   output   = "../prisma/generated/interfaces.ts"
+  dateType = "string"  // Forces DateTime fields to become TypeScript strings
 }
 
 generator client {
