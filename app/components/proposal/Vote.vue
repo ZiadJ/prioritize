@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Popover from 'primevue/popover'
 import {
   inject,
   onMounted,
@@ -11,18 +10,16 @@ import {
 } from 'vue'
 import type { RatingChangeEvent } from 'primevue/rating'
 import { computed } from '@vue/reactivity'
-import { isOptionalCallExpression } from '@babel/types'
-import { h } from 'vue';
 import { useDialog } from 'primevue/usedialog';
 
 const dialog = useDialog()
 
-dialog.open(Popover, {
-  props: { 
-    style: 'width: 30vw',
-  }, 
-  onClose: () => { }
-})
+// dialog.open(Popover, {
+//   props: { 
+//     style: 'width: 30vw',
+//   }, 
+//   onClose: () => { }
+// })
 
 // const {
 //   userVote = 4,

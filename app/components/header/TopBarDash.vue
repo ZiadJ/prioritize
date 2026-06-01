@@ -15,14 +15,14 @@
         </template>
 
         <template #center>
-            <div class="md:w-[calc(100%-16rem)]">
+            <!-- <div class="md:w-[calc(100%-16rem)]">
                 <IconField :pt="{ root: 'flex max-w-sm mx-auto' }">
                     <InputIcon>
                         <i class="pi pi-search" />
                     </InputIcon>
                     <InputText placeholder="Search" size="small" />
                 </IconField>
-            </div>
+            </div> -->
         </template>
 
         <template #end>

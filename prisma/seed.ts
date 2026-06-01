@@ -1,6 +1,5 @@
-import { prisma } from '~~/lib/prisma'
-import { log } from './../app/methods/console'
-import { proposalsRouter } from './../server/trpc/routers/proposals'
+//import { prisma } from '~~/lib/prisma'
+// import { log } from './../app/methods/console'
 import prisma from '../lib/prisma'
 import bcrypt from 'bcrypt'
 import { createTreeNode } from '../lib/tree'
@@ -11,8 +10,8 @@ async function main() {
 	// Delete existing data in correct order to avoid foreign key constraint violations
 	await prisma.feedback.deleteMany()
 	await prisma.revisionNode.deleteMany()
-	await prisma.order.deleteMany()
 	await prisma.proposal.deleteMany()
+	await prisma.order.deleteMany()
 	await prisma.request.deleteMany()
 	await prisma.requestNode.deleteMany()
 	// await prisma.proposal.deleteMany()
@@ -402,15 +401,12 @@ async function main() {
 
 	const proposal1 = await prisma.proposal.create({
 		data: {
-			isActive: true,
 			isComplete: false,
 			stepCount: 2,
 			duration: 30,
 			priority: 100,
 			riskFactor: 20,
 			deliveryDays: 7,
-			minRating: 3,
-			maxRating: 5,
 			isTemplate: false,
 			title: 'Organize Grocery Delivery',
 			body: 'Help with grocery delivery',
@@ -421,15 +417,12 @@ async function main() {
 
 	const proposal2 = await prisma.proposal.create({
 		data: {
-			isActive: true,
 			isComplete: false,
 			stepCount: 3,
 			duration: 60,
 			priority: 100,
 			riskFactor: 30,
 			deliveryDays: 11,
-			minRating: 4,
-			maxRating: 5,
 			isTemplate: false,
 			title: 'Set Up Community Carpool',
 			body: 'Help set up a community carpool',

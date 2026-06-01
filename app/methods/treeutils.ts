@@ -42,8 +42,7 @@ export default class treeUtils {
 
 		const isUpper = items.length > 0 && items[0] != null && 'Id' in items[0]
 
-		// idea of this loop:
-		// whenever an item has a parent, but the parent is not yet in the lookup object, we store a preliminary parent
+		// Whenever an item has a parent, but the parent is not yet in the lookup object, we store a preliminary parent
 		// in the lookup object and fill it with the data of the parent later
 		// if an item has no parentId, add it as a root element to rootItems
 		for (const item of items) {
@@ -58,6 +57,7 @@ export default class treeUtils {
 
 			// add the current item's data to the item in the lookup table
 			lookup[itemId]!.data = item
+			lookup[itemId]!.key = String(itemId)
 
 			const TreeItem = lookup[itemId]!
 

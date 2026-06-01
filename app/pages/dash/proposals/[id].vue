@@ -26,7 +26,7 @@ import {
 } from '@vueuse/core'
 import type { RatingChangeEvent } from 'primevue/rating'
 
-import vote from '~/components/proposal/Vote.vue'
+import Vote from '~/components/proposal/Vote.vue'
 import { useVueConsole, str, json } from '@/methods/console'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
@@ -38,22 +38,15 @@ const route = useRoute()
 const toast = useToast()
 const confirm = useConfirm()
 
-const requestId = computed(() => {
-	const id = Number(route.params.id)
-	return isNaN(id) ? 2 : id
-})
-
 function notify(title: string, content: string, severity: string = 'success') {
 	toast.add({
-		summary: title ? title + '<br/>' : '',
+		summary: title,
 		life: 3000,
 		detail: content,
 	})
 }
 
-const searchFilters = ref({ global: '' })
-
-/// State
+// State
 const state = reactive({
 	isEditMode: false,
 	hasChange: false,
@@ -62,24 +55,46 @@ const state = reactive({
 	count: 0,
 })
 
-let treeTableEl: HTMLElement | null = null
+const searchFilters = ref({ global: '' })
+
+const treeTable = useTemplateRef('treeTable')
+
+const rootNodes = ref<TreeNodeEx[]>([]) // useStorage<TreeNodeEx[]>('rootNode' + requestId.value, [])
+	
+const selectedNode = ref<TreeNodeEx>()
+const selectedNodes = ref<TreeNodeEx[]>([])
+
+const selectedKeys = ref<TreeTableSelectionKeys>({})
+
+const columns = ref<ProposalColumn[]>([])
+
+const visibleColumns = ref<ProposalColumn[]>(columns.value)
+
+function setRequestNodes(request: Request) {
+	const treeNodes = utils.tree.buildTree(request.requestNodes ?? [])
+	rootNodes.value = treeNodes as TreeNodeEx[]
+
+	toggleNode(treeNodes[0] as TreeNodeEx, true)
+	
+	request.proposals?.forEach((p) =>
+		columns.value.push(mapProposalToColumn(p))
+	)
+}
 
 const { $trpcClient } = useNuxtApp()
 // const requestId = parseInt(route.params.id as string)
-const request = await $trpcClient.requests.byId.query({ id: requestId.value })
+const request = await $trpcClient.requests.byId.query({ id: Number(route.params.id) })
 console.log('Fetched request:', request)
 
 onMounted(async () => {
-	if (request) setRequestNodes(request as unknown as Request)
-	
-	treeTableEl = document.querySelector('.goals-treetable') as HTMLElement
+	if (request) setRequestNodes(request as unknown as Request)	
 })
 
 const windowHeight = useWindowSize()
 const windowScrollHeight = useWindowSize().height
 const treeTableHeight = computed<string>(() => {
-	if (treeTableEl) {
-		const treeTableTop = treeTableEl.getBoundingClientRect().top
+	if (treeTable.value) {
+		const treeTableTop = (treeTable.value as any).$el.getBoundingClientRect().top
 		const height =
 			(windowHeight.height.value - treeTableTop + 15).toFixed() + 'px'
 		if (windowScrollHeight) console.log(height)
@@ -108,10 +123,10 @@ const jsonData = computed(() => {
 		{
 			data: [
 				{
-					requestNodes: rootNode.value,
-					proposalNodes: columns.value
-						.splice(columnsInit.length)
-						.map(col => mapColumnToProposal(col)),
+					requestNodes: rootNodes.value,
+					// proposalNodes: columns.value
+					// 	.splice(columnsInit.length)
+					// 	.map(col => mapColumnToProposal(col)),
 				},
 			],
 		},
@@ -119,68 +134,36 @@ const jsonData = computed(() => {
 	)
 })
 
-function setRequestNodes(request: Request) {
-	const treeNodes = utils.tree.buildTree(request.requestNodes ?? [])
-	rootNode.value = treeNodes as TreeNodeEx[]
-
-	toggleNode(treeNodes[0] as TreeNodeEx, true, false)
-	
-	const proposals = request.proposals
-	if (proposals) {
-		const cols = columnsInit.concat(
-			proposals.map((p: Proposal) => mapProposalToColumn(p)),
-		)
-		cols.forEach(col => columns.value.push(col))
+function mapProposalToColumn(p: Proposal): ProposalColumn {
+	return {
+		field: 'p' + p.id,
+		columnKey: p.id.toString(),
+		header: p.title,
+		body: p.body,
 	}
-	//}
 }
 
-let rootNode = useStorage<TreeNodeEx[]>('rootNode', [])
+// function mapColumnToProposal(p: ProposalColumn): Proposal {
+// 	return {
+// 		id: parseInt((p.columnKey || 'p').substring(1)),
+// 		parentId: 0,
+// 		title: p.header || '',
+// 		body: p.body,
+// 		avgRating: 0,
+// 	} as Proposal
+// }
+// const rootNodeHistory = useRefHistory(rootNode, {
+// 	deep: true,
+// 	capacity: 15,
+// })
 
-const selectedNode = ref<TreeNodeEx>({ key: '', data: {} })
+// const columnsInit: ProposalColumn[] = [
+// 	{
+// 		field: 'weight',
+// 		header: 'Appeal',
+// 	},
+// ]
 
-const rootNodeHistory = useRefHistory(rootNode, {
-	deep: true,
-	capacity: 15,
-})
-
-const columnsInit: ProposalColumn[] = [
-	// {
-	// 	columnKey: '0',
-	// 	header: ' ',
-	// 	style: 'width: 1px !important;',
-	// 	class: 'button-column',
-	// 	dataType: 'button',
-	// 	sortable: false,
-	// 	frozen: true,
-	// 	body: '',
-	// },
-	// {
-	// 	columnKey: '1',
-	// 	field: 'title',
-	// 	header: 'Standards & Impacts',
-	// 	dataType: 'html',
-	// 	expander: true,
-	// 	style: 'width: 50% !important; min-width: 50% !important',
-	// 	class: 'name-column',
-	// 	frozen: true,
-	// 	body: '',
-	// },
-	// {
-	// 	columnKey: '2',
-	// 	field: 'weight',
-	// 	header: 'Appeal',
-	// 	dataType: 'vote',
-	// 	style: 'width: 150px !important',
-	// 	class: 'weight-column',
-	// 	body: '',
-	// 	sortField: {} as ColumnFieldType,
-	// },
-]
-
-type ColumnFieldType = string | ((item: any) => string) | undefined
-
-const columns = ref<ProposalColumn[]>([])
 
 function addProposal(proposal: Proposal | null = null) {
 	if (!proposal) {
@@ -200,42 +183,10 @@ function addProposal(proposal: Proposal | null = null) {
 	}
 }
 
-function mapProposalToColumn(p: Proposal): ProposalColumn {
-	return {
-		field: 'p' + p.id,
-		columnKey: 'p' + p.id,
-		header: p.title,
-		body: p.body,
-		dataType: state.ratingControlType,
-		class: 'proposal-rating key_' + p.id // headerClass + bodyClass
-	}
-}
-
-function mapColumnToProposal(p: ProposalColumn): Proposal {
-	return {
-		id: parseInt((p.columnKey || 'p').substring(1)),
-		parentId: 0,
-		title: p.header || '',
-		body: p.body,
-		avgRating: 0,
-	} as Proposal
-}
-
-const visibleColumns = ref<ProposalColumn[]>(columns.value)
-
-const selectedKeys = ref<TreeTableSelectionKeys>({})
-
-const selectedNodes = ref<TreeNodeEx[]>([])
-
 function onColumnVisibilityToggle(filteredProposals: any) {
 	visibleColumns.value = columns.value.filter(col =>
 		filteredProposals.includes(col),
 	)
-	/*if (visibleColumns.value[0] !== columns.value[0]) {
-		visibleColumns.value.unshift(columns.value[2]!)
-		visibleColumns.value.unshift(columns.value[1]!)
-		visibleColumns.value.unshift(columns.value[0]!)
-	}*/
 }
 
 function onNodeSelect(node: TreeNodeEx) {
@@ -250,7 +201,7 @@ function onNodeUnselect(node: any) {
 }
 
 const deleteNode = (node: TreeNodeEx, event: MouseEvent) => {
-	let parentArray = getParentArray(rootNode.value, node)
+	let parentArray = getParentArray(rootNodes.value, node)
 
 	const index1 = parentArray.findIndex((n: TreeNodeEx) => n.key == node.key)
 
@@ -292,11 +243,7 @@ const getParentArray = (
 	return (parent?.children as TreeNodeEx[]) || rootNode
 }
 
-const addChildNode = (event: MouseEvent) => {
-	if (!selectedNode.value && rootNode.value.length > 0) {
-		selectedNode.value = rootNode.value[0]!
-	}
-
+const addRequestNode = (node: TreeNodeEx | undefined) => {
 	const newKey = (-Date.now()).toString()
 
 	const title = prompt('Add Node', 'Enter a name for the new node')
@@ -309,84 +256,100 @@ const addChildNode = (event: MouseEvent) => {
 		},
 	}
 
-	if (!selectedNode.value.children) {
-		selectedNode.value.children = [newNode]
+	if (!node) { 
+		rootNodes.value.push(newNode)
+	}
+	else if (!node.children) {
+		node.children = [newNode]
 	} else {
-		selectedNode.value.children.push(newNode)
+		node.children.push(newNode)
 	}
 
-	toggleNode(selectedNode.value, true, true)
-
 	selectedKeys.value[newKey] = true
+
+	if (node)
+		toggleNode(node, true)
+
 }
 
 const expandedKeys = ref<TreeTableExpandedKeys>({})
 
 function toggleNode(
-	node: TreeNodeEx,
-	expand: boolean | null = null,
-	explandChildren: boolean | null = null,
+  node: TreeNodeEx,
+  expand: boolean | undefined = undefined,
+  expandChildren: boolean | undefined = undefined,
 ) {
-	if (!node) node = selectedNode.value
-
-	if (node.key != null) {
-		if (expand == null) expand = !expandedKeys.value[node.key]
-
-		if (!expand) {
-			delete expandedKeys.value[node.key]
-		} else {
-			if (node.children?.length) {
+  if (node.key != undefined) {
+		if (expand == undefined) expand = !expandedKeys.value[node.key]
+		
+    if (!expand) {
+      delete expandedKeys.value[node.key]
+      if (expandChildren)
+        for (let child of node.children as TreeNodeEx[])
+          toggleNode(child, false, expandChildren)
+    } else {
+      if (node.children?.length) {
 				expandedKeys.value[node.key] = true
-
-				if (explandChildren)
-					for (let child of node.children as TreeNodeEx[])
-						toggleNode(child, explandChildren, expand)
-			}
-		}
-	}
+				
+        if (expandChildren)
+          for (let child of node.children as TreeNodeEx[])
+            toggleNode(child, expand, expandChildren)
+      }
+    }
+  }
 }
 
 const hoveredProposal = ref<ProposalColumn | undefined>()
+const hoveredRequestNode = ref<RequestNode | undefined>()
 
-const highlightColumn = utils.uiElements.delayedHover(
+const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 	(el: HTMLElement) => {
 		if (el) {
-			let keyClass = [...Array.from(el.classList)].find(c =>
-				c.startsWith('key_'),
-			)
+  		let proposalKeyClass = Array.from(el.classList).find(c => c.startsWith('proposal_key_'))
+  		let requestNodeKeyClass = Array.from(el.classList).find(c => c.startsWith('request_node_key_'))
 
-			if (keyClass) {
+			if (proposalKeyClass) {
 				const color = document.documentElement.classList.contains('dark')
 					? '#ffffff08'
 					: '#00000010'
 				const styleContent = `
-				td.${keyClass} { background: ${color}; transition: background 250ms; }
-				th.${keyClass} { background: ${color}; transition: background 250ms; }
-			`
+					:is(td, th):has(.${proposalKeyClass}) { background: ${color}; transition: background 250ms; }
+				`;
 				useStyleTag(styleContent, { id: 'proposal-column-highlight' })
 
-				const key = 'p' + keyClass?.split('_')[1]
-				hoveredProposal.value = columns.value.find(col => col.columnKey === key)
+				const proposalKey = proposalKeyClass.split('_').at(-1) 				
+				hoveredProposal.value = columns.value.find(col => col.columnKey === proposalKey)
+			}
+
+			if (requestNodeKeyClass) {
+				const requestNodeKey = requestNodeKeyClass?.split('_').at(-1)
+				hoveredRequestNode.value = request?.requestNodes?.find(node => node.id.toString() === requestNodeKey)	
 			}
 		}
 	},
-	'.proposal-rating',
+	'.hover-parent',
 	100,
 )
 
 const debounceNotify = useDebounceFn((title: any, content: any) => {
 	notify(title, json(content))
-}, 2000)
+}, 500)
 
 function onEditorChanged(e: EditorTextChangeEvent) {
 	debounceNotify(`Text changed for goal`, json(e.delta))
 }
 
-function onProposalRateChange(e: RatingChangeEvent | number, args: any) {
-	debounceNotify(
-		'Rating changed',
-		`${typeof e == 'number' ? e : e.value} for goal ${args.key}`,
-	)
+function onRatingChange(e: RatingChangeEvent | number, node: TreeNodeEx, col?: ProposalColumn) {
+	if (!col) 
+		debounceNotify(
+			'Rating changed',
+			`${typeof e == 'number' ? e : e.value} for request node ${node.data.id}`,
+		)
+	else
+		debounceNotify(
+			'Rating changed',
+			`${typeof e == 'number' ? e : e.value} for request node ${node.data.id} proposal ${col.columnKey}`,
+		)
 }
 
 const requestNodeMenu = computed(() => {
@@ -414,10 +377,6 @@ const requestNodeMenu = computed(() => {
 		}
 	]
 })
-
-function saveData() {
-	alert('Saved')
-}
 </script>
 
 <template>
@@ -425,14 +384,10 @@ function saveData() {
 		<ConfirmPopup></ConfirmPopup>
 		<ConfirmDialog></ConfirmDialog>
 		<Toast style="opacity: 0.9" />
-		<br />
-		<!-- <div style="margin: 15px">
-			<span style="margin: 10px 40px; position: absolute; font-size: 12px">
-				Id: {{ requestId }} Data: {{ jsonData }}
-			</span>
-			<div style="position: absolute; right: 0; top: -3px"></div>
-		</div> -->
-		<Toolbar>
+		<Panel class="rounded-b-none" :header="request?.title" toggleable collapsed>
+			{{ request?.body }}
+		</Panel>
+		<Toolbar class="mt-0 rounded-t-none">
 			<template #start>
 				<div class="col-8 md:col-8 sm:col-5 xs:col-2" style="float: right">
 					<div class="p-inputgroup">
@@ -441,11 +396,11 @@ function saveData() {
 							placeholder="Search"
 							size="small"
 							style="z-index: 1" />
-						<Button
+						<!-- <Button
 							type="button"
 							icon="pi pi-chevron-down"
 							class="p-button"
-							v-tooltip="'Filter by Expertise'" />
+							v-tooltip="'Filter by Expertise'" /> -->
 					</div>
 				</div>
 				<!-- <Button
@@ -478,8 +433,7 @@ function saveData() {
 							@click="addProposal()"
 							v-tooltip.left="'Add new proposal'" />
 						<MultiSelect
-							panelClass="goals-multiselect-panel"
-							class="goals-multiselect p-button p-component"
+							class="requests-multiselect p-button"
 							:modelValue="visibleColumns"
 							@update:modelValue="onColumnVisibilityToggle"
 							:options="columns"
@@ -487,27 +441,30 @@ function saveData() {
 							placeholder="Select Columns"
 							v-tooltip="'Show/Hide Columns'"
 							style="width: 43px" />
-						</div>
 					</div>
-				</template>
-			</Toolbar>
-		
-			<div class="flex"> 
-				<div class="p-4 w-1/2">{{ request?.body }}</div> 
-				<div class="p-4 w-1/2">{{ hoveredProposal?.body }}</div> 
-			</div>
+				</div>
+			</template>
+		</Toolbar>
+		<div class="flex mt-3"> 
+			<Panel class="w-1/2 rounded-b-none rounded-tr-none" pt:header:class="p-2">
+				{{ hoveredRequestNode?.body }}
+			</Panel> 
+			<Panel class="w-1/2 rounded-b-none rounded-tl-none" pt:header:class="p-2">
+				{{ hoveredProposal?.body }}
+			</Panel> 
+		</div>
 
-			<TreeTable
-			class="goals-treetable"
-			@mousemove="highlightColumn"
-			:value="rootNode"
-			:selectionMode="state.isEditMode ? 'checkbox' : 'multiple'"
+		<TreeTable
+			ref="treeTable"
+			@mousemove="highlightColumnAndShowDescription"
+			:value="rootNodes"
 			v-model:selectionKeys="selectedKeys"
 			:expandedKeys="expandedKeys"
 			@nodeSelect="onNodeSelect"
 			@nodeUnselect="onNodeUnselect"
 			:filters="searchFilters"
 			filterMode="lenient"
+			selectionMode="single"
 			:resizableColumns="true"
 			:showGridlines="false"
 			columnResizeMode="expand""
@@ -516,46 +473,69 @@ function saveData() {
 			removableSort
 			responsiveLayout="scroll"
 			:scrollHeight="treeTableHeight">
+			<Column field="weight" 
+				header="Appeal" 
+				style="width: 40px" 
+				>
+				<template #body="slotProps">
+					<Knob
+						v-model="slotProps.node.data.weight"
+						:size="56"
+						:min="-3"
+						:max="3"
+						@change="onRatingChange($event, slotProps.node)"
+						class="relative w-full flex justify-center"
+						:class="{ 'null-value': !slotProps.node.data.weight }" />
+				</template>
+			</Column>
 			<Column
-				style="width: 30px !important; max-width: 30px !important; min-width: 30px !important; box-sizing: border-box;"
-				headerStyle="width: 30px !important; max-width: 30px !important; min-width: 30px !important;"
+				style="position: relative; box-sizing: border-box;"
 				class="button-column"
-				:sortable="false"
-				:frozen="true">
+				headerClass="w-0"
+				:sortable="false">
 				<template #body="slotProps">
 					<Button
 						type="button"
 						icon="pi pi-ellipsis-v"
 						class="p-button"
-						style=""></Button>
+						style="position: absolute;
+							width: 14px;
+							height: 46px;
+							left: 50%;
+							top: 50%;
+							transform: translate(-50%, -50%);"
+					/>
 				</template>
 			</Column>
 			<Column
 				field="title"
-				header="Request Criteria & Impacts"
+				header="Request Criteria, Benefits & Side-Effects"
 				expander
-				style="min-width: 50%; z-index: 1"
-				class="name-column"
-				frozen>
+				style="min-width: 45%; z-index: 1"
+				>
 				<template #body="slotProps">
 					<div
-						style="width: 100%; margin: -58px -8px -60px 0; min-height: 45px"
-						class="show-on-hover-parent">
+						style="margin: -58px -8px -60px 0; min-height: 45px"
+						class="show-on-hover-parent relative w-full">
 						<div v-if="state.isEditMode">
-							<div>
+							<!-- <div>
 								<Editor
 									v-model.lazy="slotProps.node.data.title"
 									editorStyle="font-size: 14px;"
 									:autoResize="true"
 									@text-change="onEditorChanged"
 									v-tooltip="slotProps.node.data.body" />
-							</div>
+							</div> -->
 						</div>
 						<div v-else v-html="slotProps.node.data.title"
-							class="w-full"
-							v-tooltip="slotProps.node.data.body">
+							class="w-full whitespace-normal"
+							:class="'hover-parent request_node_key_' + slotProps.node.data.id">
 						</div>
-						<div class="node-count">
+						<div style="font-size: 11px;
+							position: absolute;
+							right: 0;
+							top: 50%;
+							transform: translateY(-50%);">
 							<span
 								class="show-on-hover-child"
 								style="right: 0px; padding: 5px; cursor: pointer">
@@ -563,72 +543,60 @@ function saveData() {
 							<span
 								style="padding: 5px"
 								v-if="slotProps.node.children?.length"
-								@click="toggleNode(slotProps.node, undefined, true)">
+								@click="toggleNode(slotProps.node)">
 								({{ slotProps.node.children?.length }})
 							</span>
 						</div>
 					</div>
 				</template>
 			</Column>
+
 			<Column
 				v-for="(col, index) of visibleColumns"
 				:key="col.columnKey"
-				:frozen="col.frozen"
 				:field="col.field"
-				:header="col.header"
-				:expander="col.expander"
-				:headerClass="col.headerClass"
-				:bodyClass="col.bodyClass"
-				:class="col.class"
-				headerStyle="max-width: 100px"
-				:bodyStyle="col.bodyStyle"
-				:style="col.style"
-				:sortable="col.sortable != undefined ? col.sortable : true"
-				:rowEditor="true">
-				<template #body="slotProps" v-if="col.dataType == 'star'">
-					<Rating
-						class="slider"
-						v-model.number="slotProps.node.data[col.field + '']"
-						:cancel="false"
-						@change="onProposalRateChange($event, slotProps.node)"
-						style="white-space: pre; transform: scale(0.75)" />
+				bodyStyle="padding: 0"
+				headerClass="max-w-[100px] whitespace-normal font-light text-sm"
+				:sortable="false"
+				:rowEditor="false">
+				<template #header>	
+					<span class="hover-parent" 
+						:class="'hover-parent proposal_key_' + col.columnKey">
+						{{ col.header }}
+					</span>
+				</template>
+				<template #body="slotProps">
+					<div 
+						:class="'hover-parent proposal_key_' + col.columnKey + ' request_node_key_' + slotProps.node.data.id"
+						class="w-full" 
+						style="padding: 12px;">
+						<Knob
+							:title="col.body"
+							v-model="slotProps.node.data[col.field + '']"
+							:size="56"
+							:min="-3"
+							:max="3"
+							@change="onRatingChange($event, slotProps.node, col)"
+							class="relative w-full flex justify-center"
+							:class="{ 'null-value': !slotProps.node.data[col.field + ''] }" />
+					</div>
 				</template>
 
-				<template #body="slotProps" v-else-if="col.dataType == 'vote'">
-					<Knob
-						:title="col.body"
-						v-model="slotProps.node.data[col.field + '']"
-						:step="1"
-						:size="50"
-						:min="-4"
-						:max="4"
-						@change="onProposalRateChange($event, slotProps.node)"
-						class="knob relative w-full flex justify-center"
-						:class="{ 'null-value': !slotProps.node.data[col.field + ''] }" />
-				</template>
-
-				<template #body="slotProps" v-else-if="col.dataType == 'vote1'">
-					<vote
-						class="center"
-						title=""
-						:user-vote="slotProps?.node.data[col.field + '']"
-						:global-vote="60"
-						@change="onProposalRateChange($event, slotProps.node)"
-						:class="slotProps.node.data[col.field + '']" />
-				</template>
-
-				<template #body="slotProps" v-else-if="col.dataType == 'slider'">
-					<Slider
-						v-model="slotProps.node.data[col.field + '']"
-						:step="1"
-						:min="-5"
-						:max="5" />
-				</template>
+					<!-- <template #body="slotProps">
+						<Vote
+							class="center"
+							title=""
+							:user-vote="slotProps?.node.data[col.field + '']"
+							:global-vote="60"
+							@change="onRatingChange($event, slotProps.node, col)"
+							:class="slotProps.node.data[col.field + '']" />
+					</template> -->
 			</Column>
 			<Column>
 			</Column>
 		</TreeTable>
 		<br />
+		{{ expandedKeys }}
 		<div v-if="state.isEditMode">
 			<Textarea
 				v-model="jsonData"
@@ -650,82 +618,25 @@ function saveData() {
 .show-on-hover-parent:hover .show-on-hover-child {
 	display: inline;
 }
-</style>
 
-<style>
-.ql-toolbar {
-	display: none;
-}
-.ql-toolbar.ql-snow + .ql-container.ql-snow {
-	border: none;
-}
-
-.p-treetable .node-count {
-	font-size: 11px;
-	position: absolute;
-	right: 0;
-	top: 50%;
-	transform: translateY(-50%);
-}
-.p-treetable .p-treetable-header {
-	padding: 0 !important;
-}
-
-.p-treetable .p-treetable-thead button.p-button:first-child {
-	margin-right: 18px;
-}
-.small-button {
-	z-index: 10000;
-	height: 2rem;
-	width: 2rem;
-}
-.goals-treetable .p-treetable-toggler {
+:deep(.p-treetable-toggler) {
 	padding: 0px 22px 0px 22px;
 	margin-left: 0rem;
 	height: 44px !important;
 }
-.goals-treetable .p-treetable-tbody td:nth-child(1) button {
-  position: absolute;
-  width: 14px;
-  height: 46px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.goals-treetable .p-treetable-tbody td:nth-child(1) {
-	cursor: n-resize;
-}
-.goals-treetable .p-treetable-tbody th,
-.goals-treetable .p-treetable-tbody td {
-  left: 0 !important;
-}
-.goals-multiselect-panel li.p-multiselect-item:nth-child(1),
-.goals-multiselect-panel li.p-multiselect-item:nth-child(2),
-.goals-multiselect-panel li.p-multiselect-item:nth-child(3) {
-	display: none;
-}
-.goals-multiselect {
+
+.requests-multiselect {
 	line-height: 0;
-	min-width: unset !important;
-}
-.goals-multiselect .p-multiselect-label-container {
-	display: none;
-}
-.dark .p-button .p-multiselect-trigger span {
-	color: black;
-}
-.p-button .p-multiselect-trigger span {
-	color: white;
-}
-.p-button .p-multiselect-trigger {
-	width: 100%;
-	height: 100%;
-}
-td.weight-column {
-	border-right: 1px solid #ffffff30;
 }
 
-
-.null-value .p-knob-text {
+:deep(.null-value) .p-knob-text {
 	display: none;
 }
+
+/*.ql-toolbar {
+	display: none;
+}
+.ql-toolbar.ql-snow + .ql-container.ql-snow {
+	border: none;
+}*/
 </style>
