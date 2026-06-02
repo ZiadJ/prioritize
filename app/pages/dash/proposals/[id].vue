@@ -328,7 +328,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 		}
 	},
 	'.hover-parent',
-	100,
+	50,
 )
 
 const debounceNotify = useDebounceFn((title: any, content: any) => {
@@ -445,12 +445,21 @@ const requestNodeMenu = computed(() => {
 				</div>
 			</template>
 		</Toolbar>
+
 		<div class="flex mt-3"> 
 			<Panel class="w-1/2 rounded-b-none rounded-tr-none" pt:header:class="p-2">
-				{{ hoveredRequestNode?.body }}
+				<Transition name="fade" mode="out-in">
+					<p :key="hoveredRequestNode?.body">
+						{{ hoveredRequestNode?.body }}
+					</p>
+				</Transition>
 			</Panel> 
 			<Panel class="w-1/2 rounded-b-none rounded-tl-none" pt:header:class="p-2">
-				{{ hoveredProposal?.body }}
+				<Transition name="fade" mode="out-in">
+					<p :key="hoveredProposal?.body">
+						{{ hoveredProposal?.body }}
+					</p>
+				</Transition>
 			</Panel> 
 		</div>
 
@@ -473,19 +482,19 @@ const requestNodeMenu = computed(() => {
 			removableSort
 			responsiveLayout="scroll"
 			:scrollHeight="treeTableHeight">
-			<Column field="weight" 
+			<Column field="rating" 
 				header="Appeal" 
 				style="width: 40px" 
 				>
 				<template #body="slotProps">
 					<Knob
-						v-model="slotProps.node.data.weight"
+						v-model="slotProps.node.data.rating"
 						:size="56"
 						:min="-3"
 						:max="3"
 						@change="onRatingChange($event, slotProps.node)"
 						class="relative w-full flex justify-center"
-						:class="{ 'null-value': !slotProps.node.data.weight }" />
+						:class="{ 'null-value': !slotProps.node.data.rating }" />
 				</template>
 			</Column>
 			<Column
@@ -511,14 +520,14 @@ const requestNodeMenu = computed(() => {
 				field="title"
 				header="Request Criteria, Benefits & Side-Effects"
 				expander
-				style="min-width: 45%; z-index: 1"
+				class="min-w-[45%] z-[1] !py-0"
 				>
 				<template #body="slotProps">
 					<div
-						style="margin: -58px -8px -60px 0; min-height: 45px"
-						class="show-on-hover-parent relative w-full">
+						class="show-on-hover-parent relative w-full min-h-[56px] py-5px"							
+						:class="'hover-parent request_node_key_' + slotProps.node.data.id">
 						<div v-if="state.isEditMode">
-							<!-- <div>
+							<!-- <div style="margin: -58px -8px -60px 0;">
 								<Editor
 									v-model.lazy="slotProps.node.data.title"
 									editorStyle="font-size: 14px;"
@@ -528,8 +537,7 @@ const requestNodeMenu = computed(() => {
 							</div> -->
 						</div>
 						<div v-else v-html="slotProps.node.data.title"
-							class="w-full whitespace-normal"
-							:class="'hover-parent request_node_key_' + slotProps.node.data.id">
+							class="w-full !whitespace-normal"
 						</div>
 						<div style="font-size: 11px;
 							position: absolute;
@@ -556,7 +564,7 @@ const requestNodeMenu = computed(() => {
 				:key="col.columnKey"
 				:field="col.field"
 				bodyStyle="padding: 0"
-				headerClass="max-w-[100px] whitespace-normal font-light text-sm"
+				headerClass="max-w-[100px] font-light text-sm whitespace-normal"
 				:sortable="false"
 				:rowEditor="false">
 				<template #header>	
@@ -596,7 +604,7 @@ const requestNodeMenu = computed(() => {
 			</Column>
 		</TreeTable>
 		<br />
-		{{ expandedKeys }}
+		<!-- {{ expandedKeys }} -->
 		<div v-if="state.isEditMode">
 			<Textarea
 				v-model="jsonData"
@@ -632,6 +640,17 @@ const requestNodeMenu = computed(() => {
 :deep(.null-value) .p-knob-text {
 	display: none;
 }
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.001s ease;
+}
+
 
 /*.ql-toolbar {
 	display: none;

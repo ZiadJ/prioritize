@@ -11,33 +11,33 @@
 		"seed": "tsx -r dotenv/config prisma/seed.ts"
 	},
 	"dependencies": {
-		"@nuxt/icon": "^2.2.1",
+		"@nuxt/icon": "^2.2.2",
 		"@nuxtjs/color-mode": "^4.0.0",
 		"@nuxtjs/google-fonts": "^3.2.0",
 		"@nuxtjs/tailwindcss": "^6.14.0",
 		"@primevue/forms": "^4.5.5",
 		"@primevue/themes": "^4.5.4",
-		"@prisma/adapter-pg": "^7.7.0",
-		"@prisma/client": "^7.7.0",
+		"@prisma/adapter-pg": "^7.8.0",
+		"@prisma/client": "^7.8.0",
 		"@prisma/nuxt": "^0.3.0",
 		"@sidebase/nuxt-auth": "^1.2.0",
-		"@trpc/client": "^11.16.0",
-		"@trpc/server": "^11.16.0",
+		"@trpc/client": "^11.17.0",
+		"@trpc/server": "^11.17.0",
 		"@vueuse/core": "^14.3.0",
 		"@vueuse/nuxt": "^14.3.0",
 		"bcrypt": "^6.0.0",
 		"dotenv": "^17.4.2",
 		"jsonwebtoken": "^9.0.3",
-		"nuxt": "^4.4.2",
-		"pg": "^8.20.0",
+		"nuxt": "^4.4.6",
+		"pg": "^8.21.0",
 		"pinia": "^3.0.4",
 		"primeicons": "^7.0.0",
 		"primevue": "^4.5.5",
 		"quill": "^2.0.3",
-		"trpc-nuxt": "^2.0.2",
+		"trpc-nuxt": "^2.1.1",
 		"vue": "latest",
 		"vue-router": "latest",
-		"zod": "^4.3.6"
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@primevue/nuxt-module": "^4.5.5",
@@ -45,9 +45,9 @@
 		"@types/bcrypt": "^6.0.0",
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/pg": "^8.20.0",
-		"prisma": "^7.7.0",
+		"prisma": "^7.8.0",
 		"prisma-generator-typescript-interfaces": "^3.1.0",
 		"prisma-zod-generator": "^2.1.4",
-		"tsx": "^4.21.0"
+		"tsx": "^4.22.4"
 	}
 }
