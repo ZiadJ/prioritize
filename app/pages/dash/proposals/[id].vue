@@ -305,29 +305,33 @@ const hoveredRequestNode = ref<RequestNode | undefined>()
 const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 	(el: HTMLElement) => {
 		if (el) {
-  		let proposalKeyClass = Array.from(el.classList).find(c => c.startsWith('proposal_key_'))
-  		let requestNodeKeyClass = Array.from(el.classList).find(c => c.startsWith('request_node_key_'))
+			const infoEl = el.querySelector('[class^="hover-info"]')
+			if (infoEl) {
+				const requestNodeKeyClass = Array.from(infoEl.classList).find(c => c.startsWith('request_node_key_'))
 
-			if (proposalKeyClass) {
-				const color = document.documentElement.classList.contains('dark')
-					? '#ffffff08'
-					: '#00000010'
-				const styleContent = `
-					:is(td, th):has(.${proposalKeyClass}) { background: ${color}; transition: background 250ms; }
-				`;
-				useStyleTag(styleContent, { id: 'proposal-column-highlight' })
+				if (requestNodeKeyClass) {
+					const requestNodeKey = requestNodeKeyClass?.split('_').at(-1)
+					hoveredRequestNode.value = request?.requestNodes?.find(node => node.id.toString() === requestNodeKey)
+				}
 
-				const proposalKey = proposalKeyClass.split('_').at(-1) 				
-				hoveredProposal.value = columns.value.find(col => col.columnKey === proposalKey)
-			}
+				const proposalKeyClass = Array.from(infoEl.classList).find(c => c.startsWith('proposal_key_'))
 
-			if (requestNodeKeyClass) {
-				const requestNodeKey = requestNodeKeyClass?.split('_').at(-1)
-				hoveredRequestNode.value = request?.requestNodes?.find(node => node.id.toString() === requestNodeKey)	
+				if (proposalKeyClass) {
+					const color = document.documentElement.classList.contains('dark')
+						? '#ffffff08'
+						: '#00000010'
+					const styleContent = `
+						:is(td, th):has(.${proposalKeyClass}) { background: ${color}; transition: background 250ms; }
+					`
+					useStyleTag(styleContent, { id: 'proposal-column-highlight' })
+
+					const proposalKey = proposalKeyClass.split('_').at(-1)
+					hoveredProposal.value = columns.value.find(col => col.columnKey === proposalKey)
+				}
 			}
 		}
 	},
-	'.hover-parent',
+	'td, th',
 	50,
 )
 
@@ -487,14 +491,16 @@ const requestNodeMenu = computed(() => {
 				style="width: 40px" 
 				>
 				<template #body="slotProps">
-					<Knob
-						v-model="slotProps.node.data.rating"
-						:size="56"
-						:min="-3"
-						:max="3"
-						@change="onRatingChange($event, slotProps.node)"
-						class="relative w-full flex justify-center"
-						:class="{ 'null-value': !slotProps.node.data.rating }" />
+					<div :class="'hover-info request_node_key_' + slotProps.node.data.id">
+						<Knob
+							v-model="slotProps.node.data.rating"
+							:size="56"
+							:min="-3"
+							:max="3"
+							@change="onRatingChange($event, slotProps.node)"
+							class="relative w-full flex justify-center"
+							:class="{ 'null-value': !slotProps.node.data.rating }" />
+					</div>
 				</template>
 			</Column>
 			<Column
@@ -520,12 +526,12 @@ const requestNodeMenu = computed(() => {
 				field="title"
 				header="Request Criteria, Benefits & Side-Effects"
 				expander
-				class="min-w-[45%] z-[1] !py-0"
+				class="min-w-[45%] z-[1]"
 				>
 				<template #body="slotProps">
 					<div
-						class="show-on-hover-parent relative w-full min-h-[56px] py-5px"							
-						:class="'hover-parent request_node_key_' + slotProps.node.data.id">
+						class="hover-info show-on-hover-parent relative w-full"							
+						:class="'request_node_key_' + slotProps.node.data.id">
 						<div v-if="state.isEditMode">
 							<!-- <div style="margin: -58px -8px -60px 0;">
 								<Editor
@@ -564,20 +570,18 @@ const requestNodeMenu = computed(() => {
 				:key="col.columnKey"
 				:field="col.field"
 				bodyStyle="padding: 0"
-				headerClass="max-w-[100px] font-light text-sm whitespace-normal"
+				headerClass="max-w-[100px] font-light text-sm !whitespace-normal"
 				:sortable="false"
 				:rowEditor="false">
-				<template #header>	
-					<span class="hover-parent" 
-						:class="'hover-parent proposal_key_' + col.columnKey">
+				<template #header="slotProps">	
+					<span :class="'hover-info request_node_key_ proposal_key_' + col.columnKey">
 						{{ col.header }}
 					</span>
 				</template>
 				<template #body="slotProps">
 					<div 
-						:class="'hover-parent proposal_key_' + col.columnKey + ' request_node_key_' + slotProps.node.data.id"
-						class="w-full" 
-						style="padding: 12px;">
+						:class="'hover-info request_node_key_' + slotProps.node.data.id + ' proposal_key_' + col.columnKey"
+						class="w-full">
 						<Knob
 							:title="col.body"
 							v-model="slotProps.node.data[col.field + '']"
