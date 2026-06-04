@@ -369,6 +369,11 @@ onMounted(async () => {
 					<span v-else>-</span>
 				</template>
 			</Column>			 -->
+			<Column class="!p-0 p-panelmenu-header">
+				<template #body="{ data }">
+					<a :href="`/dash/request/${data.id}`" class="py-3 pl-3 pr-1 m-0 font-semibold .p-panelmenu-header-content">...</a>
+				</template>
+			</Column>
 			<Column field="title" header="Title" sortable>
 				<template #body="{ data }">
 					<span class="font-semibold">{{ data.title }}</span>

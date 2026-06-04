@@ -26,87 +26,87 @@ export class mathUtils {
 }
 
 export class uiElementUtils {
-  static getPosition(el: Element) {
-    const rect = el.getBoundingClientRect()
-    return {
-      left: rect.left + window.scrollX,
-      top: rect.top + window.scrollY
-    }
-  }
+	static getPosition(el: Element) {
+		const rect = el.getBoundingClientRect()
+		return {
+			left: rect.left + window.scrollX,
+			top: rect.top + window.scrollY,
+		}
+	}
 
-  static row: Element
-  static rowDragStart(e: UIEvent) {
-    if (e.target) this.row = e.target as Element
-  }
-  static rowDragOver(e: UIEvent) {
-    e.preventDefault()
+	static row: Element
+	static rowDragStart(e: UIEvent) {
+		if (e.target) this.row = e.target as Element
+	}
+	static rowDragOver(e: UIEvent) {
+		e.preventDefault()
 
-    const target = e.target as Element
-    const parentNode = target.parentNode as Element
-    const topParentNode = parentNode.parentNode as Element
-    if (topParentNode != null) {
-      const children = Array.from(topParentNode.children)
-      if (children.indexOf(parentNode) > children.indexOf(this.row))
-        parentNode.after(this.row)
-      else parentNode.before(this.row)
-    }
-  }
+		const target = e.target as Element
+		const parentNode = target.parentNode as Element
+		const topParentNode = parentNode.parentNode as Element
+		if (topParentNode != null) {
+			const children = Array.from(topParentNode.children)
+			if (children.indexOf(parentNode) > children.indexOf(this.row))
+				parentNode.after(this.row)
+			else parentNode.before(this.row)
+		}
+	}
 
-  /**
-   * Delayed execution after mouse stops moving on an element.
-   *
-   * @param  fn          A function to be executed after delay milliseconds debounced.
-   * @param  parentSelector    A selector for the parent element when the child is hovered.
-   * @param  ms          A zero-or-greater delay in milliseconds.
-   *
-   * @return A new delayed hover function.
-   */
-  static delayedHover(
-    fn: (elem: HTMLElement) => void,
-    parentSelector?: string,
-    ms?: number
-  ): (e: MouseEvent) => void {
-    let debounceHighlight: number
-    return (e: MouseEvent) => {
-      const el = parentSelector?.length
-        ? ((e.target as Element).closest(parentSelector) as HTMLElement)
-        : (e.target as HTMLElement)
+	/**
+	 * Delayed execution after mouse stops moving on an element(uses both 'mousemove' and 'mouseleave/mouseout' events).
+	 *
+	 * @param  fn          A function to be executed after delay milliseconds debounced.
+	 * @param  parentSelector    A selector for the parent element when the child is hovered.
+	 * @param  ms          A zero-or-greater delay in milliseconds.
+	 *
+	 * @return A new delayed hover function.
+	 */
+	static delayedHover(
+		fn: (elem: HTMLElement) => void,
+		parentSelector?: string,
+		ms?: number,
+	): (e: MouseEvent) => void {
+		let debounceHighlight: number
+		return (e: MouseEvent) => {
+			const el = parentSelector?.length
+				? ((e.target as Element).closest(parentSelector) as HTMLElement)
+				: (e.target as HTMLElement)
 
-      if (el) {
-        clearTimeout(debounceHighlight)
-        //console.log(e.x)
-        if (e.type !== 'mouseout' && e.type !== 'mouseleave') {
-          debounceHighlight = window.setTimeout(() => {
-            if (el) fn(el)
-          }, ms)
-        }
-      }
-    }
-  }
+			if (el) {
+				clearTimeout(debounceHighlight)
+				//console.log(e.x)
+				if (e.type !== 'mouseleave' && e.type !== 'mouseout') {
+					debounceHighlight = window.setTimeout(() => {
+						if (el) fn(el)
+					}, ms)
+				}
+			}
+		}
+	}
 
-  showTooltip(anchorElem: HTMLElement, html: string) {
-    let tooltipElem = document.createElement('div')
-    tooltipElem.className = 'tooltip'
-    tooltipElem.innerHTML = html
-    document.body.append(tooltipElem)
+	showTooltip(anchorElem: HTMLElement, html: string) {
+		let tooltipElem = document.createElement('div')
+		tooltipElem.className = 'tooltip'
+		tooltipElem.innerHTML = html
+		document.body.append(tooltipElem)
 
-    let coords = anchorElem.getBoundingClientRect()
+		let coords = anchorElem.getBoundingClientRect()
 
-    // position the tooltip over the center of the element
-    let left =
-      coords.left + (anchorElem.offsetWidth - tooltipElem.offsetWidth) / 2
-    if (left < 0) left = 0
+		// position the tooltip over the center of the element
+		let left =
+			coords.left + (anchorElem.offsetWidth - tooltipElem.offsetWidth) / 2
+		if (left < 0) left = 0
 
-    let top = coords.top - tooltipElem.offsetHeight - 5
-    if (top < 0) {
-      top = coords.top + anchorElem.offsetHeight + 5
-    }
+		let top = coords.top - tooltipElem.offsetHeight - 5
+		if (top < 0) {
+			top = coords.top + anchorElem.offsetHeight + 5
+		}
 
-    tooltipElem.style.left = left + 'px'
-    tooltipElem.style.top = top + 'px'
+		tooltipElem.style.left = left + 'px'
+		tooltipElem.style.top = top + 'px'
 
-    return tooltipElem
-  }
+		return tooltipElem
+	}
 }
 
 function getSelectedWord() {

@@ -167,34 +167,34 @@ model Feedback {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
   user                User    @relation(fields: [userId], references: [id])
   userId              String
-  type                Int
+  type                Int     @default(0)
   rating              Int
   confidence          Int
   // type             Int // FeedbackType // User, Revision, RequestNode, Effect, ProposalStep
   // targetId         String
-  title               String
-  body                String
-  requireCommentOnNeg Boolean // Require a comment for negative feedback unless a related rating is specified
+  title               String  @default("")
+  body                String  @default("")
+  requireCommentOnNeg Boolean @default(false) // Require a comment for negative feedback unless a related rating is specified
 
   Revisions RevisionNode[]
 
-  request       Request?     @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  requestId     Int?
-  RequestNode   RequestNode? @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
+  // request       Request?     @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  // requestId     Int?
+  requestNode   RequestNode? @relation(fields: [requestNodeId], references: [id], onDelete: Cascade)
   requestNodeId Int?
   proposal      Proposal?    @relation(fields: [proposalId], references: [id], onDelete: Cascade)
   proposalId    Int?
   effect        Effect?      @relation(fields: [effectId], references: [id], onDelete: Cascade)
   effectId      Int?
+  // @@index([requestId])
 
-  @@unique([userId, requestId, requestNodeId, proposalId])
-  @@unique([userId, effectId])
+  @@unique([userId, requestNodeId, proposalId])
   @@unique([userId, requestNodeId])
-  @@index([requestId])
+  @@unique([userId, effectId])
 }
 
 model Token {
@@ -450,7 +450,6 @@ model Request {
   effects      Effect[]
   orders       Order[]
   proposals    Proposal[] // Auto-generated when adding proposed steps
-  feedbacks    Feedback[]
 
   editors User[] @relation("requestEditors")
 
@@ -517,7 +516,6 @@ model RequestNode {
 
   position Int // For ordering within a parent node
 
-  // isTemplate      Boolean // Is an abstract template for new requests
   isVariantsGroup Boolean // Contains a list of variant nodes requested by different users
   isNonNegotiable Boolean
 
@@ -532,7 +530,7 @@ model RequestNode {
   // deliveryAt  DateTime? // Urgency
 
   // conflictingInterests Request[]      @relation("ConflictOfInterest") // Can be auto-generated from the requestNodes tree
-  feedback          Feedback[]  // Auto-generated when adding feedback to proposed steps
+  feedback          Feedback[] // Auto-generated when adding feedback to proposed steps
   requiredExpertise ExpertiseNode[] // Required expertise for providing feedback
 
   owner   User   @relation("RequestNodeOwner", fields: [ownerId], references: [id])
@@ -552,7 +550,7 @@ model Proposal {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean @default(true)
+  isActive   Boolean  @default(true)
 
   title     String         @unique
   body      String
@@ -581,7 +579,6 @@ model Proposal {
   // minRating    Int
   // maxRating    Int
 
-  isTemplate    Boolean // Is an abstract template for new proposals
   isDraft       Boolean?
   isUnavailable Boolean?
 

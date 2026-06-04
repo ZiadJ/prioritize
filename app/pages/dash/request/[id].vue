@@ -26,7 +26,10 @@ import {
 } from '@vueuse/core'
 import type { RatingChangeEvent } from 'primevue/rating'
 
-import Vote from '~/components/proposal/Vote.vue'
+import Feedback from '~/components/proposal/Feedback.vue'
+import { useTreeDragAndDrop } from '@/composables/useTreeDragAndDrop'
+
+
 import { useVueConsole, str, json } from '@/methods/console'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
@@ -65,6 +68,16 @@ const selectedNode = ref<TreeNodeEx>()
 const selectedNodes = ref<TreeNodeEx[]>([])
 
 const selectedKeys = ref<TreeTableSelectionKeys>({})
+const expandedKeys = ref<TreeTableExpandedKeys>({})
+
+const {
+  landingNode,
+  landingPosition,
+  handleDragStart,
+  handleDragOver,
+  handleDragLeave,
+  handleDrop,
+} = useTreeDragAndDrop(rootNodes, expandedKeys)
 
 const columns = ref<ProposalColumn[]>([])
 
@@ -136,6 +149,7 @@ const jsonData = computed(() => {
 
 function mapProposalToColumn(p: Proposal): ProposalColumn {
 	return {
+		id: p.id,
 		field: 'p' + p.id,
 		columnKey: p.id.toString(),
 		header: p.title,
@@ -269,10 +283,7 @@ const addRequestNode = (node: TreeNodeEx | undefined) => {
 
 	if (node)
 		toggleNode(node, true)
-
 }
-
-const expandedKeys = ref<TreeTableExpandedKeys>({})
 
 function toggleNode(
   node: TreeNodeEx,
@@ -305,7 +316,7 @@ const hoveredRequestNode = ref<RequestNode | undefined>()
 const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 	(el: HTMLElement) => {
 		if (el) {
-			const infoEl = el.querySelector('[class^="hover-info"]')
+			const infoEl = el.querySelector('.hover-info')
 			if (infoEl) {
 				const requestNodeKeyClass = Array.from(infoEl.classList).find(c => c.startsWith('request_node_key_'))
 
@@ -332,7 +343,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 		}
 	},
 	'td, th',
-	50,
+	25,
 )
 
 const debounceNotify = useDebounceFn((title: any, content: any) => {
@@ -356,31 +367,37 @@ function onRatingChange(e: RatingChangeEvent | number, node: TreeNodeEx, col?: P
 		)
 }
 
-const requestNodeMenu = computed(() => {
-	return [
-		{
-			label: 'Edit Mode',
-			icon: 'pi pi-pencil',
-			command: () => {
-				state.isEditMode = true
-			},
-		},
-		{
-			label: 'View Mode',
-			icon: 'pi pi-minus',
-			command: () => {
-				state.isEditMode = false
-			},
-		},
-		{
-			label: state.isEditMode ? 'View Mode' : 'Edit Mode',
-			icon: state.isEditMode ? 'pi pi-key' : 'pi pi-pencil',
-			command: () => {
-				state.isEditMode = !state.isEditMode
-			},
-		}
-	]
-})
+// const requestNodeMenu = computed(() => {
+// 	return [
+// 		{
+// 			label: 'Edit Mode',
+// 			icon: 'pi pi-pencil',
+// 			command: () => {
+// 				state.isEditMode = true
+// 			},
+// 		},
+// 		{
+// 			label: 'View Mode',
+// 			icon: 'pi pi-minus',
+// 			command: () => {
+// 				state.isEditMode = false
+// 			},
+// 		},
+// 		{
+// 			label: state.isEditMode ? 'View Mode' : 'Edit Mode',
+// 			icon: state.isEditMode ? 'pi pi-key' : 'pi pi-pencil',
+// 			command: () => {
+// 				state.isEditMode = !state.isEditMode
+// 			},
+// 		}
+// 	]
+// })
+
+const ratings = ref([
+	{ userId: 1, proposalId: 21, rating: 2 },
+	{ userId: 2, proposalId: 22, rating: 1 }
+])
+
 </script>
 
 <template>
@@ -470,6 +487,7 @@ const requestNodeMenu = computed(() => {
 		<TreeTable
 			ref="treeTable"
 			@mousemove="highlightColumnAndShowDescription"
+			@mouseout="highlightColumnAndShowDescription"
 			:value="rootNodes"
 			v-model:selectionKeys="selectedKeys"
 			:expandedKeys="expandedKeys"
@@ -482,43 +500,34 @@ const requestNodeMenu = computed(() => {
 			:showGridlines="false"
 			columnResizeMode="expand""
 			:scrollable="true"
-			sortMode="single"
-			removableSort
 			responsiveLayout="scroll"
 			:scrollHeight="treeTableHeight">
 			<Column field="rating" 
 				header="Appeal" 
-				style="width: 40px" 
+				class="w-[40px]" 
 				>
-				<template #body="slotProps">
-					<div :class="'hover-info request_node_key_' + slotProps.node.data.id">
-						<Knob
-							v-model="slotProps.node.data.rating"
-							:size="56"
-							:min="-3"
+				<template #body="{ node }">
+					<div 
+						:class="'w-full hover-info request_node_key_' + node.data.id">
+						<Feedback 
+							v-model="ratings"
+							:proposalId="null"
+							:userId="1"
 							:max="3"
-							@change="onRatingChange($event, slotProps.node)"
-							class="relative w-full flex justify-center"
-							:class="{ 'null-value': !slotProps.node.data.rating }" />
+							parentSelector="td"
+							@change="onRatingChange($event, node)" />
 					</div>
 				</template>
 			</Column>
 			<Column
-				style="position: relative; box-sizing: border-box;"
-				class="button-column"
-				headerClass="w-0"
+				class="relative"
+				headerClass="w-0 p-0"
 				:sortable="false">
-				<template #body="slotProps">
+				<template #body="{ node }">
 					<Button
 						type="button"
 						icon="pi pi-ellipsis-v"
-						class="p-button"
-						style="position: absolute;
-							width: 14px;
-							height: 46px;
-							left: 50%;
-							top: 50%;
-							transform: translate(-50%, -50%);"
+						class="absolute w-[14px] h-[46px] inset-0 m-auto"
 					/>
 				</template>
 			</Column>
@@ -528,10 +537,20 @@ const requestNodeMenu = computed(() => {
 				expander
 				class="min-w-[45%] z-[1]"
 				>
-				<template #body="slotProps">
+				<template #body="{ node }">
 					<div
-						class="hover-info show-on-hover-parent relative w-full"							
-						:class="'request_node_key_' + slotProps.node.data.id">
+					  :draggable="true"
+            @dragstart="(e) => handleDragStart(e, node)"
+            @dragover="(e) => handleDragOver(e, node)"
+            @drop="(e) => handleDrop(e, node)"
+            @dragleave="handleDragLeave"
+            :class="
+							'hover-info request_node_key_' + node.data.id + ' ' +
+              (landingNode?.key === node.key
+                ? 'tree-drag-over-' + landingPosition
+                : '')
+            "
+						class="show-on-hover-parent relative w-full">
 						<div v-if="state.isEditMode">
 							<!-- <div style="margin: -58px -8px -60px 0;">
 								<Editor
@@ -542,24 +561,19 @@ const requestNodeMenu = computed(() => {
 									v-tooltip="slotProps.node.data.body" />
 							</div> -->
 						</div>
-						<div v-else v-html="slotProps.node.data.title"
+						<div v-else v-html="node.data.title"
 							class="w-full !whitespace-normal"
 						</div>
-						<div style="font-size: 11px;
-							position: absolute;
-							right: 0;
-							top: 50%;
-							transform: translateY(-50%);">
-							<span
-								class="show-on-hover-child"
-								style="right: 0px; padding: 5px; cursor: pointer">
-							</span>
-							<span
-								style="padding: 5px"
-								v-if="slotProps.node.children?.length"
-								@click="toggleNode(slotProps.node)">
-								({{ slotProps.node.children?.length }})
-							</span>
+						<div class="absolute right-0 top-1/2 -translate-y-1/2 text-[11px]">
+								<span
+										class="show-on-hover-child absolute right-0 p-[5px] cursor-pointer">
+								</span>
+								<span
+										class="p-[5px]"
+										v-if="node.children?.length"
+										@click="toggleNode(node)">
+										({{ node.children?.length }})
+								</span>
 						</div>
 					</div>
 				</template>
@@ -569,40 +583,33 @@ const requestNodeMenu = computed(() => {
 				v-for="(col, index) of visibleColumns"
 				:key="col.columnKey"
 				:field="col.field"
-				bodyStyle="padding: 0"
+				bodyClass="!p-0"
 				headerClass="max-w-[100px] font-light text-sm !whitespace-normal"
 				:sortable="false"
 				:rowEditor="false">
-				<template #header="slotProps">	
+				<template #header>	
 					<span :class="'hover-info request_node_key_ proposal_key_' + col.columnKey">
 						{{ col.header }}
 					</span>
 				</template>
-				<template #body="slotProps">
+				<template #body="{ node}">
 					<div 
-						:class="'hover-info request_node_key_' + slotProps.node.data.id + ' proposal_key_' + col.columnKey"
-						class="w-full">
-						<Knob
-							:title="col.body"
-							v-model="slotProps.node.data[col.field + '']"
-							:size="56"
-							:min="-3"
+					:class="'hover-info request_node_key_' + node.data.id + ' proposal_key_' + col.columnKey"
+					class="w-full">
+					<!-- <Vote
+						:user-vote="slotProps?.node.data[col.field + '']"
+						:global-vote="60"
+						@change="onRatingChange($event, slotProps.node, col)"
+						:class="slotProps.node.data[col.field + '']" />	 -->
+						<Feedback 
+							v-model="ratings"
+							:proposalId="col.id!"
+							:userId="1"
 							:max="3"
-							@change="onRatingChange($event, slotProps.node, col)"
-							class="relative w-full flex justify-center"
-							:class="{ 'null-value': !slotProps.node.data[col.field + ''] }" />
+							parentSelector="td"
+							@change="onRatingChange($event, node, col)" />
 					</div>
 				</template>
-
-					<!-- <template #body="slotProps">
-						<Vote
-							class="center"
-							title=""
-							:user-vote="slotProps?.node.data[col.field + '']"
-							:global-vote="60"
-							@change="onRatingChange($event, slotProps.node, col)"
-							:class="slotProps.node.data[col.field + '']" />
-					</template> -->
 			</Column>
 			<Column>
 			</Column>
@@ -631,18 +638,14 @@ const requestNodeMenu = computed(() => {
 	display: inline;
 }
 
-:deep(.p-treetable-toggler) {
-	padding: 0px 22px 0px 22px;
-	margin-left: 0rem;
-	height: 44px !important;
-}
-
 .requests-multiselect {
 	line-height: 0;
 }
 
-:deep(.null-value) .p-knob-text {
-	display: none;
+:deep(.p-treetable-toggler) {
+	padding: 0px 22px 0px 22px;
+	margin-left: 0rem;
+	height: 44px !important;
 }
 
 .fade-enter-from,
@@ -662,4 +665,21 @@ const requestNodeMenu = computed(() => {
 .ql-toolbar.ql-snow + .ql-container.ql-snow {
 	border: none;
 }*/
+
+.tree-drag-item {
+  cursor: move;
+  border-radius: 6px;
+  transition: background-color 250ms ease-in-out;
+}
+
+.tree-drag-over-before::before,
+.tree-drag-over-after::after {
+  content: '';
+  position: absolute;
+  left: -25%;
+  right: -25%;
+  height: 2px;
+  background-color: var(--body-text-color);
+  border-radius: 6px;
+}
 </style>

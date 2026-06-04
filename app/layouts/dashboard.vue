@@ -4,7 +4,7 @@
 		<ConfirmPopup
 			group="right"
 			pt:root:style="transform: translateX(15px); padding: 10px"
-            pt:content:style="padding: 20px"/>
+      pt:content:style="padding: 20px"/>
 		<Toast />
 		<div class="flex flex-col w-full h-screen">
 			<HeaderTopBarDash class="h-20" />
@@ -42,7 +42,8 @@ watch(
 <style>
 /* Default collapsed */
 .sidebar-inner {
-	width: 3.5rem;
+	width: 3.85rem;
+	padding-right: 0.35rem;
 	transition: width 0.3s ease;
 }
 .content-inner {

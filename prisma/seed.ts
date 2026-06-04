@@ -242,7 +242,6 @@ async function main() {
 		title: 'Food Assistance Needed',
 		body: 'Need help with groceries for the week',
 		isActive: true,
-		isTemplate: false,
 		isVariantsGroup: false,
 		isNonNegotiable: false,
 		request: { connect: { id: request1.id } },
@@ -254,8 +253,6 @@ async function main() {
 		title: 'Housing Support',
 		body: 'Looking for temporary housing assistance',
 		isActive: true,
-
-		isTemplate: false,
 		isVariantsGroup: false,
 		isNonNegotiable: false,
 		request: { connect: { id: request2.id } },
@@ -267,7 +264,6 @@ async function main() {
 		title: 'Community Event Planning',
 		body: 'Help organize a community cleanup event',
 		isActive: true,
-		isTemplate: false,
 		isVariantsGroup: false,
 		isNonNegotiable: false,
 		request: { connect: { id: request3.id } },
@@ -279,7 +275,6 @@ async function main() {
 		title: 'Healthcare Access',
 		body: 'Need information about local healthcare services',
 		isActive: true,
-		isTemplate: false,
 		isVariantsGroup: false,
 		isNonNegotiable: false,
 		request: { connect: { id: request4.id } },
@@ -294,7 +289,6 @@ async function main() {
 		title: 'Grocery Shopping Assistance',
 		body: 'Help with carrying and selecting groceries',
 		isActive: true,
-		isTemplate: false,
 		isVariantsGroup: false,
 		isNonNegotiable: true,
 		parentId: requestNode1.id,
@@ -308,7 +302,6 @@ async function main() {
 		title: 'Meal Planning',
 		body: 'Help plan nutritious meals for the week',
 		isActive: true,
-		isTemplate: false,
 		isVariantsGroup: false,
 		isNonNegotiable: false,
 		parentId: requestNode1.id,
@@ -322,7 +315,6 @@ async function main() {
 		title: 'Housing Support Variants',
 		body: 'Different housing support options',
 		isActive: true,
-		isTemplate: false,
 		isVariantsGroup: true,
 		isNonNegotiable: false,
 		parentId: requestNode2.id,
@@ -336,7 +328,6 @@ async function main() {
 		title: 'Emergency Shelter',
 		body: 'Immediate emergency housing needed',
 		isActive: true,
-		isTemplate: false,
 		isVariantsGroup: false,
 		isNonNegotiable: true,
 		parentId: variantsGroup.id,
@@ -349,7 +340,6 @@ async function main() {
 		title: 'Long-term Housing',
 		body: 'Sustainable housing solution for 6+ months',
 		isActive: true,
-		isTemplate: false,
 		isVariantsGroup: false,
 		isNonNegotiable: false,
 		parentId: variantsGroup.id,
@@ -397,7 +387,7 @@ async function main() {
 		data: { tags: { connect: [{ id: tag1.id }] } },
 	})
 
-	console.log('Create proposals')
+	console.log('Tags created and assigned to requests')
 
 	const proposal1 = await prisma.proposal.create({
 		data: {
@@ -407,7 +397,6 @@ async function main() {
 			priority: 100,
 			riskFactor: 20,
 			deliveryDays: 7,
-			isTemplate: false,
 			title: 'Organize Grocery Delivery',
 			body: 'Help with grocery delivery',
 			owner: { connect: { id: adminUser.id } },
@@ -423,7 +412,6 @@ async function main() {
 			priority: 100,
 			riskFactor: 30,
 			deliveryDays: 11,
-			isTemplate: false,
 			title: 'Set Up Community Carpool',
 			body: 'Help set up a community carpool',
 			owner: { connect: { id: adminUser.id } },
@@ -431,6 +419,21 @@ async function main() {
 		},
 	})
 
+	console.log('Proposals created')
+
+	const feedback1 = await prisma.feedback.create({
+		data: {
+			isActive: true,
+			rating: 4,
+			confidence: 0,
+			requestNode: { connect: { id: requestNode1.id } },
+			proposal: { connect: { id: proposal1.id } },
+			user: { connect: { id: regularUser.id } },
+		},
+	})
+
+	console.log('Feedbacks created')
+	
 	// assign proposals
 	await prisma.request.update({
 		where: { id: request2.id },

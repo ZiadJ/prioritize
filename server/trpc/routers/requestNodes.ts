@@ -9,7 +9,6 @@ const requestNodeInput = RequestNodeSchema.pick({
 	title: true,
 	body: true,
 	parentId: true,
-	isTemplate: true,
 	isVariantsGroup: true,
 	isNonNegotiable: true,
 	requestedAt: true,

@@ -164,23 +164,7 @@ export const requestsRouter = router({
 					editors: true,
 					requestNodes: true,
 					proposals: true,
-					orders: {
-						include: {
-							user: {
-								select: {
-									id: true,
-									username: true,
-									firstname: true,
-									lastname: true,
-								},
-							},
-							request: {
-								select: {
-									unitOfMeasure: true,
-								},
-							},
-						},
-					},
+					orders: true,
 					communityNode: true,
 					country: true,
 					_count: {
