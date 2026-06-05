@@ -4,15 +4,13 @@ import prisma, { Prisma } from '~~/lib/prisma'
 import { createTreeNode } from '~~/lib/tree'
 import { RequestNodeSchema } from '~~/prisma/generated/zod/schemas/models/RequestNode.schema'
 
-const requestNodeInput = RequestNodeSchema.pick({
+const createInput = RequestNodeSchema.pick({
 	isActive: true,
 	title: true,
 	body: true,
 	parentId: true,
 	isVariantsGroup: true,
 	isNonNegotiable: true,
-	requestedAt: true,
-	deliveryAt: true,
 	position: true,
 	requestId: true,
 	ownerId: true,
@@ -21,8 +19,7 @@ const requestNodeInput = RequestNodeSchema.pick({
 	tagIds: z.array(z.number()).optional().default([]),
 })
 
-const createInput = requestNodeInput
-const updateInput = requestNodeInput.partial().extend({
+const updateInput = createInput.extend({
 	id: z.number(),
 })
 
@@ -82,7 +79,7 @@ export const requestNodesRouter = router({
 					tags: true,
 					owner: true,
 					editors: true,
-					requiredExpertise: true,
+					expertise: true,
 				},
 			})
 		}),

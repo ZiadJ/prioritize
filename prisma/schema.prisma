@@ -530,8 +530,8 @@ model RequestNode {
   // deliveryAt  DateTime? // Urgency
 
   // conflictingInterests Request[]      @relation("ConflictOfInterest") // Can be auto-generated from the requestNodes tree
-  feedback          Feedback[] // Auto-generated when adding feedback to proposed steps
-  requiredExpertise ExpertiseNode[] // Required expertise for providing feedback
+  feedback  Feedback[] // Auto-generated when adding feedback to proposed steps
+  expertise ExpertiseNode[] // Required expertise for providing feedback
 
   owner   User   @relation("RequestNodeOwner", fields: [ownerId], references: [id])
   ownerId String

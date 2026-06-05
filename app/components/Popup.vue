@@ -384,7 +384,15 @@ function alignPopup(
 
 	setTimeout(() => {
 		alignArrow(target, popup, position, newAlignment ?? alignment)
-	}, travelDuration || 50)
+	}, 0)
+
+	setTimeout(() => {
+		alignArrow(target, popup, position, newAlignment ?? alignment)
+	}, travelDuration || 100)
+
+	setTimeout(() => {
+		alignArrow(target, popup, position, newAlignment ?? alignment)
+	}, travelDuration + 200 || 250)
 
 	// Remove default enter animation class
 	if (!isTopOrBottom) {

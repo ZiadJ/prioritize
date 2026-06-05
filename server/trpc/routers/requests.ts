@@ -24,14 +24,13 @@ async function updateRequestTotals(requestId: number) {
 	})
 }
 
-export const requestInput = RequestSchema.pick({
+export const createInput = RequestSchema.pick({
 	isActive: true,
 	title: true,
 	body: true,
 	parentId: true,
 	unitOfMeasure: true,
 }).extend({
-	id: z.number().optional(),
 	tagIds: z.array(z.number()).optional().default([]),
 	order: OrderSchema.pick({
 		quantity: true,
@@ -42,8 +41,9 @@ export const requestInput = RequestSchema.pick({
 	}).optional(),
 })
 
-export const createInput = requestInput
-export const updateInput = requestInput.partial()
+export const updateInput = createInput.extend({
+	id: z.number(),
+})
 
 export const requestsRouter = router({
 	list: protectedProcedure

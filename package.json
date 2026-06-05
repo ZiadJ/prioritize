@@ -11,7 +11,7 @@
 		"seed": "tsx -r dotenv/config prisma/seed.ts"
 	},
 	"dependencies": {
-		"@nuxt/icon": "^2.2.2",
+		"@nuxt/icon": "^2.2.3",
 		"@nuxtjs/color-mode": "^4.0.0",
 		"@nuxtjs/google-fonts": "^3.2.0",
 		"@nuxtjs/tailwindcss": "^6.14.0",
@@ -28,7 +28,7 @@
 		"bcrypt": "^6.0.0",
 		"dotenv": "^17.4.2",
 		"jsonwebtoken": "^9.0.3",
-		"nuxt": "^4.4.6",
+		"nuxt": "^4.4.7",
 		"pg": "^8.21.0",
 		"pinia": "^3.0.4",
 		"primeicons": "^7.0.0",

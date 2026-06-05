@@ -3,9 +3,7 @@ import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
 import { ResourceSchema } from '~~/prisma/generated/zod/schemas/models/Resource.schema'
 
-type CreateResourceInput = z.infer<typeof resourceInput>
-
-const resourceInput = ResourceSchema.pick({
+const createInput = ResourceSchema.pick({
 	title: true,
 	body: true,
 	isActive: true,
@@ -20,12 +18,10 @@ const resourceInput = ResourceSchema.pick({
 	isDirty: true,
 	ownerId: true,
 }).extend({
-	id: z.number().optional(),
 	tagIds: z.array(z.number()).optional().default([]),
 })
 
-const createInput = resourceInput
-const updateInput = resourceInput.partial().extend({
+const updateInput = createInput.extend({
 	id: z.number(),
 })
 
@@ -93,31 +89,31 @@ export const resourcesRouter = router({
 
 	create: protectedProcedure
 		.input(createInput)
-		.mutation(
-			async ({ ctx, input }: { ctx: any; input: CreateResourceInput }) => {
-				const { tagIds, id, ownerId, ...rest } = input
+		.mutation(async ({ ctx, input }) => {
+			const { tagIds, id, ownerId, ...rest } = input as z.infer<
+				typeof updateInput
+			>
 
-				const node = await prisma.resource.create({
-					data: {
-						...rest,
-						owner: { connect: { id: ctx.user!.id } },
-						tags: tagIds?.length
-							? {
-									connect: tagIds.map((id: number) => ({ id })),
-								}
-							: undefined,
-					},
-					include: {
-						tags: true,
-						owner: true,
-						stepCosts: true,
-						editors: true,
-					},
-				})
+			const node = await prisma.resource.create({
+				data: {
+					...rest,
+					owner: { connect: { id: ctx.user!.id } },
+					tags: tagIds?.length
+						? {
+								connect: tagIds.map((id: number) => ({ id })),
+							}
+						: undefined,
+				},
+				include: {
+					tags: true,
+					owner: true,
+					stepCosts: true,
+					editors: true,
+				},
+			})
 
-				return node
-			},
-		),
+			return node
+		}),
 
 	update: protectedProcedure
 		.input(updateInput)

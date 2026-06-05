@@ -3,7 +3,7 @@ import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
 import { ProposalSchema } from '~~/prisma/generated/zod/schemas/models/Proposal.schema'
 
-const proposalInput = ProposalSchema.pick({
+const createInput = ProposalSchema.pick({
 	title: true,
 	body: true,
 	isActive: true,
@@ -18,16 +18,15 @@ const proposalInput = ProposalSchema.pick({
 	avgRating: true,
 	isDraft: true,
 	isUnavailable: true,
+	requestId: true,
+	tags: true,
+	parentId: true,
 }).extend({
-	id: z.number().optional(),
-	requestId: z.number(),
 	tagIds: z.array(z.number()).optional().default([]),
-	parentId: z.number().nullable().optional(),
 })
 
-const createInput = proposalInput
-const updateInput = proposalInput.partial().extend({
-  id: z.number(),
+const updateInput = createInput.extend({
+	id: z.number(),
 })
 
 export const proposalsRouter = router({
@@ -132,7 +131,9 @@ create: protectedProcedure
 update: protectedProcedure
     .input(updateInput)
     .mutation(async ({ ctx, input }) => {
-      const { id, tagIds, parentId, ...rest } = input
+      const { id, tagIds, parentId, ...rest } = input as z.infer<
+				typeof updateInput
+			>
 
       const existingProposal = await prisma.proposal.findUnique({
         where: { id },

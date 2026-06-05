@@ -23,8 +23,6 @@
 </template>
 
 <script lang="ts" setup>
-const { $trpcClient } = useNuxtApp();
-const greeting = ref("");
 const loading = ref(true);
 const users = ref<any[]>([]);
 
@@ -38,5 +36,3 @@ onMounted(async () => {
   }
 });
 </script>
-
-<style></style>

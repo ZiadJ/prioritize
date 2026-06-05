@@ -666,20 +666,20 @@ const ratings = ref([
 	border: none;
 }*/
 
-.tree-drag-item {
+:deep(.tree-drag-item) {
   cursor: move;
   border-radius: 6px;
   transition: background-color 250ms ease-in-out;
 }
 
-.tree-drag-over-before::before,
-.tree-drag-over-after::after {
+:deep(.tree-drag-over-before::before),
+:deep(.tree-drag-over-after::after) {
   content: '';
   position: absolute;
   left: -25%;
   right: -25%;
   height: 2px;
-  background-color: var(--body-text-color);
+  background-color: gray; /*var(--body-text-color); */
   border-radius: 6px;
 }
 </style>
