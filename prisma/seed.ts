@@ -7,40 +7,18 @@ import { createTreeNode } from '../lib/tree'
 async function main() {
 	console.log('Starting seed...')
 
-	// Delete existing data in correct order to avoid foreign key constraint violations
-	await prisma.feedback.deleteMany()
-	await prisma.revisionNode.deleteMany()
-	await prisma.proposal.deleteMany()
-	await prisma.order.deleteMany()
-	await prisma.request.deleteMany()
-	await prisma.requestNode.deleteMany()
-	// await prisma.proposal.deleteMany()
-	await prisma.stepNode.deleteMany()
-	await prisma.stepCost.deleteMany()
-	await prisma.effect.deleteMany()
-	await prisma.effector.deleteMany()
-	await prisma.expertiseNode.deleteMany()
-	await prisma.communityNode.deleteMany()
-	await prisma.token.deleteMany()
-	await prisma.user.deleteMany()
-	await prisma.tag.deleteMany()
-	await prisma.country.deleteMany()
-
 	const hashedPassword = await bcrypt.hash('aaa', 10)
 
-	// const tablenames = await prisma.$queryRaw
-	// {
-	// 	tablename: string
-	// }
-	// ;[] > `SELECT tablename FROM pg_tables WHERE schemaname='public'`
+	// Delete existing data
 
-	// const tables = tablenames
-	// 	.map(({ tablename }) => tablename)
-	// 	.filter(name => name !== '_prisma_migrations')
-	// 	.map(name => `"public"."${name}"`)
-	// 	.join(', ')
+	const tables = await prisma.$queryRaw<{ tablename: string }[]>`
+		SELECT tablename FROM pg_tables
+		WHERE schemaname = 'public' AND tablename != '_prisma_migrations'
+	`
 
-	// await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tables} CASCADE`)
+	await prisma.$executeRawUnsafe(
+		`TRUNCATE TABLE ${tables.map(({ tablename }) => `"public"."${tablename}"`).join(', ')} RESTART IDENTITY CASCADE`,
+	)
 
 	// Create countries
 	const countryA = await prisma.country.create({
