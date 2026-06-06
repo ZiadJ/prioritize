@@ -7,7 +7,7 @@
 		"dev": "nuxt dev",
 		"generate": "nuxt generate",
 		"preview": "nuxt preview",
-		"postinstall": "nuxt prepare",
+		"postinstall": "nuxt prepare && prisma generate"		
 		"seed": "tsx -r dotenv/config prisma/seed.ts"
 	},
 	"dependencies": {
