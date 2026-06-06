@@ -193,7 +193,6 @@ model Feedback {
   // @@index([requestId])
 
   @@unique([userId, requestNodeId, proposalId])
-  @@unique([userId, requestNodeId])
   @@unique([userId, effectId])
 }
 

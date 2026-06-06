@@ -416,9 +416,9 @@ async function main() {
 	const feedback1 = await prisma.feedback.create({
 		data: {
 			isActive: true,
-			rating: 4,
+			rating: 2,
 			confidence: 0,
-			requestNode: { connect: { id: requestNode1.id } },
+			requestNode: { connect: { id: requestNode2.id } },
 			proposal: { connect: { id: proposal1.id } },
 			user: { connect: { id: regularUser.id } },
 		},

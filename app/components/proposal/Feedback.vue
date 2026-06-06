@@ -3,8 +3,9 @@ import { computed, ref } from 'vue'
 import Popup from '../Popup.vue'
 
 interface Feedback {
-	userId: number
+	userId: string
 	proposalId: number | null
+	requestNodeId: number | null
 	rating: number
 }
 
@@ -12,11 +13,13 @@ const {
 	max = 3,
 	userId,
 	proposalId,
+	requestNodeId,
 	parentSelector,
 } = defineProps<{
 	max: number
 	proposalId: number | null
-	userId: number
+	requestNodeId: number | null
+	userId: string
 	parentSelector?: string
 }>()
 
@@ -27,6 +30,7 @@ const emit = defineEmits<{
 }>()
 
 const op = useTemplateRef('op')
+const { $trpcClient } = useNuxtApp()
 
 const range = computed(() => {
 	const steps = []
@@ -37,7 +41,10 @@ const range = computed(() => {
 const userRating = computed(
 	() =>
 		modelValue.value?.find(
-			f => f.proposalId === proposalId && f.userId === userId,
+			f =>
+				f.proposalId === proposalId &&
+				f.requestNodeId === requestNodeId &&
+				f.userId === userId,
 		)?.rating,
 )
 
@@ -63,15 +70,39 @@ function isInRange(num: number) {
 }
 
 function setValue(value: number) {
-	const index = modelValue.value.findIndex(
-		f => f.proposalId === proposalId && f.userId === userId,
-	)
-	const updated: Feedback = { userId, proposalId: proposalId, rating: value }
+	// void $trpcClient.feedback.set.mutate({
+	// 	requestNodeId,
+	// 	proposalId,
+	// 	rating: value,
+	// })
 
-	modelValue.value =
-		index !== -1
-			? modelValue.value.with(index, updated)
-			: [...modelValue.value, updated]
+	if (value === 0) {
+		modelValue.value = modelValue.value.filter(
+			f =>
+				!(
+					f.proposalId === proposalId &&
+					f.requestNodeId === requestNodeId &&
+					f.userId === userId
+				),
+		)
+	} else {
+		const updated: Feedback = {
+			userId,
+			proposalId,
+			requestNodeId,
+			rating: value,
+		}
+		const index = modelValue.value.findIndex(
+			f =>
+				f.proposalId === proposalId &&
+				f.requestNodeId === requestNodeId &&
+				f.userId === userId,
+		)
+		modelValue.value =
+			index !== -1
+				? modelValue.value.with(index, updated)
+				: [...modelValue.value, updated]
+	}
 
 	emit('change', value)
 
@@ -109,7 +140,7 @@ function setValue(value: number) {
 		<Knob
 			rangeColor="#8882"
 			:valueColor="
-				(userRating ?? 0) < 0 ? 'var(--feedbackNeg)' : 'var(--ratepos)'
+				(averageRating ?? 0) < 0 ? 'var(--feedbackNeg)' : 'var(--ratepos)'
 			"
 			class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
 			v-model="averageRating"

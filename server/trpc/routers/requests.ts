@@ -162,7 +162,11 @@ export const requestsRouter = router({
 					effects: true,
 					owner: true,
 					editors: true,
-					requestNodes: true,
+					requestNodes: {
+						include: {
+							feedback: true,
+						},
+					},
 					proposals: true,
 					orders: true,
 					communityNode: true,

@@ -37,6 +37,7 @@ import { useRoute } from 'vue-router'
 import { utils } from '@/methods/utils'
 import { useNuxtApp } from '#app'
 
+const { data: session } = useAuth()
 const route = useRoute()
 const toast = useToast()
 const confirm = useConfirm()
@@ -97,6 +98,7 @@ function setRequestNodes(request: Request) {
 const { $trpcClient } = useNuxtApp()
 // const requestId = parseInt(route.params.id as string)
 const request = await $trpcClient.requests.byId.query({ id: Number(route.params.id) })
+
 console.log('Fetched request:', request)
 
 onMounted(async () => {
@@ -355,15 +357,25 @@ function onEditorChanged(e: EditorTextChangeEvent) {
 }
 
 function onRatingChange(e: RatingChangeEvent | number, node: TreeNodeEx, col?: ProposalColumn) {
+	const value = typeof e == 'number' ? e : e.value
+	const requestNodeId = node.data.id
+	const proposalId = col ? col.id : null
+
+	void $trpcClient.feedback.set.mutate({
+		requestNodeId,
+		proposalId,
+		rating: value,
+	})
+
 	if (!col) 
 		debounceNotify(
 			'Rating changed',
-			`${typeof e == 'number' ? e : e.value} for request node ${node.data.id}`,
+			`${value} for request node ${node.data.id}`,
 		)
 	else
 		debounceNotify(
 			'Rating changed',
-			`${typeof e == 'number' ? e : e.value} for request node ${node.data.id} proposal ${col.columnKey}`,
+			`${value} for request node ${node.data.id} proposal ${col.columnKey}`,
 		)
 }
 
@@ -393,10 +405,7 @@ function onRatingChange(e: RatingChangeEvent | number, node: TreeNodeEx, col?: P
 // 	]
 // })
 
-const ratings = ref([
-	{ userId: 1, proposalId: 21, rating: 2 },
-	{ userId: 2, proposalId: 22, rating: 1 }
-])
+const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposalId: number | null; rating: number }>>([])
 
 </script>
 
@@ -503,16 +512,17 @@ const ratings = ref([
 			responsiveLayout="scroll"
 			:scrollHeight="treeTableHeight">
 			<Column field="rating" 
-				header="Appeal" 
+				header="Value" 
 				class="w-[40px]" 
 				>
 				<template #body="{ node }">
 					<div 
 						:class="'w-full hover-info request_node_key_' + node.data.id">
 						<Feedback 
-							v-model="ratings"
+							v-model="node.data.feedback"
+							:requestNodeId="node.data.id"
 							:proposalId="null"
-							:userId="1"
+							:userId="session?.user.id!"
 							:max="3"
 							parentSelector="td"
 							@change="onRatingChange($event, node)" />
@@ -592,19 +602,15 @@ const ratings = ref([
 						{{ col.header }}
 					</span>
 				</template>
-				<template #body="{ node}">
+				<template #body="{ node }">
 					<div 
 					:class="'hover-info request_node_key_' + node.data.id + ' proposal_key_' + col.columnKey"
 					class="w-full">
-					<!-- <Vote
-						:user-vote="slotProps?.node.data[col.field + '']"
-						:global-vote="60"
-						@change="onRatingChange($event, slotProps.node, col)"
-						:class="slotProps.node.data[col.field + '']" />	 -->
 						<Feedback 
-							v-model="ratings"
+							v-model="node.data.feedback"
+							:requestNodeId="node.data.id"
 							:proposalId="col.id!"
-							:userId="1"
+							:userId="session?.user.id!"
 							:max="3"
 							parentSelector="td"
 							@change="onRatingChange($event, node, col)" />
