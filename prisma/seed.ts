@@ -7,7 +7,7 @@ import { createTreeNode } from '../lib/tree'
 async function main() {
 	console.log('Starting seed...')
 
-	const hashedPassword = await bcrypt.hash('aaa', 10)
+	const hashedPassword = await bcrypt.hash('test', 10)
 
 	// Delete existing data
 
