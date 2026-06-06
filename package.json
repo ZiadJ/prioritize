@@ -3,11 +3,11 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "nuxt build",
+		"build": "prisma generate && nuxt build",
 		"dev": "nuxt dev",
 		"generate": "nuxt generate",
 		"preview": "nuxt preview",
-		"postinstall": "prisma generate && nuxt build",
+		"postinstall": "nuxt build",
 		"seed": "tsx -r dotenv/config prisma/seed.ts"
 	},
 	"dependencies": {
