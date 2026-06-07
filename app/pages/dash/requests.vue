@@ -371,12 +371,12 @@ onMounted(async () => {
 			</Column>			 -->
 			<Column field="title" header="Title" sortable>
 				<template #body="{ data }">
-					<span class="font-semibold">{{ data.title }}</span>
+					<a :href="`/dash/request/${data.id}`" class="underline">{{ data.title }}</a>
 				</template>
 			</Column>
 			<Column class="!p-0">
 				<template #body="{ data }">
-					<a :href="`/dash/request/${data.id}`" class="py-3 pl-0 pr-3 m-0 font-semibold">...</a>
+				
 				</template>
 			</Column>			
 			<Column field="totalPriority" header="Priority" sortable>
@@ -399,6 +399,7 @@ onMounted(async () => {
 				<template #body="{ data }">
 					<div class="flex flex-wrap gap-1">
 						<Tag
+							class="!px-1 !py-1 !text-xs !font-light"
 							v-for="tag in data.tags"
 							:key="tag.id"
 							:value="tag.name"

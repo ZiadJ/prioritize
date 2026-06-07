@@ -58,6 +58,13 @@ const averageRating = computed(() => {
 	)
 })
 
+const voteCount = computed(
+	() =>
+		modelValue.value.filter(
+			f => f.proposalId === proposalId && f.requestNodeId === requestNodeId,
+		).length,
+)
+
 function toggle(event: MouseEvent) {
 	op.value?.toggle(event, '', parentSelector)
 }
@@ -114,7 +121,7 @@ function setValue(value: number) {
 
 <template>
 	<Popup ref="op" position="top" alignment="center">
-		<div class="flex gap-[2px]">
+		<div class="relative flex gap-[2px] pb-[10px]">
 			<div
 				v-for="num in range"
 				@mousedown="setValue(num)"
@@ -133,6 +140,11 @@ function setValue(value: number) {
 								? `var(--feedbackNeg)`
 								: `var(--ratepos)`,
 				}" />
+			<span
+				v-if="voteCount"
+				class="absolute bottom-[-6px] right-[-3px] text-xs font-semibold text-gray-500">
+				Votes: {{ voteCount }}
+			</span>
 		</div>
 	</Popup>
 
