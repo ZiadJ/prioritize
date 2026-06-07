@@ -39,7 +39,7 @@ import { useNuxtApp } from '#app'
 
 const { data: session } = useAuth()
 const route = useRoute()
-const toast = useToast()
+const toast = usePausableToast()
 const confirm = useConfirm()
 
 function notify(title: string, content: string, severity: string = 'success') {
@@ -348,37 +348,6 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 	25,
 )
 
-const debounceNotify = useDebounceFn((title: any, content: any) => {
-	notify(title, json(content))
-}, 500)
-
-function onEditorChanged(e: EditorTextChangeEvent) {
-	debounceNotify(`Text changed for goal`, json(e.delta))
-}
-
-function onRatingChange(e: RatingChangeEvent | number, node: TreeNodeEx, col?: ProposalColumn) {
-	const value = typeof e == 'number' ? e : e.value
-	const requestNodeId = node.data.id
-	const proposalId = col ? col.id : null
-
-	void $trpcClient.feedback.set.mutate({
-		requestNodeId,
-		proposalId,
-		rating: value,
-	})
-
-	if (!col) 
-		debounceNotify(
-			'Rating changed',
-			`${value} for request node ${node.data.id}`,
-		)
-	else
-		debounceNotify(
-			'Rating changed',
-			`${value} for request node ${node.data.id} proposal ${col.columnKey}`,
-		)
-}
-
 // const requestNodeMenu = computed(() => {
 // 	return [
 // 		{
@@ -524,8 +493,7 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 							:proposalId="null"
 							:userId="session?.user.id!"
 							:max="3"
-							parentSelector="td"
-							@change="onRatingChange($event, node)" />
+							parentSelector="td" />
 					</div>
 				</template>
 			</Column>
@@ -612,8 +580,7 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 							:proposalId="col.id!"
 							:userId="session?.user.id!"
 							:max="3"
-							parentSelector="td"
-							@change="onRatingChange($event, node, col)" />
+							parentSelector="td" />
 					</div>
 				</template>
 			</Column>

@@ -15,7 +15,6 @@ import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { useConfirm } from 'primevue/useconfirm'
 import type { DataTableSortEvent } from 'primevue/datatable'
 
-type RequestRouterInput = inferRouterInputs<AppRouter>['requests']
 type RequestRouterOutput = inferRouterOutputs<AppRouter>['requests']
 type Request = RequestRouterOutput['list'][number]
 type RequestOrder = RequestRouterOutput['getOrders'][number]

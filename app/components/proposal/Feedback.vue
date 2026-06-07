@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue'
 import Popup from '../Popup.vue'
 
+const toast = usePausableToast()
+
 interface Feedback {
 	userId: string
 	proposalId: number | null
@@ -76,22 +78,19 @@ function isInRange(num: number) {
 	return false
 }
 
-function setValue(value: number) {
-	// void $trpcClient.feedback.set.mutate({
-	// 	requestNodeId,
-	// 	proposalId,
-	// 	rating: value,
-	// })
+async function setValue(value: number) {
+	const index = modelValue.value.findIndex(
+		f =>
+			f.proposalId === proposalId &&
+			f.requestNodeId === requestNodeId &&
+			f.userId === userId,
+	)
 
+	const previous = [...modelValue.value]
+
+	// Optimistic update
 	if (value === 0) {
-		modelValue.value = modelValue.value.filter(
-			f =>
-				!(
-					f.proposalId === proposalId &&
-					f.requestNodeId === requestNodeId &&
-					f.userId === userId
-				),
-		)
+		modelValue.value.splice(index, 1)
 	} else {
 		const updated: Feedback = {
 			userId,
@@ -99,29 +98,43 @@ function setValue(value: number) {
 			requestNodeId,
 			rating: value,
 		}
-		const index = modelValue.value.findIndex(
-			f =>
-				f.proposalId === proposalId &&
-				f.requestNodeId === requestNodeId &&
-				f.userId === userId,
-		)
+
 		modelValue.value =
 			index !== -1
 				? modelValue.value.with(index, updated)
 				: [...modelValue.value, updated]
 	}
 
-	emit('change', value)
-
 	setTimeout(() => {
 		op.value?.hide()
-	}, 300)
+	}, 350)
+
+	try {
+		await $trpcClient.feedback.set.mutate({
+			requestNodeId,
+			proposalId,
+			rating: value,
+		})
+
+		emit('change', value)
+		if (value !== 0) {
+			toast.show(`Rating ${value} saved`)
+		} else {
+			toast.show(`Rating ${previous[index]?.rating} removed`)
+		}
+	} catch (e: any) {
+		modelValue.value = previous
+
+		// emit('change', previous[index]?.rating ?? 0)
+
+		toast.show(`Failed to save rating ${value}`, e.message, 'error')
+	}
 }
 </script>
 
 <template>
 	<Popup ref="op" position="top" alignment="center">
-		<div class="relative flex gap-[2px] pb-[10px]">
+		<div class="relative flex gap-[2px] pb-[12px]">
 			<div
 				v-for="num in range"
 				@mousedown="setValue(num)"
@@ -143,7 +156,7 @@ function setValue(value: number) {
 			<span
 				v-if="voteCount"
 				class="absolute bottom-[-6px] right-[-3px] text-xs font-semibold text-gray-500">
-				Votes: {{ voteCount }}
+				{{ voteCount + (voteCount > 1 ? ' votes' : ' vote') }}
 			</span>
 		</div>
 	</Popup>
