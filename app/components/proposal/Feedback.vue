@@ -118,7 +118,7 @@ async function setValue(value: number) {
 
 		emit('change', value)
 		if (value !== 0) {
-			toast.show(`Rating ${value} saved`)
+			toast.show(`Rating ${value} successfully saved`)
 		} else {
 			toast.show(`Rating ${previous[index]?.rating} removed`)
 		}

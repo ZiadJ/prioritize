@@ -33,7 +33,7 @@ const loading = ref(true)
 const saving = ref(false)
 const searchQuery = ref('')
 const selectedScope = ref<
-	'local' | 'regional' | 'regional extended' | 'global'
+	'community' | 'regional' | 'local' | 'global'
 >('global')
 const selectedRequests = ref<Request[]>([])
 const sortField = ref<string>('totalPriority')
@@ -320,13 +320,6 @@ onMounted(async () => {
 			class="header-actions flex justify-content-between align-items-center m-6">
 			<!-- <h2 class="text-xl font-semibold m-0">Requests</h2> -->
 			<div class="flex gap-2">
-				<Dropdown
-					v-model="selectedScope"
-					:options="scopeOptions"
-					optionLabel="label"
-					optionValue="value"
-					@change="fetchRequests"
-					class="w-48" />
 				<IconField>
 					<InputIcon>
 						<i class="pi pi-search" />
@@ -337,11 +330,18 @@ onMounted(async () => {
 						@input="debouncedSearch"
 						class="w-full" />
 				</IconField>
+				<Dropdown
+					v-model="selectedScope"
+					:options="scopeOptions"
+					optionLabel="label"
+					optionValue="value"
+					@change="fetchRequests"
+					class="w-48" />			
 				<Button
 					label="New Request"
 					class="ml-2"
 					icon="pi pi-plus"
-					@click="openNewDialog" />
+					@click="openNewDialog" />			
 			</div>
 		</div>
 
@@ -398,7 +398,7 @@ onMounted(async () => {
 				<template #body="{ data }">
 					<div class="flex flex-wrap gap-1">
 						<Tag
-							class="!px-1 !py-1 !text-xs !font-light"
+							class="!px-2 !py-1 !text-xs !font-light"
 							v-for="tag in data.tags"
 							:key="tag.id"
 							:value="tag.name"

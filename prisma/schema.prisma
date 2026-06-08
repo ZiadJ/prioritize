@@ -827,12 +827,12 @@ model CommunityNode {
   longitude Float
   latitude  Float
 
-  requests                    Request[]
-  members                     User[]
-  regionalCommunities         CommunityNode[] @relation("RegionalCommunities")
-  regionalCommunityOf         CommunityNode[] @relation("RegionalCommunities")
-  regionalCommunitiesExtended CommunityNode[] @relation("RegionalCommunitiesExtended")
-  regionalCommunityExtendedOf CommunityNode[] @relation("RegionalCommunitiesExtended")
+  requests            Request[]
+  members             User[]
+  regionalCommunities CommunityNode[] @relation("RegionalCommunities")
+  regionalCommunityOf CommunityNode[] @relation("RegionalCommunities")
+  localCommunities    CommunityNode[] @relation("localCommunities")
+  localCommunityOf    CommunityNode[] @relation("localCommunities")
 
   @@index([path])
 }

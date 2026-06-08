@@ -54,7 +54,7 @@ export const requestsRouter = router({
 					isActive: z.boolean().optional(),
 					communityId: z.number().optional(),
 					scope: z
-						.enum(['local', 'regional', 'regional extended', 'global'])
+						.enum(['community', 'regional', 'local', 'global'])
 						.optional()
 						.default('global'),
 					sortBy: z.string().optional(),
@@ -81,13 +81,13 @@ export const requestsRouter = router({
 				// Scope-based filtering
 				const scope = input?.scope || 'global'
 
-				if (scope === 'local') {
+				if (scope === 'community') {
 					// Filter to user's own community only
 					if (!ctx.user?.communityId) {
 						return []
 					}
 					where.communityId = ctx.user.communityId
-				} else if (scope === 'regional' || scope === 'regional extended') {
+				} else if (scope === 'regional' || scope === 'local') {
 					// Filter by regional community IDs
 					if (!ctx.user?.communityId) {
 						return []
@@ -98,7 +98,7 @@ export const requestsRouter = router({
 						where: { id: ctx.user.communityId },
 						select: {
 							regionalCommunities: { select: { id: true } },
-							regionalCommunitiesExtended: { select: { id: true } },
+							localCommunities: { select: { id: true } },
 						},
 					})
 
@@ -108,8 +108,7 @@ export const requestsRouter = router({
 						regionalIds =
 							userCommunity?.regionalCommunities.map(c => c.id) || []
 					} else {
-						regionalIds =
-							userCommunity?.regionalCommunitiesExtended.map(c => c.id) || []
+						regionalIds = userCommunity?.localCommunities.map(c => c.id) || []
 					}
 
 					// Include user's own community
