@@ -87,12 +87,12 @@ const visibleColumns = ref<ProposalColumn[]>(columns.value)
 function setRequestNodes(request: Request) {
 	const treeNodes = utils.tree.buildTree(request.requestNodes ?? [])
 	rootNodes.value = treeNodes as TreeNodeEx[]
-
-	toggleNode(treeNodes[0] as TreeNodeEx, true)
 	
 	request.proposals?.forEach((p) =>
 		columns.value.push(mapProposalToColumn(p))
 	)
+
+	//	toggleNode(treeNodes[0] as TreeNodeEx, true)
 }
 
 const { $trpcClient } = useNuxtApp()
@@ -446,14 +446,20 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 		</Toolbar>
 
 		<div class="flex mt-3"> 
-			<Panel class="w-1/2 rounded-b-none rounded-tr-none" pt:header:class="p-2">
+			<Panel 
+				class="w-1/2 rounded-b-none rounded-tr-none" 
+				pt:header:class="p-2" 
+				pt:content:class="max-h-[5rem] overflow-y-auto">
 				<Transition name="fade" mode="out-in">
 					<p :key="hoveredRequestNode?.body">
 						{{ hoveredRequestNode?.body }}
 					</p>
 				</Transition>
 			</Panel> 
-			<Panel class="w-1/2 rounded-b-none rounded-tl-none" pt:header:class="p-2">
+			<Panel 
+				class="w-1/2 rounded-b-none rounded-tl-none" 
+				pt:header:class="p-2" 
+				pt:content:class="max-h-[5rem] overflow-y-auto">
 				<Transition name="fade" mode="out-in">
 					<p :key="hoveredProposal?.body">
 						{{ hoveredProposal?.body }}
@@ -488,6 +494,7 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 					<div 
 						:class="'w-full hover-info request_node_key_' + node.data.id">
 						<Feedback 
+							v-if="!node.children?.length"
 							v-model="node.data.feedback"
 							:requestNodeId="node.data.id"
 							:proposalId="null"
@@ -572,9 +579,10 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 				</template>
 				<template #body="{ node }">
 					<div 
-					:class="'hover-info request_node_key_' + node.data.id + ' proposal_key_' + col.columnKey"
-					class="w-full">
-						<Feedback 
+						:class="'hover-info request_node_key_' + node.data.id + ' proposal_key_' + col.columnKey"
+						class="w-full">
+						<Feedback  
+							v-if="!node.children?.length"
 							v-model="node.data.feedback"
 							:requestNodeId="node.data.id"
 							:proposalId="col.id!"
