@@ -352,44 +352,76 @@ async function main() {
 		where: { requestId: waterRequest.id },
 	})
 
+	const feedbackRatings: Record<string, Record<string, number>> = {
+		[proposal1.title]: {
+			'Treatment method': 2,
+			'Natural filtration only': 3,
+			'No chlorine': 3,
+			'Water source': 2,
+			'Rain-fed with storage': 3,
+			'Groundwater via borehole': -2,
+			'Construction': 2,
+			'Buildable by hand': 3,
+			'No drilling': 3,
+		},
+		[proposal2.title]: {
+			'Treatment method': 1,
+			'Natural filtration only': -3,
+			'No chlorine': -3,
+			'Water source': 2,
+			'Rain-fed with storage': -3,
+			'Groundwater via borehole': 3,
+			'Construction': 1,
+			'Buildable by hand': -1,
+			'No drilling': -3,
+		},
+		[proposal3.title]: {
+			'Treatment method': -1,
+			'Natural filtration only': -2,
+			'No chlorine': 3,
+			'Water source': 1,
+			'Rain-fed with storage': 2,
+			'Groundwater via borehole': -1,
+			'Construction': 3,
+			'Buildable by hand': 2,
+			'No drilling': 3,
+		},
+	}
+
+	const adminFeedbackRatings: Record<string, number> = {
+		'Treatment method': 2,
+		'Natural filtration only': 1,
+		'No chlorine': 2,
+		'Water source': 1,
+		'Rain-fed with storage': 2,
+		'Groundwater via borehole': -1,
+		'Construction': 2,
+		'Buildable by hand': 1,
+		'No drilling': 2,
+	}
+
+	const proposals = [proposal1, proposal2, proposal3]
+
 	for (const rn of allRequestNodes) {
-		await prisma.feedback.create({
-			data: {
-				isActive: true,
-				rating: Math.floor(Math.random() * 3) + 1,
-				confidence: 0,
-				requestNode: { connect: { id: rn.id } },
-				proposal: { connect: { id: proposal1.id } },
-				user: { connect: { id: regularUser.id } },
-			},
-		})
+		for (const p of proposals) {
+			const rating = feedbackRatings[p.title]?.[rn.title] ?? 0
+			await prisma.feedback.create({
+				data: {
+					isActive: true,
+					rating,
+					confidence: 0,
+					requestNode: { connect: { id: rn.id } },
+					proposal: { connect: { id: p.id } },
+					user: { connect: { id: regularUser.id } },
+				},
+			})
+		}
 
+		const adminRating = adminFeedbackRatings[rn.title] ?? 0
 		await prisma.feedback.create({
 			data: {
 				isActive: true,
-				rating: Math.floor(Math.random() * 3) + 1,
-				confidence: 0,
-				requestNode: { connect: { id: rn.id } },
-				proposal: { connect: { id: proposal2.id } },
-				user: { connect: { id: regularUser.id } },
-			},
-		})
-
-		await prisma.feedback.create({
-			data: {
-				isActive: true,
-				rating: Math.floor(Math.random() * 3) + 1,
-				confidence: 0,
-				requestNode: { connect: { id: rn.id } },
-				proposal: { connect: { id: proposal3.id } },
-				user: { connect: { id: regularUser.id } },
-			},
-		})
-
-		await prisma.feedback.create({
-			data: {
-				isActive: true,
-				rating: Math.floor(Math.random() * 3) + 1,
+				rating: adminRating,
 				confidence: 0,
 				requestNode: { connect: { id: rn.id } },
 				user: { connect: { id: adminUser.id } },

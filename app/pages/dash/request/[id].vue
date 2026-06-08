@@ -581,7 +581,7 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 					<div 
 						:class="'hover-info request_node_key_' + node.data.id + ' proposal_key_' + col.columnKey"
 						class="w-full">
-						<Feedback  
+						<Feedback 
 							v-if="!node.children?.length"
 							v-model="node.data.feedback"
 							:requestNodeId="node.data.id"
