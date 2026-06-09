@@ -23,8 +23,8 @@ import {
 	type DebounceFilterOptions,
 } from '@vueuse/core'
 
-import Feedback from '~/components/proposal/Feedback.vue'
-import ProposalFormDialog from '~/components/proposal/ProposalFormDialog.vue'
+import Feedback from '@/components/proposal/Feedback.vue'
+import ProposalFormDialog from '@/components/proposal/ProposalFormDialog.vue'
 import { useTreeDragAndDrop } from '@/composables/useTreeDragAndDrop'
 import { useProposalColumns, type ProposalColumn } from '@/composables/useProposalColumns'
 
@@ -393,7 +393,7 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 			<Panel 
 				class="w-1/2 rounded-b-none rounded-tr-none" 
 				pt:header:class="p-2" 
-				pt:content:class="max-h-[5rem] overflow-y-auto">
+				pt:content:class="h-[5rem] overflow-y-auto">
 				<Transition name="fade" mode="out-in">
 					<p :key="hoveredRequestNode?.body">
 						{{ hoveredRequestNode?.body }}
@@ -403,7 +403,7 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 			<Panel 
 				class="w-1/2 rounded-b-none rounded-tl-none" 
 				pt:header:class="p-2" 
-				pt:content:class="max-h-[5rem] overflow-y-auto">
+				pt:content:class="h-[5rem] overflow-y-auto">
 				<Transition name="fade" mode="out-in">
 					<p :key="hoveredProposal?.body">
 						{{ hoveredProposal?.body }}
@@ -454,6 +454,11 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 				:sortable="false">
 				<template #body="{ node }">
 					<Button
+					  :draggable="true"
+            @dragstart="(e) => handleDragStart(e, node)"
+            @dragover="(e) => handleDragOver(e, node)"
+            @drop="(e) => handleDrop(e, node)"
+            @dragleave="handleDragLeave"
 						type="button"
 						icon="pi pi-ellipsis-v"
 						class="absolute w-[14px] h-[46px] inset-0 m-auto"
@@ -468,11 +473,6 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 				>
 				<template #body="{ node }">
 					<div
-					  :draggable="true"
-            @dragstart="(e) => handleDragStart(e, node)"
-            @dragover="(e) => handleDragOver(e, node)"
-            @drop="(e) => handleDrop(e, node)"
-            @dragleave="handleDragLeave"
             :class="
 							'hover-info request_node_key_' + node.data.id + ' ' +
               (landingNode?.key === node.key
@@ -513,22 +513,23 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 				:key="col.columnKey"
 				:field="col.field"
 				bodyClass="!p-0"
-				headerClass="max-w-[100px] font-light text-sm !whitespace-normal"
+				headerClass="relative max-w-[100px] font-light text-sm !whitespace-normal"
 				:sortable="false"
 				:rowEditor="false">
 				<template #header>
-					<div :class="'w-full h-full hover-info proposal_key_' + col.columnKey"
-						class="group relative">
-						<span class="cursor-pointer !whitespace-normal"
+					<div 
+						class="group w-full cursor-pointer"
+						:class="'hover-info proposal_key_' + col.columnKey">
+						<span class="!whitespace-normal"
 							@click="renameProposal(col)"
-							v-tooltip="'Click to rename'">
+							v-tooltip="'Click to edit'">
 							{{ col.header }}
 						</span>
 						<span v-if="col.isLoading" class="pi pi-spin pi-spinner text-xs ml-1" />
 						<Button
 							v-else
 							icon="pi pi-times"
-							class="proposal-header-btn"
+							class="group-hover:opacity-100 opacity-0 transition-opacity duration-150 absolute top-0 right-0 size-4 text-[0.5rem]"
 							severity="danger"
 							size="small"
 							text
@@ -583,19 +584,6 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 	line-height: 0;
 }
 
-.proposal-header-btn {
-	opacity: 0;
-	transition: opacity 150ms;
-	position: absolute;
-	top: -4px;
-	right: -4px;
-	width: 18px;
-	height: 18px;
-	font-size: 9px;
-}
-.group:hover .proposal-header-btn {
-	opacity: 1;
-}
 
 :deep(.p-treetable-toggler) {
 	padding: 0px 22px 0px 22px;

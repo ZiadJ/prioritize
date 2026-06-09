@@ -188,9 +188,14 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 		const { title, body } = formData.value
 		if (!title.trim()) return
 
-		await updateProposal(col, { header: title, body })
-		editingColumn.value = null
-		formDialogVisible.value = false
+		formSaving.value = true
+		try {
+			await updateProposal(col, { header: title, body })
+			editingColumn.value = null
+			formDialogVisible.value = false
+		} finally {
+			formSaving.value = false
+		}
 	}
 
 	const onColumnVisibilityToggle = (filteredProposals: ProposalColumn[]) => {
