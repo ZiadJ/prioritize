@@ -197,6 +197,10 @@ update: protectedProcedure
         throw new Error('Not authorized to delete this proposal')
       }
 
+      await prisma.feedback.deleteMany({
+        where: { proposalId: input.id },
+      })
+
       return prisma.proposal.delete({
         where: { id: input.id },
       })

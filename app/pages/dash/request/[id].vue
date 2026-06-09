@@ -8,39 +8,27 @@ import type {
 	TreeTableSelectionKeys,
 	TreeTableExpandedKeys,
 } from 'primevue/treetable'
-import { unref, ref, reactive, onMounted, computed, watch, type Ref } from 'vue'
-import type { TreeNode } from 'primevue/treenode'
+import { ref, reactive, onMounted, computed, type Ref } from 'vue'
 import {
-	useRefHistory,
 	useWindowSize,
-	useStorage,
-	useLastChanged,
-	refDebounced,
-	useDebounceFn,
-	refAutoReset,
-	createGlobalState,
 	useStyleTag,
-	type DebounceFilterOptions,
 } from '@vueuse/core'
 
 import Feedback from '@/components/proposal/Feedback.vue'
 import ProposalFormDialog from '@/components/proposal/ProposalFormDialog.vue'
+import RequestNodeFormDialog from '@/components/requestNode/RequestNodeFormDialog.vue'
 import { useTreeDragAndDrop } from '@/composables/useTreeDragAndDrop'
 import { useProposalColumns, type ProposalColumn } from '@/composables/useProposalColumns'
+import { useRequestNodes, type TreeNodeEx } from '@/composables/useRequestNodes'
 
-import { useVueConsole, str, json } from '@/methods/console'
-import { useConfirm } from 'primevue/useconfirm'
-import { useToast } from 'primevue/usetoast'
+import { json } from '@/methods/console'
 import { useRoute } from 'vue-router'
 import { utils } from '@/methods/utils'
 import { useNuxtApp } from '#app'
 
 const { data: session } = useAuth()
 const route = useRoute()
-const toast = usePausableToast()
-const confirm = useConfirm()
 
-// State
 const state = reactive({
 	isEditMode: false,
 	hasChange: false,
@@ -53,8 +41,8 @@ const searchFilters = ref({ global: '' })
 
 const treeTable = useTemplateRef('treeTable')
 
-const rootNodes = ref<TreeNodeEx[]>([]) // useStorage<TreeNodeEx[]>('rootNode' + requestId.value, [])
-	
+const rootNodes = ref<TreeNodeEx[]>([])
+
 const selectedNode = ref<TreeNodeEx>()
 const selectedNodes = ref<TreeNodeEx[]>([])
 
@@ -62,12 +50,12 @@ const selectedKeys = ref<TreeTableSelectionKeys>({})
 const expandedKeys = ref<TreeTableExpandedKeys>({})
 
 const {
-  landingNode,
-  landingPosition,
-  handleDragStart,
-  handleDragOver,
-  handleDragLeave,
-  handleDrop,
+	landingNode,
+	landingPosition,
+	handleDragStart,
+	handleDragOver,
+	handleDragLeave,
+	handleDrop,
 } = useTreeDragAndDrop(rootNodes, expandedKeys)
 
 const { $trpcClient } = useNuxtApp()
@@ -76,12 +64,11 @@ const request = await $trpcClient.requests.byId.query({ id: Number(route.params.
 const {
 	columns,
 	visibleColumns,
-	formDialogVisible,
-	formSaving,
-	formData,
-	editingColumn,
-	isEditMode: formEditMode,
-	openCreateForm,
+	formDialogVisible: proposalFormDialogVisible,
+	formSaving: proposalFormSaving,
+	formData: proposalFormData,
+	isEditMode: proposalFormEditMode,
+	openCreateForm: openCreateProposalForm,
 	addProposal,
 	removeProposal,
 	renameProposal,
@@ -92,38 +79,37 @@ const {
 	request?.proposals as Proposal[] ?? [],
 )
 
+const {
+	menuRef: nodeMenuRef,
+	menuItems: nodeMenuItems,
+	toggleMenu: toggleNodeMenu,
+	formDialogVisible: nodeFormDialogVisible,
+	formSaving: nodeFormSaving,
+	formEditMode: nodeFormEditMode,
+	formData: nodeFormData,
+	saveForm: saveNodeForm,
+	deleteNode,
+	toggleNode,
+} = useRequestNodes(rootNodes, selectedKeys, expandedKeys, Number(route.params.id))
+
 function setRequestNodes(request: Request) {
 	const treeNodes = utils.tree.buildTree(request.requestNodes ?? [])
 	rootNodes.value = treeNodes as TreeNodeEx[]
 }
 
-console.log('Fetched request:', request)
-
 onMounted(async () => {
-	if (request) setRequestNodes(request as unknown as Request)	
+	if (request) setRequestNodes(request as unknown as Request)
 })
 
 const windowHeight = useWindowSize()
-const windowScrollHeight = useWindowSize().height
 const treeTableHeight = computed<string>(() => {
 	if (treeTable.value) {
 		const treeTableTop = (treeTable.value as any).$el.getBoundingClientRect().top
 		const height =
 			(windowHeight.height.value - treeTableTop + 15).toFixed() + 'px'
-		if (windowScrollHeight) console.log(height)
 		return height
 	} else return '500px'
 })
-
-interface TreeNodeEx extends TreeNode {
-	id?: number
-	index?: number
-	children?: TreeNode[]
-	isDirty?: boolean
-}
-
-//const requestNodes = ref<RequestNode[]>([])
-//const requestNode = ref<RequestNode>()
 
 const jsonData = computed(() => {
 	return json(
@@ -131,17 +117,12 @@ const jsonData = computed(() => {
 			data: [
 				{
 					requestNodes: rootNodes.value,
-					// proposalNodes: columns.value
-					// 	.splice(columnsInit.length)
-					// 	.map(col => mapColumnToProposal(col)),
 				},
 			],
 		},
 		2,
 	)
 })
-
-
 
 function onNodeSelect(node: TreeNodeEx) {
 	selectedNode.value = node
@@ -152,102 +133,6 @@ function onNodeUnselect(node: any) {
 	selectedNodes.value = selectedNodes.value.filter(
 		({ key }) => key !== node.key,
 	)
-}
-
-const deleteNode = (node: TreeNodeEx, event: MouseEvent) => {
-	let parentArray = getParentArray(rootNodes.value, node)
-
-	const index1 = parentArray.findIndex((n: TreeNodeEx) => n.key == node.key)
-
-	confirm.require({
-		header: 'Delete Confirmation',
-		target: event.currentTarget as HTMLElement,
-		message: 'Do you want to delete this entry?',
-		icon: 'pi pi-info-circle',
-		acceptClass: 'p-button-danger',
-		accept: () => {
-			parentArray.splice(index1, 1)
-
-			toast.add({
-				summary: 'Confirmed',
-				detail: 'Entry deleted',
-				life: 3000,
-			})
-		},
-		reject: () => {
-			toast.add({
-				summary: 'Rejected',
-				detail: 'You have rejected',
-				life: 3000,
-			})
-		},
-	})
-}
-
-const getParentArray = (
-	rootNode: TreeNodeEx[],
-	node: TreeNodeEx,
-): TreeNodeEx[] => {
-	const parent = utils.tree.traverseTreeUntil<TreeNodeEx>(
-		rootNode,
-		(child: TreeNodeEx) => {
-			return child === node
-		},
-	)?.parent
-	return (parent?.children as TreeNodeEx[]) || rootNode
-}
-
-const addRequestNode = (node: TreeNodeEx | undefined) => {
-	const newKey = (-Date.now()).toString()
-
-	const title = prompt('Add Node', 'Enter a name for the new node')
-
-	const newNode: TreeNodeEx = {
-		key: newKey,
-		data: {
-			title: title || 'New request',
-			body: 'New content',
-		},
-	}
-
-	if (!node) { 
-		rootNodes.value.push(newNode)
-	}
-	else if (!node.children) {
-		node.children = [newNode]
-	} else {
-		node.children.push(newNode)
-	}
-
-	selectedKeys.value[newKey] = true
-
-	if (node)
-		toggleNode(node, true)
-}
-
-function toggleNode(
-  node: TreeNodeEx,
-  expand: boolean | undefined = undefined,
-  expandChildren: boolean | undefined = undefined,
-) {
-  if (node.key != undefined) {
-		if (expand == undefined) expand = !expandedKeys.value[node.key]
-		
-    if (!expand) {
-      delete expandedKeys.value[node.key]
-      if (expandChildren)
-        for (let child of node.children as TreeNodeEx[])
-          toggleNode(child, false, expandChildren)
-    } else {
-      if (node.children?.length) {
-				expandedKeys.value[node.key] = true
-				
-        if (expandChildren)
-          for (let child of node.children as TreeNodeEx[])
-            toggleNode(child, expand, expandChildren)
-      }
-    }
-  }
 }
 
 const hoveredProposal = ref<ProposalColumn | undefined>()
@@ -262,7 +147,17 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 
 				if (requestNodeKeyClass) {
 					const requestNodeKey = requestNodeKeyClass?.split('_').at(-1)
-					hoveredRequestNode.value = request?.requestNodes?.find(node => node.id.toString() === requestNodeKey)
+					const findInTree = (nodes: TreeNodeEx[]): any => {
+						for (const n of nodes) {
+							if (n.key === requestNodeKey || String(n.data?.id) === requestNodeKey) return n.data
+							if (n.children?.length) {
+								const found = findInTree(n.children as TreeNodeEx[])
+								if (found) return found
+							}
+						}
+					}
+					hoveredRequestNode.value = findInTree(rootNodes.value)
+						?? request?.requestNodes?.find(node => node.id.toString() === requestNodeKey)
 				}
 
 				const proposalKeyClass = Array.from(infoEl.classList).find(c => c.startsWith('proposal_key_'))
@@ -285,48 +180,25 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 	'td, th',
 	25,
 )
-
-// const requestNodeMenu = computed(() => {
-// 	return [
-// 		{
-// 			label: 'Edit Mode',
-// 			icon: 'pi pi-pencil',
-// 			command: () => {
-// 				state.isEditMode = true
-// 			},
-// 		},
-// 		{
-// 			label: 'View Mode',
-// 			icon: 'pi pi-minus',
-// 			command: () => {
-// 				state.isEditMode = false
-// 			},
-// 		},
-// 		{
-// 			label: state.isEditMode ? 'View Mode' : 'Edit Mode',
-// 			icon: state.isEditMode ? 'pi pi-key' : 'pi pi-pencil',
-// 			command: () => {
-// 				state.isEditMode = !state.isEditMode
-// 			},
-// 		}
-// 	]
-// })
-
-const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposalId: number | null; rating: number }>>([])
-
 </script>
 
 <template>
 	<div>
-		<ConfirmPopup></ConfirmPopup>
-		<ConfirmDialog></ConfirmDialog>
+		<ConfirmDialog group="nodeDelete"></ConfirmDialog>
+		<Menu ref="nodeMenuRef" :model="nodeMenuItems" :popup="true" />
 		<Toast style="opacity: 0.9" />
 		<ProposalFormDialog
-			v-model:visible="formDialogVisible"
-			v-model:form="formData"
-			:saving="formSaving"
-			:editMode="formEditMode"
-			@save="formEditMode ? saveProposalEdit() : addProposal()" />
+			v-model:visible="proposalFormDialogVisible"
+			v-model:form="proposalFormData"
+			:saving="proposalFormSaving"
+			:editMode="proposalFormEditMode"
+			@save="proposalFormEditMode ? saveProposalEdit() : addProposal()" />
+		<RequestNodeFormDialog
+			v-model:visible="nodeFormDialogVisible"
+			v-model:form="nodeFormData"
+			:saving="nodeFormSaving"
+			:editMode="nodeFormEditMode"
+			@save="saveNodeForm" />
 		<Panel class="rounded-b-none" :header="request?.title" toggleable collapsed>
 			{{ request?.body }}
 		</Panel>
@@ -373,7 +245,7 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 							type="button"
 							icon="pi pi-plus"
 							class="p-button"
-							@click="openCreateForm"
+							@click="openCreateProposalForm"
 							v-tooltip.left="'Add new proposal'" />
 						<MultiSelect
 							class="requests-multiselect p-button"
@@ -426,7 +298,7 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 			selectionMode="single"
 			:resizableColumns="true"
 			:showGridlines="false"
-			columnResizeMode="expand""
+			columnResizeMode="expand"
 			:scrollable="true"
 			responsiveLayout="scroll"
 			:scrollHeight="treeTableHeight">
@@ -453,16 +325,25 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 				headerClass="w-0 p-0"
 				:sortable="false">
 				<template #body="{ node }">
-					<Button
-					  :draggable="true"
-            @dragstart="(e) => handleDragStart(e, node)"
-            @dragover="(e) => handleDragOver(e, node)"
-            @drop="(e) => handleDrop(e, node)"
-            @dragleave="handleDragLeave"
-						type="button"
-						icon="pi pi-ellipsis-v"
-						class="absolute w-[14px] h-[46px] inset-0 m-auto"
-					/>
+					<div
+						:class="
+							landingNode?.key === node.key
+								? 'tree-drag-over-' + landingPosition
+								: ''
+						"
+						class="absolute !inset-0">
+						<Button
+							:draggable="true"
+							@dragstart="(e) => handleDragStart(e, node)"
+							@dragover="(e) => handleDragOver(e, node)"
+							@drop="(e) => handleDrop(e, node)"
+							@dragleave="handleDragLeave"
+							type="button"
+							icon="pi pi-ellipsis-v"
+							class="absolute w-[14px] h-[46px] inset-0 m-auto"
+							@click="(e) => toggleNodeMenu(e, node)"
+						/>
+					</div>
 				</template>
 			</Column>
 			<Column
@@ -480,19 +361,9 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
                 : '')
             "
 						class="show-on-hover-parent relative w-full">
-						<div v-if="state.isEditMode">
-							<!-- <div style="margin: -58px -8px -60px 0;">
-								<Editor
-									v-model.lazy="slotProps.node.data.title"
-									editorStyle="font-size: 14px;"
-									:autoResize="true"
-									@text-change="onEditorChanged"
-									v-tooltip="slotProps.node.data.body" />
-							</div> -->
-						</div>
-						<div v-else v-html="node.data.title"
+						<div v-html="node.data.title"
 							class="w-full !whitespace-normal"
-						</div>
+						></div>
 						<div class="absolute right-0 top-1/2 -translate-y-1/2 text-[11px]">
 								<span
 										class="show-on-hover-child absolute right-0 p-[5px] cursor-pointer">
@@ -622,7 +493,15 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
   left: -25%;
   right: -25%;
   height: 2px;
-  background-color: gray; /*var(--body-text-color); */
+  background-color: gray;
   border-radius: 6px;
+}
+
+:deep(.tree-drag-over-before::before) {
+  top: 0;
+}
+
+:deep(.tree-drag-over-after::after) {
+  bottom: 0;
 }
 </style>

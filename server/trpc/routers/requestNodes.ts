@@ -13,7 +13,6 @@ const createInput = RequestNodeSchema.pick({
 	isNonNegotiable: true,
 	position: true,
 	requestId: true,
-	ownerId: true,
 }).extend({
 	id: z.number().optional(),
 	tagIds: z.array(z.number()).optional().default([]),
@@ -99,7 +98,7 @@ export const requestNodesRouter = router({
 	create: protectedProcedure
 		.input(createInput)
 		.mutation(async ({ ctx, input }) => {
-			const { tagIds, parentId, requestId, ...rest } = input as z.infer<typeof createInput>
+			const { tagIds, parentId, requestId, ownerId, ...rest } = input as z.infer<typeof createInput>
 
 			const node = await createTreeNode(prisma.requestNode, {
 				...rest,
@@ -107,9 +106,6 @@ export const requestNodesRouter = router({
 				parentId,
 				request: { connect: { id: requestId } },
 				owner: { connect: { id: ctx.user!.id } },
-				country: ctx.user?.countryId
-					? { connect: { id: ctx.user.countryId } }
-					: undefined,
 				tags: tagIds?.length
 					? {
 							connect: tagIds.map((id: number) => ({ id })),
@@ -123,7 +119,7 @@ export const requestNodesRouter = router({
 	update: protectedProcedure
 		.input(updateInput)
 		.mutation(async ({ ctx, input }) => {
-			const { id, tagIds, ...rest } = input as z.infer<typeof updateInput>
+			const { id, tagIds, ownerId, requestId, parentId, ...rest } = input as z.infer<typeof updateInput>
 
 			const existingNode = await prisma.requestNode.findUnique({
 				where: { id },
@@ -160,7 +156,7 @@ export const requestNodesRouter = router({
 
 	delete: protectedProcedure
 		.input(z.object({ id: z.number() }))
-		.mutation(async ({ ctx, input }) => {
+		.		mutation(async ({ ctx, input }) => {
 			const existingNode = await prisma.requestNode.findUnique({
 				where: { id: input.id },
 				include: { editors: true },
@@ -178,8 +174,25 @@ export const requestNodesRouter = router({
 				throw new Error('Not authorized to delete this request node')
 			}
 
-			return prisma.requestNode.delete({
-				where: { id: input.id },
+			return prisma.$transaction(async (tx) => {
+				const descendants = await tx.requestNode.findMany({
+					where: { path: { startsWith: `${existingNode.path}/` } },
+					orderBy: { depth: 'desc' },
+				})
+
+				const allNodeIds = [...descendants.map(d => d.id), input.id]
+
+				await tx.feedback.deleteMany({
+					where: { requestNodeId: { in: allNodeIds } },
+				})
+
+				for (const desc of descendants) {
+					await tx.requestNode.delete({ where: { id: desc.id } })
+				}
+
+				return tx.requestNode.delete({
+					where: { id: input.id },
+				})
 			})
 		}),
 
