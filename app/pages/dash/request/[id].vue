@@ -87,6 +87,7 @@ const {
 	formSaving: nodeFormSaving,
 	formEditMode: nodeFormEditMode,
 	formData: nodeFormData,
+	openCreateForm,
 	saveForm: saveNodeForm,
 	deleteNode,
 	toggleNode,
@@ -211,11 +212,14 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							placeholder="Search"
 							size="small"
 							style="z-index: 1" />
-						<!-- <Button
+						<Button
+							v-if="!rootNodes.length"
 							type="button"
-							icon="pi pi-chevron-down"
-							class="p-button"
-							v-tooltip="'Filter by Expertise'" /> -->
+							label="Add node"
+							icon="pi pi-plus"
+							severity="info"
+							outlined
+							@click="openCreateForm()" />
 					</div>
 				</div>
 				<!-- <Button
@@ -240,8 +244,10 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			
 			<template #end>
 				<div class="" style="float: right">
-					<div class="p-inputgroup">
-						<Button
+					<div 
+						v-if="rootNodes.length"
+						class="p-inputgroup">
+						<Button	
 							type="button"
 							icon="pi pi-plus"
 							class="p-button"
@@ -391,11 +397,11 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 					<div 
 						class="group w-full cursor-pointer"
 						:class="'hover-info proposal_key_' + col.columnKey">
-						<span class="!whitespace-normal"
+						<div class="!whitespace-normal"
 							@click="renameProposal(col)"
 							v-tooltip="'Click to edit'">
 							{{ col.header }}
-						</span>
+						</div>
 						<span v-if="col.isLoading" class="pi pi-spin pi-spinner text-xs ml-1" />
 						<Button
 							v-else

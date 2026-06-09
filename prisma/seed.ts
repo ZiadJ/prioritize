@@ -138,7 +138,6 @@ async function main() {
 
 	const waterRequest = await prisma.request.create({
 		data: {
-			id: 1,
 			title: 'A reliable water supply for the dry season',
 			body: 'The community needs a dependable water supply that lasts through the annual dry season (roughly 4-6 months). Current sources become unreliable or dry up entirely, forcing residents to ration water. Any solution must be affordable, maintainable by the community, and provide enough clean water for drinking, cooking, and basic hygiene.',
 			unitOfMeasure: 'CubicMetres',
