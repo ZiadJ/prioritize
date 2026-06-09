@@ -4,14 +4,12 @@ import type {
 	Proposal,
 	Request,
 } from '~~/prisma/generated/interfaces'
-import type { ColumnProps } from 'primevue/column'
 import type {
 	TreeTableSelectionKeys,
 	TreeTableExpandedKeys,
 } from 'primevue/treetable'
 import { unref, ref, reactive, onMounted, computed, watch, type Ref } from 'vue'
 import type { TreeNode } from 'primevue/treenode'
-import type { EditorTextChangeEvent } from 'primevue/editor'
 import {
 	useRefHistory,
 	useWindowSize,
@@ -24,11 +22,11 @@ import {
 	useStyleTag,
 	type DebounceFilterOptions,
 } from '@vueuse/core'
-import type { RatingChangeEvent } from 'primevue/rating'
 
 import Feedback from '~/components/proposal/Feedback.vue'
+import ProposalFormDialog from '~/components/proposal/ProposalFormDialog.vue'
 import { useTreeDragAndDrop } from '@/composables/useTreeDragAndDrop'
-
+import { useProposalColumns, type ProposalColumn } from '@/composables/useProposalColumns'
 
 import { useVueConsole, str, json } from '@/methods/console'
 import { useConfirm } from 'primevue/useconfirm'
@@ -41,14 +39,6 @@ const { data: session } = useAuth()
 const route = useRoute()
 const toast = usePausableToast()
 const confirm = useConfirm()
-
-function notify(title: string, content: string, severity: string = 'success') {
-	toast.add({
-		summary: title,
-		life: 3000,
-		detail: content,
-	})
-}
 
 // State
 const state = reactive({
@@ -80,24 +70,32 @@ const {
   handleDrop,
 } = useTreeDragAndDrop(rootNodes, expandedKeys)
 
-const columns = ref<ProposalColumn[]>([])
+const { $trpcClient } = useNuxtApp()
+const request = await $trpcClient.requests.byId.query({ id: Number(route.params.id) })
 
-const visibleColumns = ref<ProposalColumn[]>(columns.value)
+const {
+	columns,
+	visibleColumns,
+	formDialogVisible,
+	formSaving,
+	formData,
+	editingColumn,
+	isEditMode: formEditMode,
+	openCreateForm,
+	addProposal,
+	removeProposal,
+	renameProposal,
+	saveProposalEdit,
+	onColumnVisibilityToggle,
+} = useProposalColumns(
+	Number(route.params.id),
+	request?.proposals as Proposal[] ?? [],
+)
 
 function setRequestNodes(request: Request) {
 	const treeNodes = utils.tree.buildTree(request.requestNodes ?? [])
 	rootNodes.value = treeNodes as TreeNodeEx[]
-	
-	request.proposals?.forEach((p) =>
-		columns.value.push(mapProposalToColumn(p))
-	)
-
-	//	toggleNode(treeNodes[0] as TreeNodeEx, true)
 }
-
-const { $trpcClient } = useNuxtApp()
-// const requestId = parseInt(route.params.id as string)
-const request = await $trpcClient.requests.byId.query({ id: Number(route.params.id) })
 
 console.log('Fetched request:', request)
 
@@ -116,12 +114,6 @@ const treeTableHeight = computed<string>(() => {
 		return height
 	} else return '500px'
 })
-
-interface ProposalColumn extends ColumnProps {
-	id?: number
-	body: string
-	isDirty?: boolean
-}
 
 interface TreeNodeEx extends TreeNode {
 	id?: number
@@ -149,61 +141,7 @@ const jsonData = computed(() => {
 	)
 })
 
-function mapProposalToColumn(p: Proposal): ProposalColumn {
-	return {
-		id: p.id,
-		field: 'p' + p.id,
-		columnKey: p.id.toString(),
-		header: p.title,
-		body: p.body,
-	}
-}
 
-// function mapColumnToProposal(p: ProposalColumn): Proposal {
-// 	return {
-// 		id: parseInt((p.columnKey || 'p').substring(1)),
-// 		parentId: 0,
-// 		title: p.header || '',
-// 		body: p.body,
-// 		avgRating: 0,
-// 	} as Proposal
-// }
-// const rootNodeHistory = useRefHistory(rootNode, {
-// 	deep: true,
-// 	capacity: 15,
-// })
-
-// const columnsInit: ProposalColumn[] = [
-// 	{
-// 		field: 'weight',
-// 		header: 'Appeal',
-// 	},
-// ]
-
-
-function addProposal(proposal: Proposal | null = null) {
-	if (!proposal) {
-		proposal = {
-			id: -columns.value.length,
-			title: prompt('Title for the new proposal', 'New Proposal') || '',
-			body: prompt('Description for the proposal', 'New Description') || '',
-			isActive: true,
-		} as Proposal
-	}
-
-	if (proposal && proposal.title) {
-		let col: ProposalColumn = mapProposalToColumn(proposal)
-
-		columns.value.push(col)
-		visibleColumns.value = columns.value
-	}
-}
-
-function onColumnVisibilityToggle(filteredProposals: any) {
-	visibleColumns.value = columns.value.filter(col =>
-		filteredProposals.includes(col),
-	)
-}
 
 function onNodeSelect(node: TreeNodeEx) {
 	selectedNode.value = node
@@ -383,6 +321,12 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 		<ConfirmPopup></ConfirmPopup>
 		<ConfirmDialog></ConfirmDialog>
 		<Toast style="opacity: 0.9" />
+		<ProposalFormDialog
+			v-model:visible="formDialogVisible"
+			v-model:form="formData"
+			:saving="formSaving"
+			:editMode="formEditMode"
+			@save="formEditMode ? saveProposalEdit() : addProposal()" />
 		<Panel class="rounded-b-none" :header="request?.title" toggleable collapsed>
 			{{ request?.body }}
 		</Panel>
@@ -429,7 +373,7 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 							type="button"
 							icon="pi pi-plus"
 							class="p-button"
-							@click="addProposal()"
+							@click="openCreateForm"
 							v-tooltip.left="'Add new proposal'" />
 						<MultiSelect
 							class="requests-multiselect p-button"
@@ -572,10 +516,26 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 				headerClass="max-w-[100px] font-light text-sm !whitespace-normal"
 				:sortable="false"
 				:rowEditor="false">
-				<template #header>	
-					<span :class="'hover-info request_node_key_ proposal_key_' + col.columnKey">
-						{{ col.header }}
-					</span>
+				<template #header>
+					<div :class="'w-full h-full hover-info proposal_key_' + col.columnKey"
+						class="group relative">
+						<span class="cursor-pointer !whitespace-normal"
+							@click="renameProposal(col)"
+							v-tooltip="'Click to rename'">
+							{{ col.header }}
+						</span>
+						<span v-if="col.isLoading" class="pi pi-spin pi-spinner text-xs ml-1" />
+						<Button
+							v-else
+							icon="pi pi-times"
+							class="proposal-header-btn"
+							severity="danger"
+							size="small"
+							text
+							rounded
+							@click.stop="removeProposal(col, $event)"
+							v-tooltip.left="'Delete proposal'" />
+					</div>
 				</template>
 				<template #body="{ node }">
 					<div 
@@ -621,6 +581,20 @@ const feedbackRows = ref<Array<{ userId: number; requestNodeId: number; proposal
 
 .requests-multiselect {
 	line-height: 0;
+}
+
+.proposal-header-btn {
+	opacity: 0;
+	transition: opacity 150ms;
+	position: absolute;
+	top: -4px;
+	right: -4px;
+	width: 18px;
+	height: 18px;
+	font-size: 9px;
+}
+.group:hover .proposal-header-btn {
+	opacity: 1;
 }
 
 :deep(.p-treetable-toggler) {

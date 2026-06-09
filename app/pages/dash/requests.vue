@@ -413,6 +413,7 @@ onMounted(async () => {
 				bodyStyle="overflow: hidden">
 				<template #body="{ data }">
 					<span
+						v-tooltip="data.body"
 						class="auto-ellipsis"
 						@mouseenter="checkOverflowAndSetTitle($event, data.body)"
 						>{{ data.body }}</span
