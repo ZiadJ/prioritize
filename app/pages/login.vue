@@ -16,7 +16,7 @@
 			</div>
 
 			<Form :resolver="resolver" @submit="submit" validateOnBlur class="flex flex-col gap-4 w-full">
-				<FormField v-slot="$field" name="email">
+				<FormField v-slot="$field" name="email" initialValue="admin@example.com">
 					<IftaLabel>
 						<InputText id="email" type="email" autofocus autocomplete="username" class="w-full" v-bind="$field" />
 						<label for="email">Email</label>
@@ -26,7 +26,7 @@
 					</Message>
 				</FormField>
 
-				<FormField v-slot="$field" name="password">
+				<FormField v-slot="$field" name="password" initialValue="test">
 					<IftaLabel>
 						<InputText id="password" type="password" autocomplete="current-password" class="w-full" v-bind="$field" />
 						<label for="password">Password</label>

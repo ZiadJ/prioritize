@@ -329,6 +329,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			<Column
 				class="relative"
 				headerClass="w-0 p-0"
+				bodyClass="p-0"
 				:sortable="false">
 				<template #body="{ node }">
 					<div
@@ -390,30 +391,28 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 				:key="col.columnKey"
 				:field="col.field"
 				bodyClass="!p-0"
-				headerClass="relative max-w-[100px] font-light text-sm !whitespace-normal"
+				headerClass="relative group max-w-[100px] font-light text-sm !whitespace-normal"
 				:sortable="false"
 				:rowEditor="false">
 				<template #header>
 					<div 
-						class="group w-full cursor-pointer"
+						class="w-full cursor-pointer"
 						:class="'hover-info proposal_key_' + col.columnKey">
 						<div class="!whitespace-normal"
 							@click="renameProposal(col)"
 							v-tooltip="'Click to edit'">
 							{{ col.header }}
 						</div>
-						<span v-if="col.isLoading" class="pi pi-spin pi-spinner text-xs ml-1" />
-						<Button
-							v-else
-							icon="pi pi-times"
-							class="group-hover:opacity-100 opacity-0 transition-opacity duration-150 absolute top-0 right-0 size-4 text-[0.5rem]"
-							severity="danger"
-							size="small"
-							text
-							rounded
-							@click.stop="removeProposal(col, $event)"
-							v-tooltip.left="'Delete proposal'" />
-					</div>
+					</div>						
+					<span v-if="col.isLoading" class="pi pi-spin pi-spinner text-xs ml-1" />
+					<Button
+						v-else
+						icon="pi pi-times"
+						class="delete-proposal-btn absolute top-1 right-1 !w-[1rem] !h-[1rem] opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+						severity="danger"
+						rounded
+						@click.stop="removeProposal(col, $event)"
+						v-tooltip.left="'Delete proposal'" />
 				</template>
 				<template #body="{ node }">
 					<div 
@@ -459,6 +458,10 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 
 .requests-multiselect {
 	line-height: 0;
+}
+
+.delete-proposal-btn :deep(.p-button-icon) {
+	font-size: 0.5rem;
 }
 
 
