@@ -346,7 +346,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							@dragleave="handleDragLeave"
 							type="button"
 							icon="pi pi-ellipsis-v"
-							class="absolute w-[14px] h-[46px] inset-0 m-auto"
+							class="absolute !w-[14px] h-[46px] inset-0 m-auto"
 							@click="(e) => toggleNodeMenu(e, node)"
 						/>
 					</div>
