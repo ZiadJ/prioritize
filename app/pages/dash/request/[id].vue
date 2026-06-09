@@ -407,7 +407,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 					<span v-if="col.isLoading" class="pi pi-spin pi-spinner text-xs ml-1" />
 					<Button
 						v-else
-						icon="pi pi-times"
+						icon="pi pi-times-circle"
 						class="delete-proposal-btn absolute top-1 right-1 !w-[1rem] !h-[1rem] opacity-0 group-hover:opacity-100 transition-opacity duration-150"
 						severity="danger"
 						rounded
