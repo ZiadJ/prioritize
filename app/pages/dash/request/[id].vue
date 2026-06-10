@@ -208,12 +208,13 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 				<div class="col-8 md:col-8 sm:col-5 xs:col-2" style="float: right">
 					<div class="p-inputgroup">
 						<InputText
+							v-if="rootNodes.length"
 							v-model.lazy="searchFilters['global']"
 							placeholder="Search"
 							size="small"
 							style="z-index: 1" />
 						<Button
-							v-if="!rootNodes.length"
+							v-else
 							type="button"
 							label="Add node"
 							icon="pi pi-plus"
