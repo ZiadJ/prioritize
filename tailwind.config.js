@@ -3,6 +3,7 @@ import PrimeUI from 'tailwindcss-primeui'
 
 export default {
 	darkMode: 'class',
+	important: 'html',
 	// darkMode: ['selector', '[class="p-dark"]'],
 	// content: [],
 	content: [
