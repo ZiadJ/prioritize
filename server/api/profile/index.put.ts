@@ -77,7 +77,7 @@ export default defineEventHandler(async (event) => {
 		if (error instanceof z.ZodError) {
 			throw createError({
 				statusCode: 400,
-				message: error.errors.map((e) => e.message).join(', '),
+				message: error.issues.map((e) => e.message).join(', '),
 			});
 		}
 		throw createError({
