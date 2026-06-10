@@ -5,7 +5,7 @@ defineProps<{
 }>()
 
 const visible = defineModel<boolean>('visible', { default: false })
-const form = defineModel<{ title: string; body: string }>('form', { default: { title: '', body: '' } })
+const form = defineModel<{ title: string; description: string }>('form', { default: { title: '', description: '' } })
 
 const emit = defineEmits<{
 	save: []
@@ -33,10 +33,10 @@ const emit = defineEmits<{
 					@keydown.enter="$emit('save')" />
 			</div>
 			<div class="form-field">
-				<label for="proposal-body">Description</label>
+				<label for="proposal-description">Description</label>
 				<Textarea
-					id="proposal-body"
-					v-model="form.body"
+					id="proposal-description"
+					v-model="form.description"
 					placeholder="Describe the proposal"
 					rows="3" />
 			</div>

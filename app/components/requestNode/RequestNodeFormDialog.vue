@@ -11,7 +11,7 @@ defineProps<{
 }>()
 
 const visible = defineModel<boolean>('visible', { default: false })
-const form = defineModel<{ title: string; body: string; expertiseNodeId: number | null }>('form', { default: { title: '', body: '', expertiseNodeId: null } })
+const form = defineModel<{ title: string; description: string; expertiseNodeId: number | null }>('form', { default: { title: '', description: '', expertiseNodeId: null } })
 
 const emit = defineEmits<{
 	save: []
@@ -39,10 +39,10 @@ const emit = defineEmits<{
 					@keydown.enter="$emit('save')" />
 			</div>
 			<div class="form-field">
-				<label for="node-body">Description</label>
+				<label for="node-description">Description</label>
 				<Textarea
-					id="node-body"
-					v-model="form.body"
+					id="node-description"
+					v-model="form.description"
 					placeholder="Describe the node"
 					rows="3" />
 			</div>

@@ -28,9 +28,9 @@ export function useRequestNodes(
 	const formEditMode = ref(false)
 	const formData = ref<{
 		title: string
-		body: string
+		description: string
 		expertiseNodeId: number | null
-	}>({ title: '', body: '', expertiseNodeId: null })
+	}>({ title: '', description: '', expertiseNodeId: null })
 	const editingNode = ref<TreeNodeEx>()
 
 	const menuItems = computed(() => [
@@ -103,7 +103,7 @@ export function useRequestNodes(
 		pendingInsertAfter.value = undefined
 		editingNode.value = undefined
 		formEditMode.value = false
-		formData.value = { title: '', body: '', expertiseNodeId: null }
+		formData.value = { title: '', description: '', expertiseNodeId: null }
 		formDialogVisible.value = true
 	}
 
@@ -117,7 +117,7 @@ export function useRequestNodes(
 		pendingInsertAfter.value = node
 		editingNode.value = undefined
 		formEditMode.value = false
-		formData.value = { title: '', body: '', expertiseNodeId: null }
+		formData.value = { title: '', description: '', expertiseNodeId: null }
 		formDialogVisible.value = true
 	}
 
@@ -127,7 +127,7 @@ export function useRequestNodes(
 		formEditMode.value = true
 		formData.value = {
 			title: node.data?.title || '',
-			body: node.data?.body || '',
+			description: node.data?.description || '',
 			expertiseNodeId:
 				node.data?.expertiseNodeId ?? node.data?.expertise?.id ?? null,
 		}
@@ -143,7 +143,7 @@ export function useRequestNodes(
 	}
 
 	async function applyCreate() {
-		const { title, body, expertiseNodeId } = formData.value
+		const { title, description, expertiseNodeId } = formData.value
 		if (!title.trim()) return
 
 		const parentNode = pendingParent.value
@@ -154,7 +154,7 @@ export function useRequestNodes(
 			key: tempKey,
 			data: {
 				title: title.trim(),
-				body: body.trim(),
+				description: description.trim(),
 			},
 		}
 
@@ -183,7 +183,7 @@ export function useRequestNodes(
 		try {
 			const result = (await $trpcClient.requestNodes.create.mutate({
 				title: title.trim(),
-				body: body.trim(),
+				description: description.trim(),
 				requestId,
 				parentId: siblingNode
 					? (siblingNode.data?.parentId ?? null)
@@ -220,7 +220,7 @@ export function useRequestNodes(
 		const node = editingNode.value
 		if (!node) return
 
-		const { title, body, expertiseNodeId } = formData.value
+		const { title, description, expertiseNodeId } = formData.value
 		if (!title.trim()) return
 
 		const previousData = { ...node.data }
@@ -228,7 +228,7 @@ export function useRequestNodes(
 		node.data = {
 			...node.data,
 			title: title.trim(),
-			body: body.trim(),
+			description: description.trim(),
 		}
 
 		formDialogVisible.value = false
@@ -240,7 +240,7 @@ export function useRequestNodes(
 				await $trpcClient.requestNodes.update.mutate({
 					id: nodeId,
 					title: title.trim(),
-					body: body.trim(),
+					description: description.trim(),
 					requestId: node.data?.requestId ?? requestId,
 					parentId: node.data?.parentId ?? null,
 					isActive: node.data?.isActive ?? true,

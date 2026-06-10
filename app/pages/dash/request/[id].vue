@@ -218,7 +218,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			:expertiseOptions="expertiseOptions"
 			@save="saveNodeForm" />
 		<Panel class="rounded-b-none" :header="request?.title" toggleable collapsed>
-			{{ request?.body }}
+			{{ request?.description }}
 		</Panel>
 		<Toolbar class="mt-0 rounded-t-none">
 			<template #start>
@@ -303,8 +303,8 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 				pt:header:class="p-2" 
 				pt:content:class="h-[5rem] overflow-y-auto">
 				<Transition name="fade" mode="out-in">
-					<p :key="hoveredRequestNode?.body">
-						{{ hoveredRequestNode?.body }}
+					<p :key="hoveredRequestNode?.description">
+						{{ hoveredRequestNode?.description }}
 					</p>
 				</Transition>
 			</Panel> 
@@ -314,8 +314,8 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 				pt:header:class="p-2" 
 				pt:content:class="h-[5rem] overflow-y-auto">
 				<Transition name="fade" mode="out-in">
-					<p :key="hoveredProposal?.body">
-						{{ hoveredProposal?.body }}
+					<p :key="hoveredProposal?.description">
+						{{ hoveredProposal?.description }}
 					</p>
 				</Transition>
 			</Panel> 

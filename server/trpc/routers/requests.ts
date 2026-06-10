@@ -27,7 +27,7 @@ async function updateRequestTotals(requestId: number) {
 export const createInput = RequestSchema.pick({
 	isActive: true,
 	title: true,
-	body: true,
+	description: true,
 	parentId: true,
 	unitOfMeasure: true,
 }).extend({
@@ -68,7 +68,7 @@ export const requestsRouter = router({
 			if (input?.search) {
 				where.OR = [
 					{ title: { contains: input.search, mode: 'insensitive' } },
-					{ body: { contains: input.search, mode: 'insensitive' } },
+					{ description: { contains: input.search, mode: 'insensitive' } },
 				]
 			}
 			if (input?.isActive !== undefined) {

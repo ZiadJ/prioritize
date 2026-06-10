@@ -17,7 +17,7 @@ export const expertiseRouter = router({
 			if (input?.search) {
 				where.OR = [
 					{ title: { contains: input.search, mode: 'insensitive' } },
-					{ body: { contains: input.search, mode: 'insensitive' } },
+					{ description: { contains: input.search, mode: 'insensitive' } },
 				]
 			}
 			if (input?.isActive !== undefined) {

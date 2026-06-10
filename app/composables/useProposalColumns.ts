@@ -17,7 +17,7 @@ const PROPOSAL_DEFAULTS = {
 
 export interface ProposalColumn extends ColumnProps {
 	id?: number
-	body: string
+	description: string
 	isDirty?: boolean
 	isLoading?: boolean
 	isActive?: boolean
@@ -34,7 +34,7 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 
 	const formDialogVisible = ref(false)
 	const formSaving = ref(false)
-	const formData = ref({ title: '', body: '' })
+	const formData = ref({ title: '', description: '' })
 
 	function syncVisibleColumns() {
 		visibleColumns.value = columns.value.filter(c => visibleKeys.value.has(c.columnKey!))
@@ -61,19 +61,19 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 			field: 'p' + p.id,
 			columnKey: String(p.id),
 			header: p.title,
-			body: p.body,
+			description: p.description,
 			isActive: p.isActive,
 		}
 	}
 
 	function openCreateForm() {
 		editingColumn.value = null
-		formData.value = { title: '', body: '' }
+		formData.value = { title: '', description: '' }
 		formDialogVisible.value = true
 	}
 
 	const addProposal = async () => {
-		const { title, body } = formData.value
+		const { title, description } = formData.value
 		if (!title.trim()) return
 
 		formSaving.value = true
@@ -83,7 +83,7 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 			field: tempKey,
 			columnKey: tempKey,
 			header: title,
-			body,
+			description,
 			isLoading: true,
 			isActive: true,
 		}
@@ -97,7 +97,7 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 		try {
 			const result = await $trpcClient.proposals.create.mutate({
 				title,
-				body,
+				description,
 				requestId,
 				...PROPOSAL_DEFAULTS,
 			}) as any
@@ -153,10 +153,10 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 		})
 	}
 
-	const updateProposal = async (col: ProposalColumn, updates: Partial<Pick<ProposalColumn, 'header' | 'body'>>) => {
+	const updateProposal = async (col: ProposalColumn, updates: Partial<Pick<ProposalColumn, 'header' | 'description'>>) => {
 		if (!col.id) return
 
-		const previous = { header: col.header, body: col.body }
+		const previous = { header: col.header, description: col.description }
 		Object.assign(col, updates)
 
 		try {
@@ -164,7 +164,7 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 				id: col.id,
 				...PROPOSAL_DEFAULTS,
 				title: updates.header ?? col.header ?? '',
-				body: updates.body ?? col.body ?? '',
+				description: updates.description ?? col.description ?? '',
 				isActive: col.isActive ?? true,
 				requestId,
 			})
@@ -177,7 +177,7 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 
 	const renameProposal = (col: ProposalColumn) => {
 		editingColumn.value = col
-		formData.value = { title: col.header || '', body: col.body || '' }
+		formData.value = { title: col.header || '', description: col.description || '' }
 		formDialogVisible.value = true
 	}
 
@@ -185,12 +185,12 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 		const col = editingColumn.value
 		if (!col) return
 
-		const { title, body } = formData.value
+		const { title, description } = formData.value
 		if (!title.trim()) return
 
 		formSaving.value = true
 		try {
-			await updateProposal(col, { header: title, body })
+			await updateProposal(col, { header: title, description })
 			editingColumn.value = null
 			formDialogVisible.value = false
 		} finally {

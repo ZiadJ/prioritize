@@ -47,7 +47,7 @@ export const feedbackRouter = router({
 				type: 0,
 				confidence: 0,
 				title: '',
-				body: '',
+				description: '',
 				requireCommentOnNeg: false,
 				isActive: true,
 				requestNodeId: requestNodeId ?? null,

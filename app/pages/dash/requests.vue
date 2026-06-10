@@ -75,7 +75,7 @@ const isOwner = computed(() => {
 
 const formData = ref({
 	title: '',
-	body: '',
+	description: '',
 	isActive: true,
 	// totalPriority: 0,
 	selectedTags: [] as Tag[],
@@ -132,7 +132,7 @@ const debouncedSearch = () => {
 const openNewDialog = () => {
 	formData.value = {
 		title: '',
-		body: '',
+		description: '',
 		isActive: true,
 		// totalPriority: 0,
 		selectedTags: [],
@@ -159,7 +159,7 @@ const editRequest = async (request: Request) => {
 	hasUserOrder.value = !!userOrder
 	formData.value = {
 		title: request.title,
-		body: request.body || '',
+		description: request.description || '',
 		isActive: request.isActive,
 		// totalPriority: order?.priority || 0,
 		selectedTags: request.tags || [],
@@ -407,16 +407,16 @@ onMounted(async () => {
 				</template>
 			</Column>
 			<Column
-				field="body"
+				field="description"
 				header="Description"
 				style="max-width: 400px"
 				bodyStyle="overflow: hidden">
 				<template #body="{ data }">
 					<span
-						v-tooltip="data.body"
+						v-tooltip="data.description"
 						class="auto-ellipsis"
-						@mouseenter="checkOverflowAndSetTitle($event, data.body)"
-						>{{ data.body }}</span
+						@mouseenter="checkOverflowAndSetTitle($event, data.description)"
+						>{{ data.description }}</span
 					>
 				</template>
 			</Column>
@@ -477,11 +477,11 @@ onMounted(async () => {
 						v-bind:autofocus="dialogMode === 'create'" />
 				</div>
 				<div class="form-field">
-					<label for="body">Description</label>
+					<label for="description">Description</label>
 					<Textarea
-						id="body"
+						id="description"
 						placeholder="A brief description of the matter"
-						v-model="formData.body"
+						v-model="formData.description"
 						:disabled="!isOwner"
 						rows="3" />
 				</div>

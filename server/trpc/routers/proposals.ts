@@ -5,7 +5,7 @@ import { ProposalSchema } from '~~/prisma/generated/zod/schemas/models/Proposal.
 
 const createInput = ProposalSchema.pick({
 	title: true,
-	body: true,
+	description: true,
 	isActive: true,
 	isDirty: true,
 	isComplete: true,
@@ -45,7 +45,7 @@ export const proposalsRouter = router({
       if (input?.search) {
         where.OR = [
           { title: { contains: input.search, mode: 'insensitive' } },
-          { body: { contains: input.search, mode: 'insensitive' } },
+          { description: { contains: input.search, mode: 'insensitive' } },
         ]
       }
       if (input?.isActive !== undefined) {

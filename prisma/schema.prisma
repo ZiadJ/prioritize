@@ -101,7 +101,7 @@ datasource db {
 //   createdAt    DateTime
 //   isActive     Boolean
 // title String @unique
-//   body  String
+//   description  String
 // 
 //   isDirty      Boolean? // Client-server-clients sync flag
 //   revisions Revision[]
@@ -177,7 +177,7 @@ model Feedback {
   // type             Int // FeedbackType // User, Revision, RequestNode, Effect, ProposalStep
   // targetId         String
   title               String  @default("")
-  body                String  @default("")
+  description         String  @default("")
   requireCommentOnNeg Boolean @default(false) // Require a comment for negative feedback unless a related rating is specified
 
   Revisions RevisionNode[]
@@ -286,7 +286,7 @@ model RevisionNode {
   isActive   Boolean
 
   title   String // @unique
-  body    String
+  description String
   isDirty Boolean? // Client-server-clients sync flag
   // revisions   Revision[] 
 
@@ -339,7 +339,7 @@ model CognitiveBias {
   isActive   Boolean
 
   title            String  @unique
-  body             String
+  description      String
   isLogicalFallacy Boolean
   courseUrl        String
 
@@ -353,7 +353,7 @@ model AssignedCognitiveBias {
   isActive   Boolean
 
   title      String  @unique
-  body       String
+  description String
   isResolved Boolean
 
   cognitiveBias   CognitiveBias @relation(fields: [cognitiveBiasId], references: [id], onDelete: Cascade)
@@ -392,7 +392,7 @@ model ExpertiseNode {
   isActive   Boolean
 
   title     String         @unique
-  body      String
+  description String
   isDirty   Boolean? // Client->server->clients sync flag
   revisions RevisionNode[]
 
@@ -418,7 +418,7 @@ model Request {
   isActive   Boolean  @default(true)
 
   title     String         @unique
-  body      String
+  description String
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
@@ -497,7 +497,7 @@ model RequestNode {
   isActive   Boolean
 
   title     String         @unique
-  body      String
+  description String
   isDirty   Boolean? // Client-to-server synched
   revisions RevisionNode[]
 
@@ -551,7 +551,7 @@ model Proposal {
   isActive   Boolean  @default(true)
 
   title     String         @unique
-  body      String
+  description String
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
@@ -602,7 +602,7 @@ model StepNode {
   isActive   Boolean
 
   title     String         @unique
-  body      String
+  description String
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
@@ -647,7 +647,7 @@ model StepCost {
   isActive   Boolean
 
   title     String         @unique
-  body      String
+  description String
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
@@ -682,7 +682,7 @@ model Resource {
   isActive   Boolean
 
   title     String         @unique
-  body      String
+  description String
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
@@ -722,7 +722,7 @@ model Resource {
  * createdAt  DateTime @default(now())
  * isActive   Boolean
  * title   String   @unique
- * body    String
+ * description    String
  * isDirty Boolean?
  * //revisions RevisionNode[]
  * // Tree structure — each node is one ingredient in its parent's composition
@@ -756,7 +756,7 @@ model Effect {
   isActive   Boolean
 
   title     String         @unique
-  body      String
+  description String
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
@@ -787,7 +787,7 @@ model Effector {
   isActive   Boolean
 
   title     String         @unique
-  body      String
+  description String
   isDirty   Boolean? // Client-server-clients sync flag
   revisions RevisionNode[]
 
@@ -810,7 +810,7 @@ model CommunityNode {
   isActive   Boolean  @default(true)
 
   title String @unique
-  body  String
+  description String
 
   path     String          @unique
   depth    Int             @default(0)

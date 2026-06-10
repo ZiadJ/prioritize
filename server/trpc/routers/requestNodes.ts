@@ -7,7 +7,7 @@ import { RequestNodeSchema } from '~~/prisma/generated/zod/schemas/models/Reques
 const createInput = RequestNodeSchema.pick({
 	isActive: true,
 	title: true,
-	body: true,
+	description: true,
 	parentId: true,
 	isVariantsGroup: true,
 	isNonNegotiable: true,
@@ -39,7 +39,7 @@ export const requestNodesRouter = router({
 			if (input?.search) {
 				where.OR = [
 					{ title: { contains: input.search, mode: 'insensitive' } },
-					{ body: { contains: input.search, mode: 'insensitive' } },
+					{ description: { contains: input.search, mode: 'insensitive' } },
 				]
 			}
 			if (input?.isActive !== undefined) {

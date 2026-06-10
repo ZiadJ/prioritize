@@ -5,7 +5,7 @@ import { ResourceSchema } from '~~/prisma/generated/zod/schemas/models/Resource.
 
 const createInput = ResourceSchema.pick({
 	title: true,
-	body: true,
+	description: true,
 	isActive: true,
 	type: true,
 	unitOfMeasure: true,
@@ -41,7 +41,7 @@ export const resourcesRouter = router({
 			if (input?.search) {
 				where.OR = [
 					{ title: { contains: input.search, mode: 'insensitive' } },
-					{ body: { contains: input.search, mode: 'insensitive' } },
+					{ description: { contains: input.search, mode: 'insensitive' } },
 				]
 			}
 			if (input?.isActive !== undefined) {
