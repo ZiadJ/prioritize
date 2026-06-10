@@ -269,6 +269,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 
 		<div class="flex mt-3"> 
 			<Panel 
+				v-tooltip="'Highlighted request node description'"
 				class="w-1/2 rounded-b-none rounded-tr-none" 
 				pt:header:class="p-2" 
 				pt:content:class="h-[5rem] overflow-y-auto">
@@ -279,6 +280,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 				</Transition>
 			</Panel> 
 			<Panel 
+				v-tooltip="'Highlighted proposal description'"
 				class="w-1/2 rounded-b-none rounded-tl-none" 
 				pt:header:class="p-2" 
 				pt:content:class="h-[5rem] overflow-y-auto">
