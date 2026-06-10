@@ -100,6 +100,39 @@ async function main() {
 
 	console.log('Community nodes created')
 
+	const expertiseWaterEngineering = await createTreeNode(prisma.expertiseNode, {
+		title: 'Water Engineering',
+		body: 'Expertise in water supply systems, distribution networks, and hydraulic design.',
+		isActive: true,
+	})
+
+	const expertiseHydrology = await createTreeNode(prisma.expertiseNode, {
+		title: 'Hydrology',
+		body: 'Knowledge of water cycle, groundwater recharge, rainfall patterns, and surface water management.',
+		isActive: true,
+	})
+
+	const expertiseFiltration = await createTreeNode(prisma.expertiseNode, {
+		title: 'Filtration Systems',
+		body: 'Specialization in water treatment methods including bio-sand filters, membrane filtration, and chemical purification.',
+		isActive: true,
+	})
+
+	const expertiseCommunityHealth = await createTreeNode(prisma.expertiseNode, {
+		title: 'Community Health',
+		body: 'Understanding of public health impacts related to water quality, sanitation, and disease prevention.',
+		isActive: true,
+	})
+
+	const expertiseConstruction = await createTreeNode(prisma.expertiseNode, {
+		title: 'Construction',
+		body: 'Skills in civil construction, ferro-cement work, hand-dug wells, and low-tech infrastructure building.',
+		isActive: true,
+	})
+
+
+	console.log('Expertise nodes created')
+
 	const adminUser = await prisma.user.upsert({
 		where: { username: 'admin@example.com' },
 		update: { password: hashedPassword },
@@ -302,43 +335,7 @@ async function main() {
 
 	console.log('Tags created and assigned')
 
-	// --- Expertise ---
-
-	const expertiseWaterEngineering = await createTreeNode(prisma.expertiseNode, {
-		title: 'Water Engineering',
-		body: 'Expertise in water supply systems, distribution networks, and hydraulic design.',
-		isActive: true,
-	})
-
-	const expertiseHydrology = await createTreeNode(prisma.expertiseNode, {
-		title: 'Hydrology',
-		body: 'Knowledge of water cycle, groundwater recharge, rainfall patterns, and surface water management.',
-		isActive: true,
-	})
-
-	const expertiseFiltration = await createTreeNode(prisma.expertiseNode, {
-		title: 'Filtration Systems',
-		body: 'Specialization in water treatment methods including bio-sand filters, membrane filtration, and chemical purification.',
-		isActive: true,
-	})
-
-	const expertiseCommunityHealth = await createTreeNode(prisma.expertiseNode, {
-		title: 'Community Health',
-		body: 'Understanding of public health impacts related to water quality, sanitation, and disease prevention.',
-		isActive: true,
-	})
-
-	const expertiseConstruction = await createTreeNode(prisma.expertiseNode, {
-		title: 'Construction',
-		body: 'Skills in civil construction, ferro-cement work, hand-dug wells, and low-tech infrastructure building.',
-		isActive: true,
-	})
-
-	const expertisePumpMaintenance = await createTreeNode(prisma.expertiseNode, {
-		title: 'Pump Maintenance',
-		body: 'Experience with hand pump installation, repair, and spare-parts management for communal water systems.',
-		isActive: true,
-	})
+	// --- Expertise assignments ---
 
 	await prisma.requestNode.update({
 		where: { id: rnNaturalFiltration.id },
@@ -357,7 +354,7 @@ async function main() {
 
 	await prisma.requestNode.update({
 		where: { id: rnBorehole.id },
-		data: { expertise: { connect: { id: expertisePumpMaintenance.id } } },
+		data: { expertise: { connect: { id: expertiisehhydrology.id } } },
 	})
 
 	await prisma.requestNode.update({
