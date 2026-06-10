@@ -38,11 +38,27 @@ const state = reactive({
 })
 
 const searchFilters = ref({ global: '' })
+const selectedExpertiseFilter = ref<number | null>(null)
 
 const treeTable = useTemplateRef('treeTable')
 
 const rootNodes = ref<TreeNodeEx[]>([])
 
+function filterTreeByExpertise(nodes: TreeNodeEx[], expertiseId: number | null): TreeNodeEx[] {
+	if (!expertiseId) return nodes
+	return nodes
+		.map(node => {
+			const filteredChildren = filterTreeByExpertise(node.children as TreeNodeEx[] ?? [], expertiseId)
+			const matches = node.data?.expertise?.id === expertiseId
+			if (matches || filteredChildren.length) {
+				return { ...node, children: filteredChildren.length ? filteredChildren : node.children }
+			}
+			return null
+		})
+		.filter((n): n is TreeNodeEx => n !== null)
+}
+
+const filteredRootNodes = computed(() => filterTreeByExpertise(rootNodes.value, selectedExpertiseFilter.value))
 const selectedNode = ref<TreeNodeEx>()
 const selectedNodes = ref<TreeNodeEx[]>([])
 
@@ -215,8 +231,19 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							placeholder="Search"
 							size="small"
 							style="z-index: 1" />
+						<Dropdown
+							v-if="rootNodes.length"
+							v-model="selectedExpertiseFilter"
+							:options="expertiseOptions"
+							optionLabel="title"
+							optionValue="id"
+							placeholder="All Expertise"
+							:showClear="true"
+							:filter="true"
+							size="small"
+							class="max-w-[180px]" />
 						<Button
-							v-else
+							v-if="!rootNodes.length"
 							type="button"
 							label="Add request node"
 							icon="pi pi-plus"
@@ -299,7 +326,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			ref="treeTable"
 			@mousemove="highlightColumnAndShowDescription"
 			@mouseout="highlightColumnAndShowDescription"
-			:value="rootNodes"
+			:value="filteredRootNodes"
 			v-model:selectionKeys="selectedKeys"
 			:expandedKeys="expandedKeys"
 			@nodeSelect="onNodeSelect"
@@ -393,9 +420,14 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			<Column
 				field="expertise"
 				header="Expertise"
-				class="min-w-[80px]">
+				class="min-w-[80px]"
+				bodyClass="!py-1">
 				<template #body="{ node }">
-					<span v-if="node.data.expertise">{{ node.data.expertise.title }}</span>
+					<span
+						v-if="node.data.expertise"
+						class="inline-block px-1.5 py-0.5 rounded-full text-[11px] leading-tight bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 whitespace-nowrap">
+						{{ node.data.expertise.title }}
+					</span>
 				</template>
 			</Column>
 
