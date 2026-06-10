@@ -42,12 +42,12 @@ export function useRequestNodes(
 		{ separator: true },
 		{
 			label: 'Add Child Node',
-			icon: 'pi pi-plus',
+			icon: 'pi pi-arrow-right',
 			command: () => openCreateForm(menuTargetNode.value),
 		},
 		{
 			label: 'Add Sibling Node',
-			icon: 'pi pi-arrow-right',
+			icon: 'pi pi-plus',
 			command: () => openCreateSiblingForm(menuTargetNode.value),
 		},
 		{ separator: true },
@@ -162,7 +162,9 @@ export function useRequestNodes(
 
 		if (siblingNode) {
 			const parentArray = getParentArray(rootNodes.value, siblingNode)
-			const siblingIndex = parentArray.findIndex((n: TreeNodeEx) => n.key === siblingNode.key)
+			const siblingIndex = parentArray.findIndex(
+				(n: TreeNodeEx) => n.key === siblingNode.key,
+			)
 			parentArray.splice(siblingIndex + 1, 0, newNode)
 		} else if (!parentNode) {
 			rootNodes.value.push(newNode)
@@ -193,22 +195,19 @@ export function useRequestNodes(
 				expertiseNodeId: expertiseNodeId ?? undefined,
 			})) as any
 
-			const found = utils.tree.traverseTreeUntil<TreeNodeEx>(
-				rootNodes.value,
-				(child: TreeNodeEx) => child.key === tempKey,
-			)
-			if (found?.node) {
-				found.node.key = String(result.id)
-				found.node.id = result.id
-				found.node.data = result
-			}
+			newNode.key = String(result.id)
+			newNode.id = result.id
+			newNode.data = result
 			delete selectedKeys.value[tempKey]
 			selectedKeys.value[String(result.id)] = true
+			rootNodes.value = [...rootNodes.value]
 
 			toast.show('Node created', title.trim())
 		} catch (e: any) {
 			const parentArray = getParentArray(rootNodes.value, newNode)
-			const idx = parentArray.findIndex((n: TreeNodeEx) => n.key === newNode.key)
+			const idx = parentArray.findIndex(
+				(n: TreeNodeEx) => n.key === newNode.key,
+			)
 			if (idx !== -1) parentArray.splice(idx, 1)
 			delete selectedKeys.value[tempKey]
 			toast.show('Failed to create node', e.message, 'error')
