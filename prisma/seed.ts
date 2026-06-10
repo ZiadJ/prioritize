@@ -114,6 +114,9 @@ async function main() {
 			role: 'admin',
 			communityId: city1.id,
 			countryId: countryB.id,
+			expertise: {
+				connect: [{ id: expertiseConstruction.id }, { id: expertiseWaterEngineering.id }],
+			},
 		},
 	})
 
@@ -129,6 +132,9 @@ async function main() {
 			isActive: true,
 			communityId: city2.id,
 			countryId: countryA.id,
+			expertise: {
+				connect: [{ id: expertiseCommunityHealth.id }],
+			},
 		},
 	})
 
