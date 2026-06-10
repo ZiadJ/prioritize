@@ -216,7 +216,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 						<Button
 							v-else
 							type="button"
-							label="Add node"
+							label="Add request node"
 							icon="pi pi-plus"
 							severity="info"
 							outlined
