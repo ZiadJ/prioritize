@@ -354,7 +354,7 @@ async function main() {
 
 	await prisma.requestNode.update({
 		where: { id: rnBorehole.id },
-		data: { expertise: { connect: { id: expertiisehhydrology.id } } },
+		data: { expertise: { connect: { id: expertiseHydrology.id } } },
 	})
 
 	await prisma.requestNode.update({
