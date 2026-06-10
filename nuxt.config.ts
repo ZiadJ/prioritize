@@ -1,5 +1,5 @@
-import Aura from "@primevue/themes/aura";
-import { definePreset } from "@primevue/themes";
+import Aura from '@primevue/themes/aura'
+import { definePreset } from '@primevue/themes'
 
 const MyPreset = definePreset(Aura, {
 	semantic: {
@@ -14,7 +14,7 @@ const MyPreset = definePreset(Aura, {
 			700: '{zinc.700}',
 			800: '{zinc.800}',
 			900: '{zinc.900}',
-			950: '{zinc.950}'
+			950: '{zinc.950}',
 		},
 		colorScheme: {
 			light: {
@@ -22,20 +22,20 @@ const MyPreset = definePreset(Aura, {
 					color: '{zinc.950}',
 					contrastColor: '#ffffff',
 					hoverColor: '{zinc.900}',
-					activeColor: '{zinc.800}'
-				}
+					activeColor: '{zinc.800}',
+				},
 			},
 			dark: {
 				primary: {
 					color: '{zinc.50}',
 					contrastColor: '{zinc.950}',
 					hoverColor: '{zinc.100}',
-					activeColor: '{zinc.200}'
-				}
-			}
-		}
-	}
-});
+					activeColor: '{zinc.200}',
+				},
+			},
+		},
+	},
+})
 
 export default defineNuxtConfig({
 	compatibilityDate: '2026-04-01',
@@ -149,19 +149,19 @@ export default defineNuxtConfig({
 				httpOnlyCookieAttribute: false,
 				signInResponseTokenPointer: '/accessToken',
 			},
-  			session: {
-  				dataType: {
-  					id: 'string',
-  					user: {
-  						id: 'string',
-  						email: 'string',
-  						username: 'string',
-  						communityId: 'number | null',
-  						countryId: 'number | null',
-  						role: 'string',
-  					},
-  				},
-  			},
+			session: {
+				dataType: {
+					id: 'string',
+					user: {
+						id: 'string',
+						email: 'string',
+						username: 'string',
+						communityId: 'number | null',
+						countryId: 'number | null',
+						role: 'string',
+					},
+				},
+			},
 			refresh: {
 				isEnabled: process.env.NUXT_AUTH_REFRESH_ENABLED === 'true',
 				endpoint: { path: '/refresh', method: 'post' },
@@ -204,4 +204,4 @@ export default defineNuxtConfig({
 			link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
 		},
 	},
-});
+})
