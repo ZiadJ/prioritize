@@ -47,10 +47,14 @@ export default defineNuxtConfig({
 	build: {
 		transpile: ['jsonwebtoken', 'trpc-nuxt'],
 	},
+	postcss: {
+		plugins: {
+			tailwindcss: {},
+		},
+	},
 	modules: [
 		'@nuxtjs/google-fonts',
 		'@sidebase/nuxt-auth',
-		'@nuxtjs/tailwindcss',
 		'@nuxtjs/color-mode',
 		'@nuxt/icon',
 		'@primevue/nuxt-module',
@@ -183,7 +187,7 @@ export default defineNuxtConfig({
 			isEnabled: true,
 		},
 	},
-app: {
+	app: {
 		head: {
 			title: 'Prioritize',
 			meta: [

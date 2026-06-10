@@ -3,15 +3,16 @@ import PrimeUI from 'tailwindcss-primeui'
 
 export default {
 	darkMode: 'class',
-	important: true,
 	// darkMode: ['selector', '[class="p-dark"]'],
 	// content: [],
 	content: [
-		'./pages/**/*.vue',
-		'./layouts/**/*.vue',
-		'./components/**/*.{js,vue,ts}',
-		'./doc/**/*.{js,vue,ts}',
-		'./error.vue',
+		'./app/components/**/*.{js,vue,ts}',
+		'./app/layouts/**/*.vue',
+		'./app/pages/**/*.vue',
+		'./app/composables/**/*.{js,ts}',
+		'./app/plugins/**/*.{js,ts}',
+		'./app/app.vue',
+		'./app/error.vue',
 	],
 	theme: {
 		fontFamily: {
