@@ -281,7 +281,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							icon="pi pi-plus"
 							class="p-button"
 							@click="openCreateProposalForm"
-							v-tooltip.left="'Add new proposal'" />
+							v-tooltip.left="'Add a new proposal'" />
 						<MultiSelect
 							class="requests-multiselect p-button"
 							:modelValue="visibleColumns"
