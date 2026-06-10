@@ -47,7 +47,8 @@ watch(
 	transition: width 0.3s ease;
 }
 .content-inner {
-	width: calc(100vw - 4rem);
+	flex: 1;
+	min-width: 0;
 	transition: width 0.3s ease;
 }
 
@@ -57,7 +58,6 @@ watch(
 	transition-delay: 0.3s;
 }
 .sidebar-inner:hover + .content-inner {
-	width: calc(100vw - 18rem);
 	transition-delay: 0.3s;
 }
 

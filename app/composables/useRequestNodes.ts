@@ -6,7 +6,7 @@ import { utils } from '@/methods/utils'
 export interface TreeNodeEx extends TreeNode {
 	id?: number
 	index?: number
-	children?: TreeNode[]
+	children?: TreeNodeEx[]
 	isDirty?: boolean
 }
 

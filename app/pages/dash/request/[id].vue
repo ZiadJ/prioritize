@@ -47,15 +47,14 @@ const rootNodes = ref<TreeNodeEx[]>([])
 function filterTreeByExpertise(nodes: TreeNodeEx[], expertiseId: number | null): TreeNodeEx[] {
 	if (!expertiseId) return nodes
 	return nodes
-		.map(node => {
-			const filteredChildren = filterTreeByExpertise(node.children as TreeNodeEx[] ?? [], expertiseId)
+		.flatMap(node => {
+			const filteredChildren = filterTreeByExpertise(node.children ?? [], expertiseId)
 			const matches = node.data?.expertise?.id === expertiseId
 			if (matches || filteredChildren.length) {
-				return { ...node, children: filteredChildren.length ? filteredChildren : node.children }
+				return [{ ...node, children: filteredChildren.length ? filteredChildren : node.children } as TreeNodeEx]
 			}
-			return null
+			return []
 		})
-		.filter((n): n is TreeNodeEx => n !== null)
 }
 
 const filteredRootNodes = computed(() => filterTreeByExpertise(rootNodes.value, selectedExpertiseFilter.value))
@@ -299,7 +298,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 
 		<div class="flex mt-3"> 
 			<Panel 
-				v-tooltip="'Request node description'"
+				v-tooltip.top="'Request node description'"
 				class="w-1/2 rounded-b-none rounded-tr-none" 
 				pt:header:class="p-2" 
 				pt:content:class="h-[5rem] overflow-y-auto">
@@ -310,7 +309,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 				</Transition>
 			</Panel> 
 			<Panel 
-				v-tooltip="'Proposal description'"
+				v-tooltip.top="'Proposal description'"
 				class="w-1/2 rounded-b-none rounded-tl-none" 
 				pt:header:class="p-2" 
 				pt:content:class="h-[5rem] overflow-y-auto">
