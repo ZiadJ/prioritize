@@ -56,6 +56,7 @@ const emit = defineEmits<{
 					optionValue="id"
 					placeholder="Select expertise (optional)"
 					showClear
+					filter
 					class="w-full" />
 			</div>
 		</div>

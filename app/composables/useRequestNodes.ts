@@ -193,12 +193,17 @@ export function useRequestNodes(
 				expertiseNodeId: expertiseNodeId ?? undefined,
 			})) as any
 
-			newNode.key = String(result.id)
-			newNode.id = result.id
-			newNode.data = result
+			const found = utils.tree.traverseTreeUntil<TreeNodeEx>(
+				rootNodes.value,
+				(child: TreeNodeEx) => child.key === tempKey,
+			)
+			if (found?.node) {
+				found.node.key = String(result.id)
+				found.node.id = result.id
+				found.node.data = result
+			}
 			delete selectedKeys.value[tempKey]
 			selectedKeys.value[String(result.id)] = true
-
 
 			toast.show('Node created', title.trim())
 		} catch (e: any) {

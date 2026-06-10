@@ -60,6 +60,7 @@ const {
 
 const { $trpcClient } = useNuxtApp()
 const request = await $trpcClient.requests.byId.query({ id: Number(route.params.id) })
+const expertiseOptions = await $trpcClient.expertise.list.query()
 
 const {
 	columns,
@@ -199,6 +200,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			v-model:form="nodeFormData"
 			:saving="nodeFormSaving"
 			:editMode="nodeFormEditMode"
+			:expertiseOptions="expertiseOptions"
 			@save="saveNodeForm" />
 		<Panel class="rounded-b-none" :header="request?.title" toggleable collapsed>
 			{{ request?.body }}
@@ -386,6 +388,14 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 								</span>
 						</div>
 					</div>
+				</template>
+			</Column>
+			<Column
+				field="expertise"
+				header="Expertise"
+				class="min-w-[80px]">
+				<template #body="{ node }">
+					<span v-if="node.data.expertise">{{ node.data.expertise.title }}</span>
 				</template>
 			</Column>
 
