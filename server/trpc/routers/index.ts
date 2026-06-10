@@ -5,6 +5,7 @@ import { requestNodesRouter } from './requestNodes'
 import { proposalsRouter } from './proposals'
 import { resourcesRouter } from './resources'
 import { feedbackRouter } from './feedback'
+import { expertiseRouter } from './expertise'
 
 export const appRouter = router({
 	requests: requestsRouter,
@@ -12,6 +13,7 @@ export const appRouter = router({
 	proposals: proposalsRouter,
 	resourceNodes: resourcesRouter,
 	feedback: feedbackRouter,
+	expertise: expertiseRouter,
 })
 
 // export type definition of API

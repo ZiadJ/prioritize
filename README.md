@@ -16,7 +16,10 @@ cd prioritize
 # Install dependencies
 npm install
 
-# Create .env file and set DB url
+# Generate Prisma files
+npx prisma generate
+
+# Create .env file and set a Postgres DB url (currently using Supabase)
 copy .env.example .env
 
 # Initialize database

@@ -16,6 +16,7 @@ const createInput = RequestNodeSchema.pick({
 }).extend({
 	id: z.number().optional(),
 	tagIds: z.array(z.number()).optional().default([]),
+	expertiseNodeId: z.number().int().nullable().optional(),
 })
 
 const updateInput = createInput.extend({
@@ -98,7 +99,7 @@ export const requestNodesRouter = router({
 	create: protectedProcedure
 		.input(createInput)
 		.mutation(async ({ ctx, input }) => {
-			const { tagIds, parentId, requestId, ownerId, ...rest } = input as z.infer<typeof createInput>
+			const { tagIds, parentId, requestId, ownerId, expertiseNodeId, ...rest } = input as z.infer<typeof createInput>
 
 			const node = await createTreeNode(prisma.requestNode, {
 				...rest,
@@ -111,15 +112,19 @@ export const requestNodesRouter = router({
 							connect: tagIds.map((id: number) => ({ id })),
 						}
 					: undefined,
+				...(expertiseNodeId ? { expertise: { connect: { id: expertiseNodeId } } } : {}),
 			})
 
-			return node
+			return prisma.requestNode.findUnique({
+				where: { id: node.id },
+				include: { expertise: true },
+			})
 		}),
 
 	update: protectedProcedure
 		.input(updateInput)
 		.mutation(async ({ ctx, input }) => {
-			const { id, tagIds, ownerId, requestId, parentId, ...rest } = input as z.infer<typeof updateInput>
+			const { id, tagIds, ownerId, requestId, parentId, expertiseNodeId, ...rest } = input as z.infer<typeof updateInput>
 
 			const existingNode = await prisma.requestNode.findUnique({
 				where: { id },
@@ -146,6 +151,11 @@ export const requestNodesRouter = router({
 				updateData.tags = {
 					set: tagIds.map((tagId: number) => ({ id: tagId })),
 				}
+			}
+			if (expertiseNodeId !== undefined) {
+				updateData.expertise = expertiseNodeId
+					? { connect: { id: expertiseNodeId } }
+					: { disconnect: true }
 			}
 
 			return prisma.requestNode.update({

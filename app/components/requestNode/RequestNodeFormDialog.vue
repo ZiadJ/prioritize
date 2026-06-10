@@ -1,11 +1,17 @@
 <script setup lang="ts">
+interface ExpertiseOption {
+	id: number
+	title: string
+}
+
 defineProps<{
 	saving?: boolean
 	editMode?: boolean
+	expertiseOptions?: ExpertiseOption[]
 }>()
 
 const visible = defineModel<boolean>('visible', { default: false })
-const form = defineModel<{ title: string; body: string }>('form', { default: { title: '', body: '' } })
+const form = defineModel<{ title: string; body: string; expertiseNodeId: number | null }>('form', { default: { title: '', body: '', expertiseNodeId: null } })
 
 const emit = defineEmits<{
 	save: []
@@ -39,6 +45,18 @@ const emit = defineEmits<{
 					v-model="form.body"
 					placeholder="Describe the node"
 					rows="3" />
+			</div>
+			<div class="form-field">
+				<label for="node-expertise">Required Expertise</label>
+				<Dropdown
+					id="node-expertise"
+					v-model="form.expertiseNodeId"
+					:options="expertiseOptions ?? []"
+					optionLabel="title"
+					optionValue="id"
+					placeholder="Select expertise (optional)"
+					showClear
+					class="w-full" />
 			</div>
 		</div>
 		<template #footer>

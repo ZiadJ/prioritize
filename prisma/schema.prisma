@@ -403,12 +403,10 @@ model ExpertiseNode {
   parentId Int?
   children ExpertiseNode[] @relation("Self")
 
-  requestNode   RequestNode? @relation(fields: [requestNodeId], references: [id])
-  requestNodeId Int?
-
-  users     User[]
-  interests Request[]
-  effects   Effect[]
+  users        User[]
+  interests    Request[]
+  effects      Effect[]
+  requestNodes RequestNode[]
 
   @@index([path])
 }
@@ -530,11 +528,12 @@ model RequestNode {
 
   // conflictingInterests Request[]      @relation("ConflictOfInterest") // Can be auto-generated from the requestNodes tree
   feedback  Feedback[] // Auto-generated when adding feedback to proposed steps
-  expertise ExpertiseNode[] // Required expertise for providing feedback
+  expertise ExpertiseNode? @relation(fields: [expertiseNodeId], references: [id]) // Required expertise for providing feedback
 
-  owner   User   @relation("RequestNodeOwner", fields: [ownerId], references: [id])
-  ownerId String
-  editors User[] @relation("RequestNodeEditors")
+  owner           User   @relation("RequestNodeOwner", fields: [ownerId], references: [id])
+  ownerId         String
+  editors         User[] @relation("RequestNodeEditors")
+  expertiseNodeId Int?
 
   @@index([path])
 }

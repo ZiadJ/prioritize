@@ -26,7 +26,11 @@ export function useRequestNodes(
 	const formDialogVisible = ref(false)
 	const formSaving = ref(false)
 	const formEditMode = ref(false)
-	const formData = ref<{ title: string; body: string }>({ title: '', body: '' })
+	const formData = ref<{
+		title: string
+		body: string
+		expertiseNodeId: number | null
+	}>({ title: '', body: '', expertiseNodeId: null })
 	const editingNode = ref<TreeNodeEx>()
 
 	const menuItems = computed(() => [
@@ -99,7 +103,7 @@ export function useRequestNodes(
 		pendingInsertAfter.value = undefined
 		editingNode.value = undefined
 		formEditMode.value = false
-		formData.value = { title: '', body: '' }
+		formData.value = { title: '', body: '', expertiseNodeId: null }
 		formDialogVisible.value = true
 	}
 
@@ -113,7 +117,7 @@ export function useRequestNodes(
 		pendingInsertAfter.value = node
 		editingNode.value = undefined
 		formEditMode.value = false
-		formData.value = { title: '', body: '' }
+		formData.value = { title: '', body: '', expertiseNodeId: null }
 		formDialogVisible.value = true
 	}
 
@@ -124,6 +128,8 @@ export function useRequestNodes(
 		formData.value = {
 			title: node.data?.title || '',
 			body: node.data?.body || '',
+			expertiseNodeId:
+				node.data?.expertiseNodeId ?? node.data?.expertise?.id ?? null,
 		}
 		formDialogVisible.value = true
 	}
@@ -137,7 +143,7 @@ export function useRequestNodes(
 	}
 
 	async function applyCreate() {
-		const { title, body } = formData.value
+		const { title, body, expertiseNodeId } = formData.value
 		if (!title.trim()) return
 
 		const parentNode = pendingParent.value
@@ -184,6 +190,7 @@ export function useRequestNodes(
 				isVariantsGroup: false,
 				isNonNegotiable: false,
 				position: 0,
+				expertiseNodeId: expertiseNodeId ?? undefined,
 			})) as any
 
 			newNode.key = String(result.id)
@@ -191,6 +198,7 @@ export function useRequestNodes(
 			newNode.data = result
 			delete selectedKeys.value[tempKey]
 			selectedKeys.value[String(result.id)] = true
+
 
 			toast.show('Node created', title.trim())
 		} catch (e: any) {
@@ -208,7 +216,7 @@ export function useRequestNodes(
 		const node = editingNode.value
 		if (!node) return
 
-		const { title, body } = formData.value
+		const { title, body, expertiseNodeId } = formData.value
 		if (!title.trim()) return
 
 		const previousData = { ...node.data }
@@ -235,6 +243,7 @@ export function useRequestNodes(
 					isVariantsGroup: node.data?.isVariantsGroup ?? false,
 					isNonNegotiable: node.data?.isNonNegotiable ?? false,
 					position: node.data?.position ?? 0,
+					expertiseNodeId: expertiseNodeId ?? null,
 				})
 			}
 			toast.show('Node updated', title.trim())

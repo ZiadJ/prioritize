@@ -164,6 +164,7 @@ export const requestsRouter = router({
 					requestNodes: {
 						include: {
 							feedback: true,
+							expertise: true,
 						},
 					},
 					proposals: true,
