@@ -355,6 +355,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							:proposalId="null"
 							:userId="session?.user.id!"
 							:max="3"
+							:expertiseNodeId="node.data.expertise?.id"
 							parentSelector="td" />
 					</div>
 				</template>
@@ -473,6 +474,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							:proposalId="col.id!"
 							:userId="session?.user.id!"
 							:max="3"
+							:expertiseNodeId="node.data.expertise?.id"
 							parentSelector="td" />
 					</div>
 				</template>

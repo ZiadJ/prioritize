@@ -233,6 +233,7 @@ export const returnUserJwtPayload = async (
 			communityId: true,
 			countryId: true,
 			role: true,
+			expertise: { select: { id: true } },
 		},
 	})
 	if (!user) {
@@ -241,7 +242,8 @@ export const returnUserJwtPayload = async (
 			message: 'User not found.',
 		})
 	}
-	return user
+	const { expertise, ...rest } = user
+	return { ...rest, expertiseIds: expertise.map(e => e.id) }
 }
 
 /**

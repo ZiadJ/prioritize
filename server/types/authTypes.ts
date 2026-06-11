@@ -5,6 +5,7 @@ export type UserSession = {
 	communityId: number | null
 	countryId: number | null
 	role: string
+	expertiseIds: number[]
 }
 
 export type LoginTokens = {

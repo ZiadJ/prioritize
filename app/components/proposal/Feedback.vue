@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import Popup from '../Popup.vue'
 
 const toast = usePausableToast()
+const { data: session } = useAuth()
 
 interface Feedback {
 	userId: string
@@ -35,6 +36,10 @@ const emit = defineEmits<{
 
 const op = useTemplateRef('op')
 const { $trpcClient } = useNuxtApp()
+
+const hasExpertise = computed(() =>
+	!expertiseNodeId || session.value?.user?.expertiseIds?.includes(expertiseNodeId),
+)
 
 const range = computed(() => {
 	const steps = []
@@ -178,6 +183,7 @@ async function setValue(value: number) {
 			pt:text:class="hidden"
 			readonly />
 		<Knob
+			v-if="hasExpertise"
 			rangeColor="#8882"
 			class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
 			v-model="userRating"

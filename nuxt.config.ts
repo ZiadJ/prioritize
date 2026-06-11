@@ -158,6 +158,7 @@ export default defineNuxtConfig({
 						communityId: 'number | null',
 						countryId: 'number | null',
 						role: 'string',
+						expertiseIds: 'number[]',
 					},
 				},
 			},
