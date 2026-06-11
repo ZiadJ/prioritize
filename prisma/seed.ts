@@ -231,7 +231,7 @@ async function main() {
 	})
 
 	const rnNoChlorine = await createTreeNode(prisma.requestNode, {
-		title: 'No chlorine',
+		title: 'No chlorine required',
 		description: 'Avoid chlorine dosing entirely.',
 		isActive: true,
 		isVariantsGroup: false,
@@ -301,7 +301,7 @@ async function main() {
 	})
 
 	const rnNoDrilling = await createTreeNode(prisma.requestNode, {
-		title: 'No drilling',
+		title: 'No drilling required',
 		description: 'Avoid hiring drilling rigs or heavy machinery.',
 		isActive: true,
 		isVariantsGroup: false,
@@ -439,48 +439,48 @@ async function main() {
 		[proposal1.title]: {
 			'Treatment method': 2,
 			'Natural filtration only': 3,
-			'No chlorine': 3,
+			'No chlorine required': 3,
 			'Water source': 2,
 			'Rain-fed with storage': 3,
 			'Groundwater via borehole': -2,
 			Construction: 2,
 			'Buildable by hand': 3,
-			'No drilling': 3,
+			'No drilling required': 3,
 		},
 		[proposal2.title]: {
 			'Treatment method': 1,
 			'Natural filtration only': -3,
-			'No chlorine': -3,
+			'No chlorine required': -3,
 			'Water source': 2,
 			'Rain-fed with storage': -3,
 			'Groundwater via borehole': 3,
 			Construction: 1,
 			'Buildable by hand': -1,
-			'No drilling': -3,
+			'No drilling required': -3,
 		},
 		[proposal3.title]: {
 			'Treatment method': -1,
 			'Natural filtration only': -2,
-			'No chlorine': 3,
+			'No chlorine required': 3,
 			'Water source': 1,
 			'Rain-fed with storage': 2,
 			'Groundwater via borehole': -1,
 			Construction: 3,
 			'Buildable by hand': 2,
-			'No drilling': 3,
+			'No drilling required': 3,
 		},
 	}
 
 	const adminFeedbackRatings: Record<string, number> = {
 		'Treatment method': 2,
 		'Natural filtration only': 1,
-		'No chlorine': 2,
+		'No chlorine required': 2,
 		'Water source': 1,
 		'Rain-fed with storage': 2,
 		'Groundwater via borehole': -1,
 		Construction: 2,
 		'Buildable by hand': 1,
-		'No drilling': 2,
+		'No drilling required': 2,
 	}
 
 	const proposals = [proposal1, proposal2, proposal3]

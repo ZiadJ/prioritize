@@ -211,6 +211,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 
 <template>
 	<div>
+		<ConfirmDialog></ConfirmDialog>
 		<ConfirmDialog group="nodeDelete"></ConfirmDialog>
 		<Menu ref="nodeMenuRef" :model="nodeMenuItems" :popup="true" />
 		<Toast style="opacity: 0.9" />
