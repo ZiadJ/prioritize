@@ -18,12 +18,12 @@ export default {
 	theme: {
 		fontFamily: {
 			sans: ['Inter', 'sans-serif'],
-			lato: ['Lato', 'sans-serif'],
-			relaway: ['Raleway', 'sans-serif'],
-			crimson: ['Crimson Text', 'serif'],
-			roboto: ['Roboto', 'sans-serif'],
-			josefin: ['Josefin Sans', 'sans-serif'],
-			montserrat: ['Montserrat', 'sans-serif'],
+			// lato: ['Lato', 'sans-serif'],
+			// relaway: ['Raleway', 'sans-serif'],
+			// crimson: ['Crimson Text', 'serif'],
+			// roboto: ['Roboto', 'sans-serif'],
+			// josefin: ['Josefin Sans', 'sans-serif'],
+			// montserrat: ['Montserrat', 'sans-serif'],
 		},
 		extend: {
 			animation: {

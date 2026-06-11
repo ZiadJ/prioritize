@@ -28,7 +28,7 @@
 <script lang="ts" setup>
 const expandedKeys = ref<Record<string, boolean>>({})
 const items = ref([
-	{ label: 'Profile', icon: 'pi pi-user', to: '/dash/profile' },
+	// { label: 'Profile', icon: 'pi pi-user', to: '/dash/profile' },
 	{ label: 'Users', icon: 'pi pi-users', to: '/dash/users' },
 	{ label: 'Requests', icon: 'pi pi-wave-pulse', to: '/dash/requests' },
 ])

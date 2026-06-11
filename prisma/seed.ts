@@ -102,34 +102,38 @@ async function main() {
 
 	const expertiseWaterEngineering = await createTreeNode(prisma.expertiseNode, {
 		title: 'Water Engineering',
-		description: 'Expertise in water supply systems, distribution networks, and hydraulic design.',
+		description:
+			'Expertise in water supply systems, distribution networks, and hydraulic design.',
 		isActive: true,
 	})
 
 	const expertiseHydrology = await createTreeNode(prisma.expertiseNode, {
 		title: 'Hydrology',
-		description: 'Knowledge of water cycle, groundwater recharge, rainfall patterns, and surface water management.',
+		description:
+			'Knowledge of water cycle, groundwater recharge, rainfall patterns, and surface water management.',
 		isActive: true,
 	})
 
 	const expertiseFiltration = await createTreeNode(prisma.expertiseNode, {
 		title: 'Filtration Systems',
-		description: 'Specialization in water treatment methods including bio-sand filters, membrane filtration, and chemical purification.',
+		description:
+			'Specialization in water treatment methods including bio-sand filters, membrane filtration, and chemical purification.',
 		isActive: true,
 	})
 
 	const expertiseCommunityHealth = await createTreeNode(prisma.expertiseNode, {
 		title: 'Community Health',
-		description: 'Understanding of public health impacts related to water quality, sanitation, and disease prevention.',
+		description:
+			'Understanding of public health impacts related to water quality, sanitation, and disease prevention.',
 		isActive: true,
 	})
 
 	const expertiseConstruction = await createTreeNode(prisma.expertiseNode, {
 		title: 'Construction',
-		description: 'Skills in civil construction, ferro-cement work, hand-dug wells, and low-tech infrastructure building.',
+		description:
+			'Skills in civil construction, ferro-cement work, hand-dug wells, and low-tech infrastructure building.',
 		isActive: true,
 	})
-
 
 	console.log('Expertise nodes created')
 
@@ -148,7 +152,10 @@ async function main() {
 			communityId: city1.id,
 			countryId: countryB.id,
 			expertise: {
-				connect: [{ id: expertiseConstruction.id }, { id: expertiseWaterEngineering.id }],
+				connect: [
+					{ id: expertiseConstruction.id },
+					{ id: expertiseWaterEngineering.id },
+				],
 			},
 		},
 	})
@@ -178,7 +185,8 @@ async function main() {
 	const waterRequest = await prisma.request.create({
 		data: {
 			title: 'A reliable water supply for the dry season',
-			description: 'The community needs a dependable water supply that lasts through the annual dry season (roughly 4-6 months). Current sources become unreliable or dry up entirely, forcing residents to ration water. Any solution must be affordable, maintainable by the community, and provide enough clean water for drinking, cooking, and basic hygiene.',
+			description:
+				'The community needs a dependable water supply that lasts through the annual dry season (roughly 4-6 months). Current sources become unreliable or dry up entirely, forcing residents to ration water. Any solution must be affordable, maintainable by the community, and provide enough clean water for drinking, cooking, and basic hygiene.',
 			unitOfMeasure: 'CubicMetres',
 			ownerId: adminUser.id,
 			communityId: city1.id,
@@ -352,10 +360,10 @@ async function main() {
 		data: { expertise: { connect: { id: expertiseHydrology.id } } },
 	})
 
-	await prisma.requestNode.update({
-		where: { id: rnBorehole.id },
-		data: { expertise: { connect: { id: expertiseHydrology.id } } },
-	})
+	// await prisma.requestNode.update({
+	// 	where: { id: rnBorehole.id },
+	// 	data: { expertise: { connect: { id: expertiseHydrology.id } } },
+	// })
 
 	await prisma.requestNode.update({
 		where: { id: rnBuildableByHand.id },
@@ -374,7 +382,8 @@ async function main() {
 	const proposal1 = await prisma.proposal.create({
 		data: {
 			title: 'Rainwater Cistern System',
-			description: 'Install rooftop gutters on community buildings leading to a cluster of sealed ferro-cement cisterns (total ~50 m³). Water passes through a gravel pre-filter before storage and a bio-sand filter at the point-of-use tap. A gravity-fed pipe runs from the cisterns to a central tap stand. A water committee oversees minor repairs and collects monthly fees for replacement sand and gutter patching.',
+			description:
+				'Install rooftop gutters on community buildings leading to a cluster of sealed ferro-cement cisterns (total ~50 m³). Water passes through a gravel pre-filter before storage and a bio-sand filter at the point-of-use tap. A gravity-fed pipe runs from the cisterns to a central tap stand. A water committee oversees minor repairs and collects monthly fees for replacement sand and gutter patching.',
 			isComplete: true,
 			stepCount: 4,
 			duration: 45,
@@ -389,7 +398,8 @@ async function main() {
 	const proposal2 = await prisma.proposal.create({
 		data: {
 			title: 'Communal Well with Hand Pump',
-			description: 'Drill a borehole to the water table (~30 m) and install an India Mark II hand pump. The pump is located centrally so no household is more than 500 m away. Water is chlorinated monthly by a trained community health volunteer. Maintenance relies on a community committee trained in basic pump repair, with a spare-parts fund built from household contributions.',
+			description:
+				'Drill a borehole to the water table (~30 m) and install an India Mark II hand pump. The pump is located centrally so no household is more than 500 m away. Water is chlorinated monthly by a trained community health volunteer. Maintenance relies on a community committee trained in basic pump repair, with a spare-parts fund built from household contributions.',
 			isComplete: true,
 			stepCount: 3,
 			duration: 30,
@@ -404,7 +414,8 @@ async function main() {
 	const proposal3 = await prisma.proposal.create({
 		data: {
 			title: 'Swales and Retention Pond Network',
-			description: "Excavate contour swales across the community's slopes to slow runoff and recharge the water table. A lined retention pond (~200 m³) captures peak flow and stores it through the early dry season. Water is distributed by gravity pipe to a central tap. No mechanical parts; maintenance is mainly clearing swales of debris each season. Lowest cost but also lowest water quality—requires a separate filtration step.",
+			description:
+				"Excavate contour swales across the community's slopes to slow runoff and recharge the water table. A lined retention pond (~200 m³) captures peak flow and stores it through the early dry season. Water is distributed by gravity pipe to a central tap. No mechanical parts; maintenance is mainly clearing swales of debris each season. Lowest cost but also lowest water quality—requires a separate filtration step.",
 			isComplete: true,
 			stepCount: 5,
 			duration: 60,
@@ -432,7 +443,7 @@ async function main() {
 			'Water source': 2,
 			'Rain-fed with storage': 3,
 			'Groundwater via borehole': -2,
-			'Construction': 2,
+			Construction: 2,
 			'Buildable by hand': 3,
 			'No drilling': 3,
 		},
@@ -443,7 +454,7 @@ async function main() {
 			'Water source': 2,
 			'Rain-fed with storage': -3,
 			'Groundwater via borehole': 3,
-			'Construction': 1,
+			Construction: 1,
 			'Buildable by hand': -1,
 			'No drilling': -3,
 		},
@@ -454,7 +465,7 @@ async function main() {
 			'Water source': 1,
 			'Rain-fed with storage': 2,
 			'Groundwater via borehole': -1,
-			'Construction': 3,
+			Construction: 3,
 			'Buildable by hand': 2,
 			'No drilling': 3,
 		},
@@ -467,7 +478,7 @@ async function main() {
 		'Water source': 1,
 		'Rain-fed with storage': 2,
 		'Groundwater via borehole': -1,
-		'Construction': 2,
+		Construction: 2,
 		'Buildable by hand': 1,
 		'No drilling': 2,
 	}

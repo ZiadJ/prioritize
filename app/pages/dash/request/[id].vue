@@ -43,6 +43,7 @@ const selectedExpertiseFilter = ref<number | null>(null)
 const treeTable = useTemplateRef('treeTable')
 
 const rootNodes = ref<TreeNodeEx[]>([])
+const dataLoaded = ref(false)
 
 function filterTreeByExpertise(nodes: TreeNodeEx[], expertiseId: number | null): TreeNodeEx[] {
 	if (!expertiseId) return nodes
@@ -116,6 +117,7 @@ function setRequestNodes(request: Request) {
 
 onMounted(async () => {
 	if (request) setRequestNodes(request as unknown as Request)
+	dataLoaded.value = true
 })
 
 const windowHeight = useWindowSize()
@@ -242,7 +244,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							size="small"
 							class="max-w-[180px]" />
 						<Button
-							v-if="!rootNodes.length"
+							v-if="dataLoaded && !rootNodes.length"
 							type="button"
 							label="Add request node"
 							icon="pi pi-plus"
@@ -419,14 +421,16 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			<Column
 				field="expertise"
 				header="Expertise"
-				class="min-w-[80px]"
-				bodyClass="!py-1">
+				bodyClass="!p-0"
+				headerClass="!p-0">
 				<template #body="{ node }">
-					<span
-						v-if="node.data.expertise"
-						class="inline-block px-1.5 py-0.5 rounded-full text-[11px] leading-tight bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 whitespace-nowrap">
-						{{ node.data.expertise.title }}
-					</span>
+					<div :class="'hover-info request_node_key_' + node.data.id">
+						<span
+							v-if="node.data.expertise"
+							class="inline-block px-1.5 py-0.5 rounded-full text-[11px] leading-tight bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 whitespace-nowrap">
+							{{ node.data.expertise.title }}
+						</span>
+					</div>
 				</template>
 			</Column>
 

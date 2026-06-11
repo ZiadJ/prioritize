@@ -17,12 +17,14 @@ const {
 	proposalId,
 	requestNodeId,
 	parentSelector,
+	expertiseNodeId
 } = defineProps<{
 	max: number
 	proposalId: number | null
 	requestNodeId: number | null
 	userId: string
 	parentSelector?: string
+	expertiseNodeId?: number
 }>()
 
 const modelValue = defineModel<Feedback[]>({ default: [] })

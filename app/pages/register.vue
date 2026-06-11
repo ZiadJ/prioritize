@@ -77,7 +77,7 @@ const { status, signUp } = useAuth();
 definePageMeta({
     auth: {
         unauthenticatedOnly: true,
-        navigateAuthenticatedTo: '/dash'
+        navigateAuthenticatedTo: '/dash/requests',
     }
 });
 

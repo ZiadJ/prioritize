@@ -70,7 +70,7 @@ import { useRoute } from 'vue-router'
 definePageMeta({
 	auth: {
 		unauthenticatedOnly: true,
-		navigateAuthenticatedTo: '/dash',
+		navigateAuthenticatedTo: '/dash/requests',
 	},
 });
 
@@ -105,7 +105,7 @@ const resolver = ({ values }: { values: Record<string, any> }) => {
 		e.values.remember = e.values.remember ?? false;
 
 		try {
-			const callbackUrl = (route.query.callbackUrl as string) || '/dash'
+			const callbackUrl = (route.query.callbackUrl as string) || '/dash/requests'
 			await signIn(e.values, { callbackUrl })
 		} catch (thrown: any) {
 			serverError.value = thrown.response?._data?.message || thrown.message || 'Sign in failed';
@@ -116,7 +116,7 @@ const resolver = ({ values }: { values: Record<string, any> }) => {
 
 onBeforeMount(() => {
 	if (status.value === 'authenticated') {
-		const callbackUrl = (route.query.callbackUrl as string) || '/dash'
+		const callbackUrl = (route.query.callbackUrl as string) || '/dash/requests'
 		navigateTo(callbackUrl)
 	}
 });
