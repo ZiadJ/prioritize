@@ -4,7 +4,7 @@
 
 ## Installation
 
-Clone the repository and run the following commands to set up the project:
+Clone the repository and run the following commands:
 
 ```bash
 # Clone the repository

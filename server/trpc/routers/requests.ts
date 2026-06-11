@@ -59,6 +59,8 @@ export const requestsRouter = router({
 						.default('global'),
 					sortBy: z.string().optional(),
 					sortOrder: z.number().optional(),
+					tagIds: z.array(z.number()).optional(),
+					expertiseId: z.number().optional(),
 				})
 				.optional(),
 		)
@@ -117,6 +119,16 @@ export const requestsRouter = router({
 					if (allCommunityIds.length === 0) return []
 
 					where.communityId = { in: allCommunityIds }
+				}
+			}
+
+			if (input?.tagIds && input.tagIds.length > 0) {
+				where.tags = { some: { id: { in: input.tagIds } } }
+			}
+
+			if (input?.expertiseId) {
+				where.requestNodes = {
+					some: { expertiseNodeId: input.expertiseId },
 				}
 			}
 
@@ -420,6 +432,24 @@ export const requestsRouter = router({
 	listCommunityNodes: publicProcedure.query(async () => {
 		return prisma.communityNode.findMany({
 			orderBy: { path: 'asc' },
+		})
+	}),
+
+	listExpertise: protectedProcedure.query(async () => {
+		const requestNodes = await prisma.requestNode.findMany({
+			where: {
+				isActive: true,
+				request: { isActive: true },
+				expertiseNodeId: { not: null },
+			},
+			select: { expertiseNodeId: true },
+			distinct: ['expertiseNodeId'],
+		})
+		const expertiseIds = requestNodes.map(rn => rn.expertiseNodeId!).filter(Boolean)
+		if (expertiseIds.length === 0) return []
+		return prisma.expertiseNode.findMany({
+			where: { id: { in: expertiseIds } },
+			orderBy: { title: 'asc' },
 		})
 	}),
 

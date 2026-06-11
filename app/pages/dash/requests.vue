@@ -49,6 +49,9 @@ const currentRequestTitle = ref('')
 const hasUserOrder = ref(false)
 
 const allTags = ref<Tag[]>([])
+const selectedTagIds = ref<number[]>([])
+const allExpertise = ref<{ id: number; title: string }[]>([])
+const selectedExpertiseId = ref<number | null>(null)
 
 // Scope options for dropdown
 const scopeOptions = [
@@ -106,6 +109,8 @@ const fetchRequests = async () => {
 			scope: selectedScope.value,
 			sortBy: sortField.value,
 			sortOrder: sortOrder.value,
+			tagIds: selectedTagIds.value.length > 0 ? selectedTagIds.value : undefined,
+			expertiseId: selectedExpertiseId.value ?? undefined,
 		})
 		requests.value = result || []
 	} catch (error: any) {
@@ -302,13 +307,19 @@ const onSort = (event: DataTableSortEvent) => {
 	fetchRequests()
 }
 
-onMounted(async () => {
+	onMounted(async () => {
 	fetchRequests()
 	try {
 		allTags.value = (await $trpcClient.requests.listTags.query()) || []
 	} catch (error: any) {
 		toast.add('error', 'Error', error.message || 'Failed to load tags', 5000)
 		console.error('Failed to fetch tags:', error.message || error)
+	}
+	try {
+		allExpertise.value = (await $trpcClient.requests.listExpertise.query()) || []
+	} catch (error: any) {
+		toast.add('error', 'Error', error.message || 'Failed to load expertise', 5000)
+		console.error('Failed to fetch expertise:', error.message || error)
 	}
 })
 </script>
@@ -336,7 +347,28 @@ onMounted(async () => {
 					optionLabel="label"
 					optionValue="value"
 					@change="fetchRequests"
-					class="w-48" />			
+					class="w-48" />
+				<MultiSelect
+					v-model="selectedTagIds"
+					:options="allTags"
+					optionLabel="name"
+					optionValue="id"
+					placeholder="Filter by tag"
+					@change="fetchRequests"
+					class="w-64"
+					:showToggleAll="false"
+					filter
+					display="chip" />
+				<Dropdown
+					v-model="selectedExpertiseId"
+					:options="allExpertise"
+					optionLabel="title"
+					optionValue="id"
+					placeholder="Filter by expertise"
+					@change="fetchRequests"
+					class="w-64"
+					showClear
+					filter />
 				<Button
 					label="New Request"
 					class="ml-2"
@@ -352,13 +384,11 @@ onMounted(async () => {
 			:rows="25"
 			dataKey="id"
 			:rowHover="true"
-			tableStyle="min-width: 50rem"
-			class="p-datatable-sm"
 			resizableColumns
 			:sortField="sortField"
 			:sortOrder="sortOrder"
 			@sort="onSort">
-			<!-- stripedRows -->
+			stripedRows
 			<!-- v-model:selection="selectedRequests"
 			selectionMode="multiple" -->
 			<!-- <Column selectionMode="multiple" headerStyle="width: 3rem"></Column> -->

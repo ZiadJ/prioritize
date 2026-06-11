@@ -26,13 +26,15 @@
         </template>
 
         <template #end>
-            <div class="card flex justify-center">
+            <div class="card flex justify-center items-center gap-2">
+                <button @click="changeColorMode" class="flex items-center gap-2 outline-none"
+                    v-if="!$colorMode.unknown && !$colorMode.forced">
+                    <Icon :name="determineIconMode" :class="determineIconColorMode" />
+                </button>
                 <Button type="button" @click="toggle" aria-haspopup="true" aria-controls="overlay_tmenu" 
                     icon="pi pi-user" :pt="{
                     root: 'rounded-full !bg-transparent !border-none !p-0',
-                    icon: '!text-white',
-                    iconOnly: '!text-white',
-                    iconPos: 'right'
+                    icon: 'text-gray-800 dark:text-white'
                 }">
                     <!-- <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" shape="circle" /> -->
                 </Button>
@@ -43,22 +45,27 @@
 </template>
 
 <script lang="ts" setup>
-const router = useRouter();
 const { status, signOut } = useAuth();
+const colorMode = useColorMode();
 const menu = ref();
+
+const changeColorMode = () => {
+    colorMode.preference = (colorMode.value === "dark") ? "light" : "dark";
+};
+
+const determineIconMode = computed(() => {
+    return (colorMode.value === "dark") ? "line-md:moon" : "line-md:sunny-filled-loop";
+});
+
+const determineIconColorMode = computed(() => {
+    return (colorMode.value === "dark") ? "text-xl text-white transition-transform duration-500" : "text-yellow-800 transition-transform duration-500";
+});
 const profileActions = [
     {
         label: 'Profile',
         icon: 'pi pi-fw pi-credit-card',
         command: () => {
             navigateTo('/dash/profile');
-        }
-    },
-    {
-        label: 'Settings',
-        icon: 'pi pi-fw pi-cog',
-        command: () => {
-            router.push('/dash/settings');
         }
     },
     {
