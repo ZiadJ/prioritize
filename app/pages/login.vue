@@ -1,3 +1,62 @@
+
+<script setup lang="ts">
+import { useRoute } from 'vue-router'
+
+definePageMeta({
+	auth: {
+		unauthenticatedOnly: true,
+		navigateAuthenticatedTo: '/dash/requests',
+	},
+});
+
+const route = useRoute()
+const { status, signIn } = useAuth();
+
+const serverError = ref<string | null>(null);
+const processing = ref(false);
+
+const resolver = ({ values }: { values: Record<string, any> }) => {
+	const errors: Record<string, { message: string }[]> = {};
+
+	if (!values.email) {
+		errors.email = [{ message: 'Email is required.' }];
+	} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+		errors.email = [{ message: 'Please enter a valid email address.' }];
+	}
+
+	if (!values.password) {
+		errors.password = [{ message: 'Password is required.' }];
+	}
+
+	return { values, errors };
+};
+
+	const submit = async (e: { valid: boolean; values: Record<string, any> }) => {
+		if (!e.valid) return;
+
+		serverError.value = null;
+		processing.value = true;
+
+		e.values.remember = e.values.remember ?? false;
+
+		try {
+			const callbackUrl = (route.query.callbackUrl as string) || '/dash/requests'
+			await signIn(e.values, { callbackUrl })
+		} catch (thrown: any) {
+			serverError.value = thrown.response?._data?.message || thrown.message || 'Sign in failed';
+		} finally {
+			processing.value = false;
+		}
+	};
+
+onBeforeMount(() => {
+	if (status.value === 'authenticated') {
+		const callbackUrl = (route.query.callbackUrl as string) || '/dash/requests'
+		navigateTo(callbackUrl)
+	}
+});
+</script>
+
 <template>
 	<Card
 		:pt="{
@@ -63,61 +122,3 @@
 		</template>
 	</Card>
 </template>
-
-<script setup lang="ts">
-import { useRoute } from 'vue-router'
-
-definePageMeta({
-	auth: {
-		unauthenticatedOnly: true,
-		navigateAuthenticatedTo: '/dash/requests',
-	},
-});
-
-const route = useRoute()
-const { status, signIn } = useAuth();
-
-const serverError = ref<string | null>(null);
-const processing = ref(false);
-
-const resolver = ({ values }: { values: Record<string, any> }) => {
-	const errors: Record<string, { message: string }[]> = {};
-
-	if (!values.email) {
-		errors.email = [{ message: 'Email is required.' }];
-	} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-		errors.email = [{ message: 'Please enter a valid email address.' }];
-	}
-
-	if (!values.password) {
-		errors.password = [{ message: 'Password is required.' }];
-	}
-
-	return { values, errors };
-};
-
-	const submit = async (e: { valid: boolean; values: Record<string, any> }) => {
-		if (!e.valid) return;
-
-		serverError.value = null;
-		processing.value = true;
-
-		e.values.remember = e.values.remember ?? false;
-
-		try {
-			const callbackUrl = (route.query.callbackUrl as string) || '/dash/requests'
-			await signIn(e.values, { callbackUrl })
-		} catch (thrown: any) {
-			serverError.value = thrown.response?._data?.message || thrown.message || 'Sign in failed';
-		} finally {
-			processing.value = false;
-		}
-	};
-
-onBeforeMount(() => {
-	if (status.value === 'authenticated') {
-		const callbackUrl = (route.query.callbackUrl as string) || '/dash/requests'
-		navigateTo(callbackUrl)
-	}
-});
-</script>
