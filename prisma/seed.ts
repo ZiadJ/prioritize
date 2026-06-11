@@ -226,7 +226,7 @@ async function main() {
 		isNonNegotiable: false,
 		parentId: rnTreatment.id,
 		request: { connect: { id: waterRequest.id } },
-		owner: { connect: { id: adminUser.id } },
+		owner: { connect: { id: regularUser.id } },
 		position: 1,
 	})
 
@@ -249,7 +249,7 @@ async function main() {
 		isVariantsGroup: false,
 		isNonNegotiable: false,
 		request: { connect: { id: waterRequest.id } },
-		owner: { connect: { id: adminUser.id } },
+		owner: { connect: { id: regularUser.id } },
 		position: 2,
 	})
 
@@ -261,7 +261,7 @@ async function main() {
 		isNonNegotiable: false,
 		parentId: rnSource.id,
 		request: { connect: { id: waterRequest.id } },
-		owner: { connect: { id: adminUser.id } },
+		owner: { connect: { id: regularUser.id } },
 		position: 1,
 	})
 
@@ -296,7 +296,7 @@ async function main() {
 		isNonNegotiable: false,
 		parentId: rnBuild.id,
 		request: { connect: { id: waterRequest.id } },
-		owner: { connect: { id: adminUser.id } },
+		owner: { connect: { id: regularUser.id } },
 		position: 1,
 	})
 

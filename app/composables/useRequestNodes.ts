@@ -15,6 +15,7 @@ export function useRequestNodes(
 	selectedKeys: Ref<TreeTableSelectionKeys>,
 	expandedKeys: Ref<TreeTableExpandedKeys>,
 	requestId: number,
+	userId: Ref<string | undefined>,
 ) {
 	const { $trpcClient } = useNuxtApp()
 	const toast = usePausableToast()
@@ -33,10 +34,15 @@ export function useRequestNodes(
 	}>({ title: '', description: '', expertiseNodeId: null })
 	const editingNode = ref<TreeNodeEx>()
 
+	const isOwner = computed(() =>
+		menuTargetNode.value?.data?.ownerId != null && menuTargetNode.value.data.ownerId === userId.value,
+	)
+
 	const menuItems = computed(() => [
 		{
 			label: 'Edit',
 			icon: 'pi pi-pencil',
+			disabled: !isOwner.value,
 			command: () => openEditForm(menuTargetNode.value),
 		},
 		{ separator: true },
@@ -54,6 +60,7 @@ export function useRequestNodes(
 		{
 			label: 'Delete',
 			icon: 'pi pi-trash',
+			disabled: !isOwner.value,
 			command: () => deleteNode(menuTargetNode.value!),
 		},
 	])

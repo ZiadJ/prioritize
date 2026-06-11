@@ -116,7 +116,7 @@ const {
 	saveForm: saveNodeForm,
 	deleteNode,
 	toggleNode,
-} = useRequestNodes(rootNodes, selectedKeys, expandedKeys, Number(route.params.id))
+} = useRequestNodes(rootNodes, selectedKeys, expandedKeys, Number(route.params.id), computed(() => session.value?.user.id))
 
 function setRequestNodes(request: Request) {
 	const treeNodes = utils.tree.buildTree(request.requestNodes ?? [])
