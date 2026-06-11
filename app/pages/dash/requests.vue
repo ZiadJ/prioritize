@@ -695,29 +695,14 @@ const onSort = (event: DataTableSortEvent) => {
 }
 
 .action-buttons {
-	position: absolute;
-	right: 2rem;
-	top: 0;
 	display: flex;
-	opacity: 0;
-	transition: opacity 0.2s ease;
 }
 
 .actions-column {
-	max-width: 0;
 	padding: 0;
-	border: none;
 }
 
 .actions-column .p-column-title {
 	display: none;
-}
-
-::v-deep(.p-datatable-table tr:hover) .action-buttons {
-	opacity: 1;
-}
-
-::v-deep(.p-datatable-table tr) {
-	position: relative;
 }
 </style>
