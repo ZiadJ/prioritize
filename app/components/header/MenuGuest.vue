@@ -36,10 +36,7 @@
             v-if="!$colorMode.unknown && !$colorMode.forced">
             <Icon :name="determianteIconMode" :class="determianteIconColorMode"></Icon>
           </button>
-          <template v-if="status === 'unauthenticated'">
-            <Button size="small" label="Sign In" as="router-link" to="/login" />
-            <Button size="small" label="Sign Up" as="router-link" to="/register" />
-          </template>
+          <Button v-if="status === 'unauthenticated'" size="small" label="Sign in" as="router-link" to="/login" />
           <Button v-else size="small" label="My account" as="router-link" to="/dash" />
         </div>
       </template>

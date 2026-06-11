@@ -1,6 +1,10 @@
 <template>
-  <div class="">
-    Landing page
+  <div class="flex items-center justify-center min-h-screen" style="padding-bottom: 20vh;">
+    <p class="w-[400px] text-center">
+      A collaborative prioritization platform where communities can submit and organize requests granularly, using expert-based feedback to determine the best course of action. 
+    </p>
+    
+    
     <!-- <Timeline :value="events" align="alternate" class="customized-timeline">
       <template #marker="slotProps">
         <span
