@@ -3,14 +3,13 @@
 import { useRoute } from 'vue-router'
 
 definePageMeta({
-	auth: {
-		unauthenticatedOnly: true,
-		navigateAuthenticatedTo: '/dash/requests',
-	},
+	auth: false,
 });
 
 const route = useRoute()
 const { status, signIn } = useAuth();
+
+const redirectUrl = computed(() => (route.query.redirect as string) || '/dash/requests')
 
 const serverError = ref<string | null>(null);
 const processing = ref(false);
@@ -40,8 +39,7 @@ const resolver = ({ values }: { values: Record<string, any> }) => {
 		e.values.remember = e.values.remember ?? false;
 
 		try {
-			const callbackUrl = (route.query.callbackUrl as string) || '/dash/requests'
-			await signIn(e.values, { callbackUrl })
+			await signIn(e.values, { callbackUrl: redirectUrl.value })
 		} catch (thrown: any) {
 			serverError.value = thrown.response?._data?.message || thrown.message || 'Sign in failed';
 		} finally {
@@ -49,12 +47,11 @@ const resolver = ({ values }: { values: Record<string, any> }) => {
 		}
 	};
 
-onBeforeMount(() => {
-	if (status.value === 'authenticated') {
-		const callbackUrl = (route.query.callbackUrl as string) || '/dash/requests'
-		navigateTo(callbackUrl)
+watch(status, (newStatus) => {
+	if (newStatus === 'authenticated') {
+		navigateTo(redirectUrl.value)
 	}
-});
+}, { immediate: true })
 </script>
 
 <template>

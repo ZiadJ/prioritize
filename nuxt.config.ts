@@ -185,6 +185,7 @@ export default defineNuxtConfig({
 		},
 		globalAppMiddleware: {
 			isEnabled: true,
+			addDefaultCallbackUrl: true,
 		},
 	},
 	app: {
