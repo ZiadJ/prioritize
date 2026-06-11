@@ -32,9 +32,9 @@ const requests = ref<Request[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const searchQuery = ref('')
-const selectedScope = ref<
-	'community' | 'regional' | 'local' | 'global'
->('global')
+const selectedScope = ref<'community' | 'regional' | 'local' | 'global'>(
+	'global',
+)
 const selectedRequests = ref<Request[]>([])
 const sortField = ref<string>('totalPriority')
 const sortOrder = ref<number>(-1) // -1 for desc, 1 for asc
@@ -109,7 +109,8 @@ const fetchRequests = async () => {
 			scope: selectedScope.value,
 			sortBy: sortField.value,
 			sortOrder: sortOrder.value,
-			tagIds: selectedTagIds.value.length > 0 ? selectedTagIds.value : undefined,
+			tagIds:
+				selectedTagIds.value.length > 0 ? selectedTagIds.value : undefined,
 			expertiseId: selectedExpertiseId.value ?? undefined,
 		})
 		requests.value = result || []
@@ -307,7 +308,7 @@ const onSort = (event: DataTableSortEvent) => {
 	fetchRequests()
 }
 
-	onMounted(async () => {
+onMounted(async () => {
 	fetchRequests()
 	try {
 		allTags.value = (await $trpcClient.requests.listTags.query()) || []
@@ -316,9 +317,15 @@ const onSort = (event: DataTableSortEvent) => {
 		console.error('Failed to fetch tags:', error.message || error)
 	}
 	try {
-		allExpertise.value = (await $trpcClient.requests.listExpertise.query()) || []
+		allExpertise.value =
+			(await $trpcClient.requests.listExpertise.query()) || []
 	} catch (error: any) {
-		toast.add('error', 'Error', error.message || 'Failed to load expertise', 5000)
+		toast.add(
+			'error',
+			'Error',
+			error.message || 'Failed to load expertise',
+			5000,
+		)
 		console.error('Failed to fetch expertise:', error.message || error)
 	}
 })
@@ -341,13 +348,6 @@ const onSort = (event: DataTableSortEvent) => {
 						@input="debouncedSearch"
 						class="w-full" />
 				</IconField>
-				<Dropdown
-					v-model="selectedScope"
-					:options="scopeOptions"
-					optionLabel="label"
-					optionValue="value"
-					@change="fetchRequests"
-					class="w-48" />
 				<MultiSelect
 					v-model="selectedTagIds"
 					:options="allTags"
@@ -367,11 +367,17 @@ const onSort = (event: DataTableSortEvent) => {
 					@change="fetchRequests"
 					showClear
 					filter />
+				<Dropdown
+					v-model="selectedScope"
+					:options="scopeOptions"
+					optionLabel="label"
+					optionValue="value"
+					@change="fetchRequests" />
 				<Button
 					label="New Request"
 					class="ml-2"
 					icon="pi pi-plus"
-					@click="openNewDialog" />			
+					@click="openNewDialog" />
 			</div>
 		</div>
 
@@ -398,14 +404,14 @@ const onSort = (event: DataTableSortEvent) => {
 			</Column>			 -->
 			<Column field="title" header="Title" sortable>
 				<template #body="{ data }">
-					<a :href="`/dash/request/${data.id}`" class="underline">{{ data.title }}</a>
+					<a :href="`/dash/request/${data.id}`" class="underline">{{
+						data.title
+					}}</a>
 				</template>
 			</Column>
 			<Column class="!p-0">
-				<template #body="{ data }">
-				
-				</template>
-			</Column>			
+				<template #body="{ data }"> </template>
+			</Column>
 			<Column field="totalPriority" header="Priority" sortable>
 				<template #body="{ data }">
 					<span class="">{{ data.totalPriority }}</span>
