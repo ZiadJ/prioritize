@@ -168,7 +168,7 @@ async function setValue(value: number) {
 		</div>
 	</Popup>
 
-	<div v-bind="$attrs" @click="toggle" class="relative h-[80px]">
+	<div v-bind="$attrs" @click="hasExpertise && toggle($event)" class="relative h-[80px]" :class="{ 'pointer-events-none opacity-60': !hasExpertise }">
 		<Knob
 			rangeColor="#8882"
 			:valueColor="
