@@ -58,6 +58,14 @@ function filterTreeByExpertise(nodes: TreeNodeEx[], expertiseId: number | null):
 		})
 }
 
+const usedExpertiseOptions = computed(() => {
+	const usedIds = new Set<number>()
+	utils.tree.traverseTreeUntil(rootNodes.value, (node: TreeNodeEx) => {
+		if (node.data?.expertise?.id) usedIds.add(node.data.expertise.id)
+	})
+	return expertiseOptions.filter((e: any) => usedIds.has(e.id))
+})
+
 const filteredRootNodes = computed(() => filterTreeByExpertise(rootNodes.value, selectedExpertiseFilter.value))
 const selectedNode = ref<TreeNodeEx>()
 const selectedNodes = ref<TreeNodeEx[]>([])
@@ -235,7 +243,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 						<Dropdown
 							v-if="rootNodes.length"
 							v-model="selectedExpertiseFilter"
-							:options="expertiseOptions"
+							:options="usedExpertiseOptions"
 							optionLabel="title"
 							optionValue="id"
 							placeholder="All Expertise"
