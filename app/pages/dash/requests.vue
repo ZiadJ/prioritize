@@ -355,7 +355,6 @@ const onSort = (event: DataTableSortEvent) => {
 					optionValue="id"
 					placeholder="Filter by tag"
 					@change="fetchRequests"
-					class="w-64"
 					:showToggleAll="false"
 					filter
 					display="chip" />
@@ -366,7 +365,6 @@ const onSort = (event: DataTableSortEvent) => {
 					optionValue="id"
 					placeholder="Filter by expertise"
 					@change="fetchRequests"
-					class="w-64"
 					showClear
 					filter />
 				<Button
