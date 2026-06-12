@@ -32,8 +32,8 @@ const requests = ref<Request[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const searchQuery = ref('')
-const selectedScope = ref<'community' | 'regional' | 'local' | 'global'>(
-	'global',
+const selectedScope = ref<'community' | 'regional' | 'local' | undefined>(
+	undefined,
 )
 const selectedRequests = ref<Request[]>([])
 const sortField = ref<string>('totalPriority')
@@ -53,12 +53,10 @@ const selectedTagIds = ref<number[]>([])
 const allExpertise = ref<{ id: number; title: string }[]>([])
 const selectedExpertiseId = ref<number | null>(null)
 
-// Scope options for dropdown
 const scopeOptions = [
-	{ label: 'Global', value: 'global' },
 	{ label: 'Local', value: 'local' },
 	{ label: 'Regional', value: 'regional' },
-	{ label: 'My Community', value: 'community' },
+	{ label: 'Community', value: 'community' },
 ]
 
 const totalRequestedQuantity = computed(() => {
@@ -106,7 +104,7 @@ const fetchRequests = async () => {
 	try {
 		const result = await $trpcClient.requests.list.query({
 			search: searchQuery.value || undefined,
-			scope: selectedScope.value,
+			scope: selectedScope.value ?? undefined,
 			sortBy: sortField.value,
 			sortOrder: sortOrder.value,
 			tagIds:
@@ -334,362 +332,361 @@ onMounted(async () => {
 <template>
 	<!-- <pre>{{ selectedRequests }}</pre> -->
 	<div class="requests-page">
-		<div
-			class="header-actions flex justify-content-between align-items-center m-6">
-			<!-- <h2 class="text-xl font-semibold m-0">Requests</h2> -->
-			<div class="flex gap-2">
-				<IconField>
-					<InputIcon>
-						<i class="pi pi-search" />
-					</InputIcon>
-					<InputText
-						v-model="searchQuery"
-						placeholder="Search requests..."
-						@input="debouncedSearch"
-						class="w-full" />
-				</IconField>
-				<MultiSelect
-					v-model="selectedTagIds"
-					:options="allTags"
-					optionLabel="name"
-					optionValue="id"
-					placeholder="Filter by tag"
-					@change="fetchRequests"
-					:showToggleAll="false"
-					filter
-					display="chip" />
-				<Dropdown
-					v-model="selectedExpertiseId"
-					:options="allExpertise"
-					optionLabel="title"
-					optionValue="id"
-					placeholder="Filter by expertise"
-					@change="fetchRequests"
-					showClear
-					filter />
+		<div class="flex justify-content-between align-items-center m-6">
+			<InputGroup class="w-auto">
+				<InputGroupAddon>
+					<i class="pi pi-search" />
+				</InputGroupAddon>
+				<InputText
+					v-model="searchQuery"
+					placeholder="Search requests..."
+					@input="debouncedSearch" />
 				<Dropdown
 					v-model="selectedScope"
 					:options="scopeOptions"
 					optionLabel="label"
 					optionValue="value"
-					@change="fetchRequests" />
-				<Button
-					label="New Request"
-					class="ml-2"
-					icon="pi pi-plus"
-					@click="openNewDialog" />
-			</div>
+					placeholder="by region"
+					@change="fetchRequests"
+					showClear />
+				<Dropdown
+					v-model="selectedExpertiseId"
+					:options="allExpertise"
+					optionLabel="title"
+					optionValue="id"
+					placeholder="by expertise"
+					@change="fetchRequests"
+					showClear
+					filter
+					class="w-40" />
+				<MultiSelect
+					v-model="selectedTagIds"
+					:options="allTags"
+					optionLabel="name"
+					optionValue="id"
+					placeholder="by tags"
+					@change="fetchRequests"
+					:showToggleAll="false"
+					filter
+					display="chip"
+					class="w-40" />
+			</InputGroup>
+			<Button
+				label="New Request"
+				class="ml-2"
+				icon="pi pi-plus"
+				@click="openNewDialog" />
 		</div>
+	</div>
 
-		<DataTable
-			:value="requests"
-			:loading="loading"
-			:paginator="true"
-			:rows="25"
-			dataKey="id"
-			:rowHover="true"
-			resizableColumns
-			:sortField="sortField"
-			:sortOrder="sortOrder"
-			@sort="onSort">
-			stripedRows
-			<!-- v-model:selection="selectedRequests"
+	<DataTable
+		:value="requests"
+		:loading="loading"
+		:paginator="true"
+		:rows="25"
+		dataKey="id"
+		:rowHover="true"
+		resizableColumns
+		:sortField="sortField"
+		:sortOrder="sortOrder"
+		@sort="onSort"
+		stripedRows>
+		<!-- v-model:selection="selectedRequests"
 			selectionMode="multiple" -->
-			<!-- <Column selectionMode="multiple" headerStyle="width: 3rem"></Column> -->
-			<!-- <Column header="Essential">
+		<!-- <Column selectionMode="multiple" headerStyle="width: 3rem"></Column> -->
+		<!-- <Column header="Essential">
 				<template #body="{ data }">
 					<Checkbox v-if="data.orders?.[0]" :modelValue="data.orders[0].isBasicNeed" :binary="true" disabled />
 					<span v-else>-</span>
 				</template>
 			</Column>			 -->
-			<Column field="title" header="Title" sortable>
-				<template #body="{ data }">
-					<a :href="`/dash/request/${data.id}`" class="underline">{{
-						data.title
-					}}</a>
-				</template>
-			</Column>
-			<Column class="!p-0">
-				<template #body="{ data }"> </template>
-			</Column>
-			<Column field="totalPriority" header="Priority" sortable>
-				<template #body="{ data }">
-					<span class="">{{ data.totalPriority }}</span>
-				</template>
-			</Column>
-			<Column field="communityNode.title" header="Community" sortable>
-				<template #body="{ data }">
-					<span>{{ data.communityNode?.title || '-' }}</span>
-				</template>
-			</Column>
-			<Column field="createdAt" header="Created" sortable>
-				<template #body="{ data }">
-					<span>{{ new Date(data.createdAt).toLocaleDateString() }}</span>
-				</template>
-			</Column>
+		<Column field="title" header="Title" sortable>
+			<template #body="{ data }">
+				<a :href="`/dash/request/${data.id}`" class="underline">{{
+					data.title
+				}}</a>
+			</template>
+		</Column>
+		<Column class="!p-0">
+			<template #body="{ data }"> </template>
+		</Column>
+		<Column field="totalPriority" header="Priority" sortable>
+			<template #body="{ data }">
+				<span class="">{{ data.totalPriority }}</span>
+			</template>
+		</Column>
+		<Column field="communityNode.title" header="Community" sortable>
+			<template #body="{ data }">
+				<span>{{ data.communityNode?.title || '-' }}</span>
+			</template>
+		</Column>
+		<Column field="createdAt" header="Created" sortable>
+			<template #body="{ data }">
+				<span>{{ new Date(data.createdAt).toLocaleDateString() }}</span>
+			</template>
+		</Column>
 
-			<Column field="tags" header="Tags">
-				<template #body="{ data }">
-					<div class="flex flex-wrap gap-1">
-						<Tag
-							class="!px-2 !py-1 !text-xs !font-light"
-							v-for="tag in data.tags"
-							:key="tag.id"
-							:value="tag.name"
-							severity="info" />
-					</div>
-				</template>
-			</Column>
-			<Column
-				field="description"
-				header="Description"
-				style="max-width: 400px"
-				bodyStyle="overflow: hidden">
-				<template #body="{ data }">
-					<span
-						v-tooltip="data.description"
-						class="auto-ellipsis"
-						@mouseenter="checkOverflowAndSetTitle($event, data.description)"
-						>{{ data.description }}</span
-					>
-				</template>
-			</Column>
-			<Column header="Actions" :exportable="false" class="actions-column">
-				<template #body="{ data }">
-					<div class="action-buttons">
-						<Button
-							icon="pi pi-pencil"
-							text
-							rounded
-							severity="success"
-							@click="editRequest(data)"
-							v-tooltip.top="'Edit'" />
-						<Button
-							v-if="
-								session?.user.id === data.ownerId ||
-								data.editors?.some((e: any) => e.id === session?.user.id)
-							"
-							icon="pi pi-trash"
-							text
-							rounded
-							severity="danger"
-							@click="confirmDelete($event, data)"
-							v-tooltip.top="'Delete'" />
-					</div>
-				</template>
-			</Column>
-			<template #empty>
-				<div class="flex justify-content-center align-items-center p-4">
-					<span class="text-zinc-500">No requests found.</span>
+		<Column field="tags" header="Tags">
+			<template #body="{ data }">
+				<div class="flex flex-wrap gap-1">
+					<Tag
+						class="!px-2 !py-1 !text-xs !font-light"
+						v-for="tag in data.tags"
+						:key="tag.id"
+						:value="tag.name"
+						severity="info" />
 				</div>
 			</template>
-		</DataTable>
+		</Column>
+		<Column
+			field="description"
+			header="Description"
+			style="max-width: 400px"
+			bodyStyle="overflow: hidden">
+			<template #body="{ data }">
+				<span
+					v-tooltip.top="data.description"
+					class="auto-ellipsis"
+					@mouseenter="checkOverflowAndSetTitle($event, data.description)"
+					>{{ data.description }}</span
+				>
+			</template>
+		</Column>
+		<Column header="Actions" :exportable="false" class="actions-column">
+			<template #body="{ data }">
+				<div class="action-buttons">
+					<Button
+						icon="pi pi-pencil"
+						text
+						rounded
+						severity="success"
+						@click="editRequest(data)"
+						v-tooltip.top="'Edit'" />
+					<Button
+						v-if="
+							session?.user.id === data.ownerId ||
+							data.editors?.some((e: any) => e.id === session?.user.id)
+						"
+						icon="pi pi-trash"
+						text
+						rounded
+						severity="danger"
+						@click="confirmDelete($event, data)"
+						v-tooltip.top="'Delete'" />
+				</div>
+			</template>
+		</Column>
+		<template #empty>
+			<div class="flex justify-content-center align-items-center p-4">
+				<span class="text-zinc-500">No requests found.</span>
+			</div>
+		</template>
+	</DataTable>
 
-		<Dialog
-			v-model:visible="dialogVisible"
-			:header="
-				dialogMode === 'create'
-					? 'New Request'
-					: isOwner
-						? 'Edit Request'
-						: 'Join Request'
-			"
-			:modal="true"
-			dismissableMask
-			:style="{ width: '500px' }"
-			:breakpoints="{ '960px': '90vw', '640px': '95vw' }"
-			show-effect="fadeIn"
-			hide-effect="fadeOut">
-			<div class="form-content gap-3">
-				<div class="form-field">
-					<label for="title">Title *</label>
-					<InputText
-						id="title"
-						placeholder="A request, issue or decisional question"
-						v-model="formData.title"
-						:disabled="!isOwner"
-						v-bind:autofocus="dialogMode === 'create'" />
-				</div>
-				<div class="form-field">
-					<label for="description">Description</label>
-					<Textarea
-						id="description"
-						placeholder="A brief description of the matter"
-						v-model="formData.description"
-						:disabled="!isOwner"
-						rows="3" />
-				</div>
-				<div v-if="formData.title.endsWith('?')">
-					<div class="flex gap-4">
-						<div
-							v-if="dialogMode !== 'create'"
-							key="join-button"
-							class="form-field flex-1">
-							<label for="quantity">&nbsp;</label>
-							<Button
-								:label="formData.order.quantity ? 'Update' : 'Join'"
-								class="w-full"
-								@click="
-									formData.order.quantity = formData.order.quantity ? 0 : 1
-								" />
-						</div>
-						<div class="form-field flex-1">
-							<label for="priority">Priority Points</label>
-							<InputNumber id="priority" v-model="formData.order.priority" />
-						</div>
-					</div>
-				</div>
-				<div v-if="!formData.title.endsWith('?')" class="flex gap-4">
-					<Transition name="slide-fade" mode="out-in">
-						<div
-							v-if="formData.unitOfMeasure !== UnitOfMeasure.None"
-							key="quantity-input"
-							class="form-field flex-1">
-							<label for="quantity">Quantity</label>
-							<InputNumber
-								id="quantity"
-								v-model="formData.order.quantity"
-								@input="e => (formData.order.quantity = e.value as number)" />
-						</div>
-						<div
-							v-else-if="dialogMode !== 'create'"
-							key="join-button"
-							class="form-field flex-1">
-							<label for="quantity">&nbsp;</label>
-							<Button
-								:label="formData.order.quantity ? 'Joined' : 'Join'"
-								class="w-full"
-								@click="
-									formData.order.quantity = formData.order.quantity ? 0 : 1
-								" />
-						</div>
-					</Transition>
-					<div class="form-field flex-1">
-						<label for="unitOfMeasure">Unit</label>
-						<Dropdown
-							id="unitOfMeasure"
-							v-model="formData.unitOfMeasure"
-							:options="
-								Object.keys(UnitOfMeasure).map(key => ({
-									label: key,
-									value: key as UnitOfMeasure,
-								}))
-							"
-							optionLabel="label"
-							optionValue="value"
-							:disabled="!isOwner"
-							placeholder="Select unit" />
+	<Dialog
+		v-model:visible="dialogVisible"
+		:header="
+			dialogMode === 'create'
+				? 'New Request'
+				: isOwner
+					? 'Edit Request'
+					: 'Join Request'
+		"
+		:modal="true"
+		dismissableMask
+		:style="{ width: '500px' }"
+		:breakpoints="{ '960px': '90vw', '640px': '95vw' }"
+		show-effect="fadeIn"
+		hide-effect="fadeOut">
+		<div class="form-content gap-3">
+			<div class="form-field">
+				<label for="title">Title *</label>
+				<InputText
+					id="title"
+					placeholder="A request, issue or decisional question"
+					v-model="formData.title"
+					:disabled="!isOwner"
+					v-bind:autofocus="dialogMode === 'create'" />
+			</div>
+			<div class="form-field">
+				<label for="description">Description</label>
+				<Textarea
+					id="description"
+					placeholder="A brief description of the matter"
+					v-model="formData.description"
+					:disabled="!isOwner"
+					rows="3" />
+			</div>
+			<div v-if="formData.title.endsWith('?')">
+				<div class="flex gap-4">
+					<div
+						v-if="dialogMode !== 'create'"
+						key="join-button"
+						class="form-field flex-1">
+						<label for="quantity">&nbsp;</label>
+						<Button
+							:label="formData.order.quantity ? 'Update' : 'Join'"
+							class="w-full"
+							@click="
+								formData.order.quantity = formData.order.quantity ? 0 : 1
+							" />
 					</div>
 					<div class="form-field flex-1">
 						<label for="priority">Priority Points</label>
 						<InputNumber id="priority" v-model="formData.order.priority" />
 					</div>
-					<div class="form-field flex-1">
-						<label for="isBasicNeed" class="cursor-pointer">Essential</label>
-						<Checkbox
-							inputId="isBasicNeed"
-							v-model="formData.order.isBasicNeed"
-							:binary="true" />
-					</div>
 				</div>
-				<div v-if="!formData.title.endsWith('?')" class="flex gap-4">
-					<div class="form-field flex-1">
-						<label for="recurrence">Recurrence</label>
-						<Dropdown
-							id="recurrence"
-							v-model="formData.order.recurrencePeriod"
-							:options="[
-								{ label: 'None', value: 0 },
-								{ label: 'Daily', value: 1 },
-								{ label: 'Weekly', value: 7 },
-								{ label: 'Monthly', value: 30 },
-								{ label: 'Quarterly', value: 90 },
-								{ label: 'Semi-annually', value: 180 },
-								{ label: 'Annually', value: 365 },
-							]"
-							optionLabel="label"
-							optionValue="value"
-							placeholder="Select recurrence" />
+			</div>
+			<div v-if="!formData.title.endsWith('?')" class="flex gap-4">
+				<Transition name="slide-fade" mode="out-in">
+					<div
+						v-if="formData.unitOfMeasure !== UnitOfMeasure.None"
+						key="quantity-input"
+						class="form-field flex-1">
+						<label for="quantity">Quantity</label>
+						<InputNumber
+							id="quantity"
+							v-model="formData.order.quantity"
+							@input="e => (formData.order.quantity = e.value as number)" />
 					</div>
-					<div class="form-field flex-1">
-						<label for="dueAt">Due Date</label>
-						<DatePicker
-							id="dueAt"
-							v-model="formData.order.dueAt"
-							dateFormat="mm/dd/yy" />
+					<div
+						v-else-if="dialogMode !== 'create'"
+						key="join-button"
+						class="form-field flex-1">
+						<label for="quantity">&nbsp;</label>
+						<Button
+							:label="formData.order.quantity ? 'Joined' : 'Join'"
+							class="w-full"
+							@click="
+								formData.order.quantity = formData.order.quantity ? 0 : 1
+							" />
 					</div>
-					<div class="form-field flex-1">
-						<label for="estimatedDeliveryAt">Est. Delivery Date</label>
-						<DatePicker
-							id="estimatedDeliveryAt"
-							v-model="formData.order.estimatedDeliveryAt"
-							dateFormat="mm/dd/yy"
-							disabled />
-					</div>
-				</div>
-				<div class="form-field">
-					<label for="tags">Tags</label>
-					<Tags
-						v-model="formData.selectedTags"
-						:tags="allTags"
+				</Transition>
+				<div class="form-field flex-1">
+					<label for="unitOfMeasure">Unit</label>
+					<Dropdown
+						id="unitOfMeasure"
+						v-model="formData.unitOfMeasure"
+						:options="
+							Object.keys(UnitOfMeasure).map(key => ({
+								label: key,
+								value: key as UnitOfMeasure,
+							}))
+						"
+						optionLabel="label"
+						optionValue="value"
 						:disabled="!isOwner"
-						placeholder="Search or create tags" />
+						placeholder="Select unit" />
 				</div>
-				<!-- <div v-if="dialogMode === 'update'" class="form-field">
+				<div class="form-field flex-1">
+					<label for="priority">Priority Points</label>
+					<InputNumber id="priority" v-model="formData.order.priority" />
+				</div>
+				<div class="form-field flex-1">
+					<label for="isBasicNeed" class="cursor-pointer">Essential</label>
+					<Checkbox
+						inputId="isBasicNeed"
+						v-model="formData.order.isBasicNeed"
+						:binary="true" />
+				</div>
+			</div>
+			<div v-if="!formData.title.endsWith('?')" class="flex gap-4">
+				<div class="form-field flex-1">
+					<label for="recurrence">Recurrence</label>
+					<Dropdown
+						id="recurrence"
+						v-model="formData.order.recurrencePeriod"
+						:options="[
+							{ label: 'None', value: 0 },
+							{ label: 'Daily', value: 1 },
+							{ label: 'Weekly', value: 7 },
+							{ label: 'Monthly', value: 30 },
+							{ label: 'Quarterly', value: 90 },
+							{ label: 'Semi-annually', value: 180 },
+							{ label: 'Annually', value: 365 },
+						]"
+						optionLabel="label"
+						optionValue="value"
+						placeholder="Select recurrence" />
+				</div>
+				<div class="form-field flex-1">
+					<label for="dueAt">Due Date</label>
+					<DatePicker
+						id="dueAt"
+						v-model="formData.order.dueAt"
+						dateFormat="mm/dd/yy" />
+				</div>
+				<div class="form-field flex-1">
+					<label for="estimatedDeliveryAt">Est. Delivery Date</label>
+					<DatePicker
+						id="estimatedDeliveryAt"
+						v-model="formData.order.estimatedDeliveryAt"
+						dateFormat="mm/dd/yy"
+						disabled />
+				</div>
+			</div>
+			<div class="form-field">
+				<label for="tags">Tags</label>
+				<Tags
+					v-model="formData.selectedTags"
+					:tags="allTags"
+					:disabled="!isOwner"
+					placeholder="Search or create tags" />
+			</div>
+			<!-- <div v-if="dialogMode === 'update'" class="form-field">
 					<label for="isActive">Status</label>
 					<SelectButton id="isActive" v-model="formData.isActive" :options="[
 						{ label: 'Active', value: true },
 						{ label: 'Inactive', value: false },
 					]" optionLabel="label" optionValue="value" :disabled="!isOwner" />
 				</div> -->
-			</div>
-			<template #footer>
-				<div class="flex justify-content-between gap-2 w-full">
-					<div class="flex-1">
-						<Button
-							v-if="dialogMode !== 'create'"
-							:label="`${currentRequest?.orderCount ?? 0} ${(currentRequest?.orderCount ?? 0) === 1 ? 'request' : 'requests'}${
-								totalRequestedQuantity > 0
-									? ` (${totalRequestedQuantity} ${totalRequestedQuantity === 1 ? 'item' : 'items'} total)`
-									: ''
-							}`"
-							text
-							@click="showOrders" />
-					</div>
-					<div class="flex gap-2">
-						<Button label="Cancel" text @click="dialogVisible = false" />
-						<Button
-							:label="
-								isOwner
-									? dialogMode === 'create'
-										? 'Create'
-										: 'Update'
-									: hasUserOrder
-										? 'Update'
-										: 'Join'
-							"
-							@click="saveRequest"
-							:loading="saving" />
-					</div>
+		</div>
+		<template #footer>
+			<div class="flex justify-content-between gap-2 w-full">
+				<div class="flex-1">
+					<Button
+						v-if="dialogMode !== 'create'"
+						:label="`${currentRequest?.orderCount ?? 0} ${(currentRequest?.orderCount ?? 0) === 1 ? 'request' : 'requests'}${
+							totalRequestedQuantity > 0
+								? ` (${totalRequestedQuantity} ${totalRequestedQuantity === 1 ? 'item' : 'items'} total)`
+								: ''
+						}`"
+						text
+						@click="showOrders" />
 				</div>
-			</template>
-		</Dialog>
+				<div class="flex gap-2">
+					<Button label="Cancel" text @click="dialogVisible = false" />
+					<Button
+						:label="
+							isOwner
+								? dialogMode === 'create'
+									? 'Create'
+									: 'Update'
+								: hasUserOrder
+									? 'Update'
+									: 'Join'
+						"
+						@click="saveRequest"
+						:loading="saving" />
+				</div>
+			</div>
+		</template>
+	</Dialog>
 
-		<Dialog
-			v-model:visible="ordersDialogVisible"
-			:header="`Orders - ${currentRequestTitle}`"
-			:modal="true"
-			dismissableMask
-			:style="{ width: '700px' }"
-			:breakpoints="{ '960px': '90vw', '640px': '95vw' }"
-			show-effect="fadeIn"
-			hide-effect="fadeOut"
-			@update:visible="closeOrdersDialog">
-			<OrdersList
-				:orders="currentRequestOrders"
-				:unitOfMeasure="currentRequest?.unitOfMeasure || UnitOfMeasure.None" />
-		</Dialog>
-	</div>
+	<Dialog
+		v-model:visible="ordersDialogVisible"
+		:header="`Orders - ${currentRequestTitle}`"
+		:modal="true"
+		dismissableMask
+		:style="{ width: '700px' }"
+		:breakpoints="{ '960px': '90vw', '640px': '95vw' }"
+		show-effect="fadeIn"
+		hide-effect="fadeOut"
+		@update:visible="closeOrdersDialog">
+		<OrdersList
+			:orders="currentRequestOrders"
+			:unitOfMeasure="currentRequest?.unitOfMeasure || UnitOfMeasure.None" />
+	</Dialog>
 </template>
 
 <style scoped>
