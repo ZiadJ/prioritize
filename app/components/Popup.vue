@@ -382,17 +382,29 @@ function alignPopup(
 	popup.style.setProperty('--popup-travel-duration', `${travelDuration}ms`)
 	popup.style.setProperty('--popup-travel-ease', `${props.travelEasing}`)
 
-	setTimeout(() => {
-		alignArrow(target, popup, position, newAlignment ?? alignment)
-	}, 0)
+	// ORIGINAL
+	// setTimeout(() => {
+	// 	alignArrow(target, popup, position, newAlignment ?? alignment)
+	// }, 0)
 
-	setTimeout(() => {
-		alignArrow(target, popup, position, newAlignment ?? alignment)
-	}, travelDuration || 100)
+	// setTimeout(() => {
+	// 	alignArrow(target, popup, position, newAlignment ?? alignment)
+	// }, travelDuration || 100)
 
-	setTimeout(() => {
-		alignArrow(target, popup, position, newAlignment ?? alignment)
-	}, travelDuration + 200 || 250)
+	// setTimeout(() => {
+	// 	alignArrow(target, popup, position, newAlignment ?? alignment)
+	// }, travelDuration + 200 || 250)
+
+const resolvedAlignment = newAlignment ?? alignment
+const alignNow = () => alignArrow(target, popup, position, resolvedAlignment)
+
+requestAnimationFrame(() => {
+  alignNow()
+  if (travelDuration) {
+    setTimeout(alignNow, travelDuration)
+  }
+})
+
 
 	// Remove default enter animation class
 	if (!isTopOrBottom) {
@@ -491,30 +503,70 @@ function alignArrow(
 
 	const isTopOrBottom = position === 'top' || position === 'bottom'
 
+// ORIGINAL
+// 	if (isTopOrBottom) {
+// 		const posX =
+// 			!alignment || alignment === 'center' || props.centerArrow
+// 				? `${targRect.left + targRect.width / 2 - popRect.left}px`
+// 				: alignment === 'left'
+// 					? `calc(1.25rem + ${targRect.left - popRect.left}px)`
+// 					: `calc(100% - 1.25rem + ${targRect.right - popRect.right}px)`
+
+// 		popup.style.setProperty('--overlayArrowLeft', `${posX}`)
+
+// 		if (position === 'top') popup.classList.add('p-popover-flipped') // use the default class
+// 	} else {
+// 		const posY =
+// 			!alignment || alignment === 'center' || props.centerArrow
+// 				? `${targRect.top + targRect.height / 2 - popRect.top}px`
+// 				: alignment === 'top'
+// 					? `calc(1.25rem + ${targRect.top - popRect.top}px)`
+// 					: `calc(100% - 1.25rem + ${targRect.bottom - popRect.bottom}px)`
+
+// 		popup.style.setProperty('--overlayArrowTop', `${posY}`)
+
+// 		popup.classList.add(`p-popover-${position}`)
+// 	}
+// }
+
+
 	if (isTopOrBottom) {
-		const posX =
+		const isCentered =
 			!alignment || alignment === 'center' || props.centerArrow
-				? `${targRect.left + targRect.width / 2 - popRect.left}px`
-				: alignment === 'left'
-					? `calc(1.25rem + ${targRect.left - popRect.left}px)`
-					: `calc(100% - 1.25rem + ${targRect.right - popRect.right}px)`
+		const posX = isCentered
+			? (() => {
+					if (props.centerArrow) return '50%'
+					const insetLeft =
+						popRect.left + (popRect.width - popup.offsetWidth) / 2
+					return `${targRect.left + targRect.width / 2 - insetLeft}px`
+				})()
+			: alignment === 'left'
+				? `calc(1.25rem + ${targRect.left - popRect.left}px)`
+				: `calc(100% - 1.25rem + ${targRect.right - popRect.right}px)`
 
 		popup.style.setProperty('--overlayArrowLeft', `${posX}`)
 
-		if (position === 'top') popup.classList.add('p-popover-flipped') // use the default class
+		if (position === 'top') popup.classList.add('p-popover-flipped')
 	} else {
-		const posY =
+		const isCentered =
 			!alignment || alignment === 'center' || props.centerArrow
-				? `${targRect.top + targRect.height / 2 - popRect.top}px`
-				: alignment === 'top'
-					? `calc(1.25rem + ${targRect.top - popRect.top}px)`
-					: `calc(100% - 1.25rem + ${targRect.bottom - popRect.bottom}px)`
+		const posY = isCentered
+			? (() => {
+					if (props.centerArrow) return '50%'
+					const insetTop =
+						popRect.top + (popRect.height - popup.offsetHeight) / 2
+					return `${targRect.top + targRect.height / 2 - insetTop}px`
+				})()
+			: alignment === 'top'
+				? `calc(1.25rem + ${targRect.top - popRect.top}px)`
+				: `calc(100% - 1.25rem + ${targRect.bottom - popRect.bottom}px)`
 
 		popup.style.setProperty('--overlayArrowTop', `${posY}`)
 
 		popup.classList.add(`p-popover-${position}`)
 	}
 }
+
 
 function realign(
 	delay = 0,
