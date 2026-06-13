@@ -429,7 +429,7 @@ async function main() {
 		},
 	})
 
-	console.log('Creating request...')
+	console.log('Creating requests...')
 
 	// --- RequestNode tree ---
 
