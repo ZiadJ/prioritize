@@ -5,7 +5,6 @@ import { createTreeNode } from '~~/lib/tree'
 import { RequestNodeSchema } from '~~/prisma/generated/zod/schemas/models/RequestNode.schema'
 
 const createInput = RequestNodeSchema.pick({
-	isActive: true,
 	title: true,
 	description: true,
 	parentId: true,

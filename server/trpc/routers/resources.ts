@@ -6,7 +6,6 @@ import { ResourceSchema } from '~~/prisma/generated/zod/schemas/models/Resource.
 const createInput = ResourceSchema.pick({
 	title: true,
 	description: true,
-	isActive: true,
 	type: true,
 	unitOfMeasure: true,
 	quantityAvailable: true,

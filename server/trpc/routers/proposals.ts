@@ -6,7 +6,6 @@ import { ProposalSchema } from '~~/prisma/generated/zod/schemas/models/Proposal.
 const createInput = ProposalSchema.pick({
 	title: true,
 	description: true,
-	isActive: true,
 	isDirty: true,
 	isComplete: true,
 	stepCount: true,

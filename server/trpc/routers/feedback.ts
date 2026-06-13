@@ -17,7 +17,7 @@ export const feedbackRouter = router({
 			if (rating === 0) {
 				const where: Prisma.FeedbackWhereInput = {
 					userId: ctx.user!.id,
-					requestNodeId: requestNodeId ?? null,per
+					requestNodeId: requestNodeId ?? null,
 					proposalId: proposalId ?? null,
 				}
 				const existing = await prisma.feedback.findFirst({ where })

@@ -25,7 +25,6 @@ async function updateRequestTotals(requestId: number) {
 }
 
 export const createInput = RequestSchema.pick({
-	isActive: true,
 	title: true,
 	description: true,
 	parentId: true,
@@ -204,9 +203,8 @@ export const requestsRouter = router({
 			}
 
 			try {
-				const node = await createTreeNode(prisma.request, {
+			const node = await createTreeNode(prisma.request, {
 					...data,
-					isActive: true,
 					parentId,
 					communityId: ctx.user!.communityId,
 					countryId: ctx.user!.countryId,
