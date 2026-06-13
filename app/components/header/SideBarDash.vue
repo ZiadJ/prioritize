@@ -31,5 +31,6 @@ const items = ref([
 	// { label: 'Profile', icon: 'pi pi-user', to: '/dash/profile' },
 	{ label: 'Users', icon: 'pi pi-users', to: '/dash/users' },
 	{ label: 'Requests', icon: 'pi pi-wave-pulse', to: '/dash/requests' },
+	{ label: 'Expertise', icon: 'pi pi-graduation-cap', to: '/dash/expertise' },
 ])
 </script>
