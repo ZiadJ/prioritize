@@ -162,6 +162,9 @@ export function useRequestNodes(
 		const siblingNode = pendingInsertAfter.value
 		const tempKey = `temp_${Date.now()}`
 
+		// Save form data so we can re-open the form on failure for retry
+		const savedFormData = { ...formData.value }
+
 		const newNode: TreeNodeEx = {
 			key: tempKey,
 			data: {
@@ -216,6 +219,7 @@ export function useRequestNodes(
 
 			toast.add('Node created', title.trim())
 		} catch (e: any) {
+			// Restore nodes by removing the temp node
 			const parentArray = getParentArray(rootNodes.value, newNode)
 			const idx = parentArray.findIndex(
 				(n: TreeNodeEx) => n.key === newNode.key,
@@ -223,6 +227,10 @@ export function useRequestNodes(
 			if (idx !== -1) parentArray.splice(idx, 1)
 			delete selectedKeys.value[tempKey]
 			toast.add('Failed to create node', e.message, 'error')
+
+			// Re-open the creation form with the original data so the user can retry
+			formData.value = savedFormData
+			formDialogVisible.value = true
 		} finally {
 			formSaving.value = false
 		}

@@ -99,6 +99,7 @@ const {
 	renameProposal,
 	saveProposalEdit,
 	onColumnVisibilityToggle,
+	refreshNetValues,
 } = useProposalColumns(
 	Number(route.params.id),
 	request?.proposals as Proposal[] ?? [],
@@ -364,7 +365,8 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							:proposalId="null"
 							:userId="session?.user.id!"
 							:max="3"
-							parentSelector="td" />
+							parentSelector="td"
+							@change="refreshNetValues" />
 					</div>
 				</template>
 			</Column>
@@ -462,8 +464,13 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 						</div>
 					</div>						
 					<span v-if="col.isLoading" class="pi pi-spin pi-spinner text-xs ml-1" />
+					<span
+						class="absolute bottom-1 right-1 w-[1.25rem] h-[1.25rem] rounded-full bg-primary-500 text-white text-[0.6rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+						v-tooltip.left="'Net Value: ' + (col.netValue ?? 0)">
+						{{ col.netValue ?? 0 }}
+					</span>
 					<Button
-						v-else
+						v-if="!col.isLoading"
 						icon="pi pi-times"
 						class="delete-proposal-btn absolute top-1 right-1 !w-[1rem] !h-[1rem] opacity-0 group-hover:opacity-100 transition-opacity duration-150"
 						severity="danger"
@@ -483,7 +490,8 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							:userId="session?.user.id!"
 							:max="3"
 							:expertiseNodeId="node.data.expertise?.id"
-							parentSelector="td" />
+							parentSelector="td"
+							@change="refreshNetValues" />
 					</div>
 				</template>
 			</Column>
