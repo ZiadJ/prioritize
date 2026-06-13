@@ -34,15 +34,22 @@
 				<Textarea id="bio" v-model="form.bio" rows="3" autoResize />
 			</div>
 
-			<div class="form-field">
+			<!-- <div class="form-field">
 				<label for="picture">Picture URL</label>
-				<InputText id="picture" v-model="form.picture" placeholder="https://..." />
-			</div>
+				<InputText
+					id="picture"
+					v-model="form.picture"
+					placeholder="https://..." />
+			</div> -->
 
 			<div class="grid grid-cols-2 gap-4">
 				<div class="form-field">
 					<label for="dateOfBirth">Date of Birth</label>
-					<DatePicker id="dateOfBirth" v-model="form.dateOfBirth" showIcon dateFormat="yy-mm-dd" />
+					<DatePicker
+						id="dateOfBirth"
+						v-model="form.dateOfBirth"
+						showIcon
+						dateFormat="yy-mm-dd" />
 				</div>
 				<div class="form-field">
 					<label for="role">Role</label>
@@ -61,8 +68,7 @@
 					placeholder="Select country"
 					showClear
 					filter
-					class="w-full"
-				/>
+					class="w-full" />
 			</div>
 
 			<div class="form-field">
@@ -75,25 +81,28 @@
 					filter
 					placeholder="Select expertise"
 					:maxSelectedLabels="5"
-					class="w-full"
-				/>
+					class="w-full" />
 			</div>
 
 			<div class="flex justify-end mt-4">
-				<Button type="submit" label="Save Profile" :loading="saving" icon="pi pi-check" />
+				<Button
+					type="submit"
+					label="Save Profile"
+					:loading="saving"
+					icon="pi pi-check" />
 			</div>
 		</form>
 	</div>
 </template>
 
 <script lang="ts" setup>
-const { data: session } = useAuth();
-const toast = useToast();
+const { data: session } = useAuth()
+const toast = usePausableToast()
 
-const pageLoading = ref(true);
-const saving = ref(false);
-const expertiseOptions = ref<{ id: number; title: string }[]>([]);
-const countries = ref<{ id: number; name: string }[]>([]);
+const pageLoading = ref(true)
+const saving = ref(false)
+const expertiseOptions = ref<{ id: number; title: string }[]>([])
+const countries = ref<{ id: number; name: string }[]>([])
 
 const form = reactive({
 	firstname: '',
@@ -106,40 +115,42 @@ const form = reactive({
 	role: '',
 	countryId: null as number | null,
 	expertiseIds: [] as number[],
-});
+})
 
 onMounted(async () => {
 	try {
 		const [profileRes, expertiseRes] = await Promise.all([
 			$fetch('/api/profile'),
 			$fetch('/api/expertise'),
-		]);
+		])
 
-		const user = (profileRes as any).user;
-		form.firstname = user.firstname ?? '';
-		form.lastname = user.lastname ?? '';
-		form.username = user.username ?? '';
-		form.email = user.email ?? '';
-		form.bio = user.bio ?? '';
-		form.picture = user.picture ?? null;
-		form.dateOfBirth = user.dateOfBirth ? new Date(user.dateOfBirth) : null;
-		form.role = user.role ?? '';
-		form.countryId = user.countryId ?? null;
-		form.expertiseIds = (user.expertise ?? []).map((e: any) => e.id);
+		const user = (profileRes as any).user
+		form.firstname = user.firstname ?? ''
+		form.lastname = user.lastname ?? ''
+		form.username = user.username ?? ''
+		form.email = user.email ?? ''
+		form.bio = user.bio ?? ''
+		form.picture = user.picture ?? null
+		form.dateOfBirth = user.dateOfBirth ? new Date(user.dateOfBirth) : null
+		form.role = user.role ?? ''
+		form.countryId = user.countryId ?? null
+		form.expertiseIds = (user.expertise ?? []).map((e: any) => e.id)
 
-		expertiseOptions.value = (expertiseRes as any).expertise ?? [];
+		expertiseOptions.value = (expertiseRes as any).expertise ?? []
 
-		const countriesRes = await $fetch('/api/countries').catch(() => ({ countries: [] }));
-		countries.value = (countriesRes as any).countries ?? [];
+		const countriesRes = await $fetch('/api/countries').catch(() => ({
+			countries: [],
+		}))
+		countries.value = (countriesRes as any).countries ?? []
 	} catch (error: any) {
-		toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load profile.', life: 4000 });
+		toast.add('Error', 'Failed to load profile.')
 	} finally {
-		pageLoading.value = false;
+		pageLoading.value = false
 	}
-});
+})
 
 const save = async () => {
-	saving.value = true;
+	saving.value = true
 	try {
 		const payload: any = {
 			firstname: form.firstname,
@@ -148,22 +159,24 @@ const save = async () => {
 			email: form.email,
 			bio: form.bio,
 			picture: form.picture,
-			dateOfBirth: form.dateOfBirth ? form.dateOfBirth.toISOString().split('T')[0] : null,
+			dateOfBirth: form.dateOfBirth
+				? form.dateOfBirth.toISOString().split('T')[0]
+				: null,
 			role: form.role,
 			countryId: form.countryId,
 			expertiseIds: form.expertiseIds,
-		};
+		}
 
 		await $fetch('/api/profile', {
 			method: 'PUT',
 			body: payload,
-		});
+		})
 
-		toast.add({ severity: 'success', summary: 'Saved', detail: 'Profile updated successfully.', life: 3000 });
+		toast.add('Saved', 'Profile updated successfully.')
 	} catch (error: any) {
-		toast.add({ severity: 'error', summary: 'Error', detail: error.data?.message || 'Failed to save profile.', life: 4000 });
+		toast.add('Error', error.data?.message || 'Failed to save profile.')
 	} finally {
-		saving.value = false;
+		saving.value = false
 	}
-};
+}
 </script>

@@ -23,7 +23,10 @@ export interface ProposalColumn extends ColumnProps {
 	isActive?: boolean
 }
 
-export function useProposalColumns(requestId: number, initialProposals: Proposal[] = []) {
+export function useProposalColumns(
+	requestId: number,
+	initialProposals: Proposal[] = [],
+) {
 	const { $trpcClient } = useNuxtApp()
 	const toast = usePausableToast()
 	const confirm = useConfirm()
@@ -37,7 +40,9 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 	const formData = ref({ title: '', description: '' })
 
 	function syncVisibleColumns() {
-		visibleColumns.value = columns.value.filter(c => visibleKeys.value.has(c.columnKey!))
+		visibleColumns.value = columns.value.filter(c =>
+			visibleKeys.value.has(c.columnKey!),
+		)
 	}
 
 	function init(proposals: Proposal[]) {
@@ -51,7 +56,7 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 	const editingColumn = ref<ProposalColumn | null>(null)
 	const isEditMode = computed(() => !!editingColumn.value)
 
-	watch(formDialogVisible, (visible) => {
+	watch(formDialogVisible, visible => {
 		if (!visible) editingColumn.value = null
 	})
 
@@ -95,12 +100,12 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 		formDialogVisible.value = false
 
 		try {
-			const result = await $trpcClient.proposals.create.mutate({
+			const result = (await $trpcClient.proposals.create.mutate({
 				title,
 				description,
 				requestId,
 				...PROPOSAL_DEFAULTS,
-			}) as any
+			})) as any
 
 			const col = mapProposalToColumn(result as Proposal)
 			columns.value[tempIdx] = col
@@ -108,12 +113,12 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 			visibleKeys.value.add(col.columnKey!)
 			syncVisibleColumns()
 
-			toast.show('Proposal created', result.title)
+			toast.add('Proposal created', result.title)
 		} catch (e: any) {
 			columns.value.splice(tempIdx, 1)
 			visibleKeys.value.delete(tempKey)
 			syncVisibleColumns()
-			toast.show('Failed to create proposal', e.message, 'error')
+			toast.add('Failed to create proposal', e.message, 'error')
 		} finally {
 			formSaving.value = false
 		}
@@ -132,7 +137,7 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 					columns.value.splice(originalIdx, 1)
 					visibleKeys.value.delete(col.columnKey!)
 					syncVisibleColumns()
-					toast.show('Proposal removed')
+					toast.add('Proposal removed')
 					return
 				}
 
@@ -142,18 +147,21 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 
 				try {
 					await $trpcClient.proposals.delete.mutate({ id: col.id })
-					toast.show('Proposal deleted', col.header)
+					toast.add('Proposal deleted', col.header)
 				} catch (e: any) {
 					columns.value.splice(originalIdx, 0, col)
 					visibleKeys.value.add(col.columnKey!)
 					syncVisibleColumns()
-					toast.show('Failed to delete proposal', e.message, 'error')
+					toast.add('Failed to delete proposal', e.message, 'error')
 				}
 			},
 		})
 	}
 
-	const updateProposal = async (col: ProposalColumn, updates: Partial<Pick<ProposalColumn, 'header' | 'description'>>) => {
+	const updateProposal = async (
+		col: ProposalColumn,
+		updates: Partial<Pick<ProposalColumn, 'header' | 'description'>>,
+	) => {
 		if (!col.id) return
 
 		const previous = { header: col.header, description: col.description }
@@ -168,16 +176,19 @@ export function useProposalColumns(requestId: number, initialProposals: Proposal
 				isActive: col.isActive ?? true,
 				requestId,
 			})
-			toast.show('Proposal updated', col.header)
+			toast.add('Proposal updated', col.header)
 		} catch (e: any) {
 			Object.assign(col, previous)
-			toast.show('Failed to update proposal', e.message, 'error')
+			toast.add('Failed to update proposal', e.message, 'error')
 		}
 	}
 
 	const renameProposal = (col: ProposalColumn) => {
 		editingColumn.value = col
-		formData.value = { title: col.header || '', description: col.description || '' }
+		formData.value = {
+			title: col.header || '',
+			description: col.description || '',
+		}
 		formDialogVisible.value = true
 	}
 

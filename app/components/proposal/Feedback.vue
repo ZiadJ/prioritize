@@ -18,7 +18,7 @@ const {
 	proposalId,
 	requestNodeId,
 	parentSelector,
-	expertiseNodeId
+	expertiseNodeId,
 } = defineProps<{
 	max: number
 	proposalId: number | null
@@ -37,8 +37,10 @@ const emit = defineEmits<{
 const op = useTemplateRef('op')
 const { $trpcClient } = useNuxtApp()
 
-const hasExpertise = computed(() =>
-	!expertiseNodeId || session.value?.user?.expertiseIds?.includes(expertiseNodeId),
+const hasExpertise = computed(
+	() =>
+		!expertiseNodeId ||
+		session.value?.user?.expertiseIds?.includes(expertiseNodeId),
 )
 
 const range = computed(() => {
@@ -125,16 +127,16 @@ async function setValue(value: number) {
 
 		emit('change', value)
 		if (value !== 0) {
-			toast.show(`Rating ${value} successfully saved`)
+			toast.add(`Rating ${value} successfully saved`)
 		} else {
-			toast.show(`Rating ${previous[index]?.rating} removed`)
+			toast.add(`Rating ${previous[index]?.rating} removed`)
 		}
 	} catch (e: any) {
 		modelValue.value = previous
 
 		// emit('change', previous[index]?.rating ?? 0)
 
-		toast.show(`Failed to save rating ${value}`, e.message, 'error')
+		toast.add(`Failed to save rating ${value}`, e.message, 'error')
 	}
 }
 </script>
@@ -168,7 +170,11 @@ async function setValue(value: number) {
 		</div>
 	</Popup>
 
-	<div v-bind="$attrs" @click="hasExpertise && toggle($event)" class="relative h-[80px]" :class="{ 'pointer-events-none opacity-60': !hasExpertise }">
+	<div
+		v-bind="$attrs"
+		@click="hasExpertise && toggle($event)"
+		class="relative h-[80px]"
+		:class="{ 'pointer-events-none opacity-60': !hasExpertise }">
 		<Knob
 			rangeColor="#8882"
 			:valueColor="

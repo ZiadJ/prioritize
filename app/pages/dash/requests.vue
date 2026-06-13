@@ -115,10 +115,9 @@ const fetchRequests = async () => {
 	} catch (error: any) {
 		console.error('Failed to fetch requests:', error)
 		toast.add(
-			'error',
-			'Error',
+			'Failed to fetch requests',
 			error.message || 'Failed to fetch requests',
-			5000,
+			'error',
 		)
 	} finally {
 		loading.value = false
@@ -187,7 +186,7 @@ const editRequest = async (request: Request) => {
 
 const saveRequest = async () => {
 	if (!formData.value.title) {
-		toast.add('warn', 'Warning', 'Title is required', 3000)
+		toast.add('Warning', 'Title is required')
 		return
 	}
 
@@ -228,19 +227,19 @@ const saveRequest = async () => {
 			}
 
 			await $trpcClient.requests.create.mutate(payload)
-			toast.add('success', 'Success', 'Request created successfully', 3000)
+			toast.add('Success', 'Request created successfully')
 		} else if (dialogMode.value === 'update' && currentRequestId.value) {
 			await $trpcClient.requests.update.mutate({
 				...payload,
 				id: currentRequestId.value,
 			})
-			toast.add('success', 'Success', 'Request updated successfully', 3000)
+			toast.add('Success', 'Request updated successfully')
 		}
 		dialogVisible.value = false
 		fetchRequests()
 	} catch (error: any) {
 		console.error('Failed to save request:', error)
-		toast.add('error', 'Error', error.message || 'Failed to save request', 5000)
+		toast.add('Error', error.message || 'Failed to save request')
 	} finally {
 		saving.value = false
 	}
@@ -264,16 +263,11 @@ const confirmDelete = (event: MouseEvent, request: Request) => {
 		accept: async () => {
 			try {
 				await $trpcClient.requests.delete.mutate({ id: request.id })
-				toast.add('success', 'Success', 'Request deleted successfully', 3000)
+				toast.add('Success', 'Request deleted successfully')
 				fetchRequests()
 			} catch (error: any) {
 				console.error('Failed to delete request:', error)
-				toast.add(
-					'error',
-					'Error',
-					error.message || 'Failed to delete request',
-					5000,
-				)
+				toast.add('Error', error.message || 'Failed to delete request')
 			}
 		},
 	})
@@ -311,19 +305,14 @@ onMounted(async () => {
 	try {
 		allTags.value = (await $trpcClient.requests.listTags.query()) || []
 	} catch (error: any) {
-		toast.add('error', 'Error', error.message || 'Failed to load tags', 5000)
+		toast.add('Error', error.message || 'Failed to load tags')
 		console.error('Failed to fetch tags:', error.message || error)
 	}
 	try {
 		allExpertise.value =
 			(await $trpcClient.requests.listExpertise.query()) || []
 	} catch (error: any) {
-		toast.add(
-			'error',
-			'Error',
-			error.message || 'Failed to load expertise',
-			5000,
-		)
+		toast.add('Error', error.message || 'Failed to load expertise')
 		console.error('Failed to fetch expertise:', error.message || error)
 	}
 })

@@ -43,12 +43,7 @@ const fetchExpertise = async () => {
 		expertiseNodes.value = result || []
 	} catch (error: any) {
 		console.error('Failed to fetch expertise:', error)
-		toast.add(
-			'error',
-			'Error',
-			error.message || 'Failed to fetch expertise',
-			5000,
-		)
+		toast.add('Error', error.message || 'Failed to fetch expertise')
 	} finally {
 		loading.value = false
 	}
@@ -86,7 +81,7 @@ const editExpertise = (expertise: ExpertiseNode) => {
 
 const saveExpertise = async () => {
 	if (!formData.value.title) {
-		toast.add('warn', 'Warning', 'Title is required', 3000)
+		toast.add('Warning', 'Title is required')
 		return
 	}
 
@@ -101,34 +96,19 @@ const saveExpertise = async () => {
 
 		if (dialogMode.value === 'create') {
 			await $trpcClient.expertise.create.mutate(payload)
-			toast.add(
-				'success',
-				'Success',
-				'Expertise created successfully',
-				3000,
-			)
+			toast.add('Success', 'Expertise created successfully')
 		} else if (dialogMode.value === 'update' && currentExpertiseId.value) {
 			await $trpcClient.expertise.update.mutate({
 				...payload,
 				id: currentExpertiseId.value,
 			})
-			toast.add(
-				'success',
-				'Success',
-				'Expertise updated successfully',
-				3000,
-			)
+			toast.add('Success', 'Expertise updated successfully')
 		}
 		dialogVisible.value = false
 		fetchExpertise()
 	} catch (error: any) {
 		console.error('Failed to save expertise:', error)
-		toast.add(
-			'error',
-			'Error',
-			error.message || 'Failed to save expertise',
-			5000,
-		)
+		toast.add('Error', error.message || 'Failed to save expertise')
 	} finally {
 		saving.value = false
 	}
@@ -154,21 +134,11 @@ const confirmDelete = (event: MouseEvent, expertise: ExpertiseNode) => {
 				await $trpcClient.expertise.delete.mutate({
 					id: expertise.id,
 				})
-				toast.add(
-					'success',
-					'Success',
-					'Expertise deleted successfully',
-					3000,
-				)
+				toast.add('Success', 'Expertise deleted successfully')
 				fetchExpertise()
 			} catch (error: any) {
 				console.error('Failed to delete expertise:', error)
-				toast.add(
-					'error',
-					'Error',
-					error.message || 'Failed to delete expertise',
-					5000,
-				)
+				toast.add('Error', error.message || 'Failed to delete expertise')
 			}
 		},
 	})
@@ -180,7 +150,7 @@ const parentOptions = ref<{ label: string; value: number }[]>([])
 const fetchParentOptions = async () => {
 	try {
 		const result = await $trpcClient.expertise.list.query({})
-		parentOptions.value = (result || []).map((e) => ({
+		parentOptions.value = (result || []).map(e => ({
 			label: e.title,
 			value: e.id,
 		}))
@@ -286,9 +256,7 @@ onMounted(() => {
 
 	<Dialog
 		v-model:visible="dialogVisible"
-		:header="
-			dialogMode === 'create' ? 'New Expertise' : 'Edit Expertise'
-		"
+		:header="dialogMode === 'create' ? 'New Expertise' : 'Edit Expertise'"
 		:modal="true"
 		dismissableMask
 		:style="{ width: '500px' }"

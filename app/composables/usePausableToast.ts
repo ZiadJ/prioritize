@@ -7,22 +7,32 @@ export function usePausableToast() {
 	const toast = useToast()
 
 	function add(
-		severityOrMessage:
-			| 'success'
-			| 'info'
-			| 'warn'
-			| 'error'
-			| ToastMessageOptions,
-		summary?: string,
+		summaryOrMessage: string | 'Warning' | 'Error' | ToastMessageOptions,
 		detail?: string,
+		severity?: 'success' | 'info' | 'warn' | 'error',
 		life?: number,
 	) {
 		let message: ToastMessageOptions
 
-		if (typeof severityOrMessage === 'object') {
-			message = severityOrMessage
+		if (typeof summaryOrMessage === 'object') {
+			message = summaryOrMessage
 		} else {
-			message = { severity: severityOrMessage, summary: summary!, detail, life }
+			message = { summary: summaryOrMessage, detail, severity, life }
+		}
+
+		if (!message.severity) {
+			if (message.summary == 'Success') message.severity = 'success'
+			if (message.summary == 'Error') message.severity = 'error'
+			if (message.summary == 'Warning') message.severity = 'warn'
+		}
+
+		// Set default life to 3000ms if not set and 5000s if severity is error
+		if (!message.life) {
+			if (message.severity === 'error') {
+				message.life = 5000
+			} else {
+				message.life = 3000
+			}
 		}
 
 		if (!message.life) {
@@ -90,15 +100,15 @@ export function usePausableToast() {
 	}
 
 	function show(
-		title: string,
-		content: string = '',
+		summary: string,
+		detail: string = '',
 		severity: string = 'success',
 		life: number = 3000,
 	) {
-		toast.add({
-			summary: title,
-			detail: content,
-			severity: severity,
+		add({
+			summary,
+			detail,
+			severity,
 			life,
 		})
 	}

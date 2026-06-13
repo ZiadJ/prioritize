@@ -1,6 +1,9 @@
 import { ref, computed, type Ref } from 'vue'
 import type { TreeNode } from 'primevue/treenode'
-import type { TreeTableSelectionKeys, TreeTableExpandedKeys } from 'primevue/treetable'
+import type {
+	TreeTableSelectionKeys,
+	TreeTableExpandedKeys,
+} from 'primevue/treetable'
 import { utils } from '@/methods/utils'
 
 export interface TreeNodeEx extends TreeNode {
@@ -34,8 +37,10 @@ export function useRequestNodes(
 	}>({ title: '', description: '', expertiseNodeId: null })
 	const editingNode = ref<TreeNodeEx>()
 
-	const isOwner = computed(() =>
-		menuTargetNode.value?.data?.ownerId != null && menuTargetNode.value.data.ownerId === userId.value,
+	const isOwner = computed(
+		() =>
+			menuTargetNode.value?.data?.ownerId != null &&
+			menuTargetNode.value.data.ownerId === userId.value,
 	)
 
 	const menuItems = computed(() => [
@@ -209,7 +214,7 @@ export function useRequestNodes(
 			selectedKeys.value[String(result.id)] = true
 			rootNodes.value = [...rootNodes.value]
 
-			toast.show('Node created', title.trim())
+			toast.add('Node created', title.trim())
 		} catch (e: any) {
 			const parentArray = getParentArray(rootNodes.value, newNode)
 			const idx = parentArray.findIndex(
@@ -217,7 +222,7 @@ export function useRequestNodes(
 			)
 			if (idx !== -1) parentArray.splice(idx, 1)
 			delete selectedKeys.value[tempKey]
-			toast.show('Failed to create node', e.message, 'error')
+			toast.add('Failed to create node', e.message, 'error')
 		} finally {
 			formSaving.value = false
 		}
@@ -257,10 +262,10 @@ export function useRequestNodes(
 					expertiseNodeId: expertiseNodeId ?? null,
 				})
 			}
-			toast.show('Node updated', title.trim())
+			toast.add('Node updated', title.trim())
 		} catch (e: any) {
 			node.data = previousData
-			toast.show('Failed to update node', e.message, 'error')
+			toast.add('Failed to update node', e.message, 'error')
 		} finally {
 			formSaving.value = false
 		}
@@ -283,13 +288,13 @@ export function useRequestNodes(
 				if (nodeId) {
 					try {
 						await $trpcClient.requestNodes.delete.mutate({ id: nodeId })
-						toast.show('Entry deleted')
+						toast.add('Entry deleted')
 					} catch (e: any) {
 						parentArray.splice(index, 0, node)
-						toast.show('Failed to delete node', e.message, 'error')
+						toast.add('Failed to delete node', e.message, 'error')
 					}
 				} else {
-					toast.show('Entry deleted')
+					toast.add('Entry deleted')
 				}
 			},
 		})
