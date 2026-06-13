@@ -285,9 +285,9 @@ model RevisionNode {
   createdAt  DateTime @default(now())
   isActive   Boolean
 
-  title   String // @unique
+  title       String // @unique
   description String
-  isDirty Boolean? // Client-server-clients sync flag
+  isDirty     Boolean? // Client-server-clients sync flag
   // revisions   Revision[] 
 
   path     String         @unique
@@ -336,7 +336,7 @@ model CognitiveBias {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
   title            String  @unique
   description      String
@@ -350,11 +350,11 @@ model AssignedCognitiveBias {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
-  title      String  @unique
+  title       String  @unique
   description String
-  isResolved Boolean
+  isResolved  Boolean
 
   cognitiveBias   CognitiveBias @relation(fields: [cognitiveBiasId], references: [id], onDelete: Cascade)
   cognitiveBiasId Int
@@ -389,12 +389,12 @@ model ExpertiseNode {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
-  title     String         @unique
-  description String
-  isDirty   Boolean? // Client->server->clients sync flag
-  revisions RevisionNode[]
+  title       String         @unique
+  description String         @default("")
+  isDirty     Boolean? // Client->server->clients sync flag
+  revisions   RevisionNode[]
 
   path     String          @unique
   depth    Int             @default(0)
@@ -404,7 +404,6 @@ model ExpertiseNode {
   children ExpertiseNode[] @relation("Self")
 
   users        User[]
-  interests    Request[]
   effects      Effect[]
   requestNodes RequestNode[]
 
@@ -417,10 +416,10 @@ model Request {
   createdAt  DateTime @default(now())
   isActive   Boolean  @default(true)
 
-  title     String         @unique
+  title       String         @unique
   description String
-  isDirty   Boolean? // Client-server-clients sync flag
-  revisions RevisionNode[]
+  isDirty     Boolean? // Client-server-clients sync flag
+  revisions   RevisionNode[]
 
   // Variant hierarchy for similar requests with different parameters
   path     String    @default("")
@@ -442,7 +441,6 @@ model Request {
   unitOfMeasure UnitOfMeasure
 
   requestNodes RequestNode[]
-  expertise    ExpertiseNode[]
   tags         Tag[]
   effects      Effect[]
   orders       Order[]
@@ -494,12 +492,12 @@ model RequestNode {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
-  title     String         @unique
+  title       String         @unique
   description String
-  isDirty   Boolean? // Client-to-server synched
-  revisions RevisionNode[]
+  isDirty     Boolean? // Client-to-server synched
+  revisions   RevisionNode[]
 
   path     String        @unique
   depth    Int           @default(0)
@@ -550,10 +548,10 @@ model Proposal {
   createdAt  DateTime @default(now())
   isActive   Boolean  @default(true)
 
-  title     String         @unique
+  title       String         @unique
   description String
-  isDirty   Boolean? // Client-server-clients sync flag
-  revisions RevisionNode[]
+  isDirty     Boolean? // Client-server-clients sync flag
+  revisions   RevisionNode[]
 
   // Variants
   parent   Proposal?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
@@ -599,12 +597,12 @@ model StepNode {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
-  title     String         @unique
+  title       String         @unique
   description String
-  isDirty   Boolean? // Client-server-clients sync flag
-  revisions RevisionNode[]
+  isDirty     Boolean? // Client-server-clients sync flag
+  revisions   RevisionNode[]
 
   // Parallel steps
   path     String     @unique
@@ -644,12 +642,12 @@ model StepCost {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
-  title     String         @unique
+  title       String         @unique
   description String
-  isDirty   Boolean? // Client-server-clients sync flag
-  revisions RevisionNode[]
+  isDirty     Boolean? // Client-server-clients sync flag
+  revisions   RevisionNode[]
 
   resource   Resource? @relation(fields: [resourceId], references: [id])
   resourceId Int?
@@ -679,12 +677,12 @@ model Resource {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
-  title     String         @unique
+  title       String         @unique
   description String
-  isDirty   Boolean? // Client-server-clients sync flag
-  revisions RevisionNode[]
+  isDirty     Boolean? // Client-server-clients sync flag
+  revisions   RevisionNode[]
 
   // path     String         @unique
   // depth    Int            @default(0)
@@ -753,12 +751,12 @@ model Effect {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
-  title     String         @unique
+  title       String         @unique
   description String
-  isDirty   Boolean? // Client-server-clients sync flag
-  revisions RevisionNode[]
+  isDirty     Boolean? // Client-server-clients sync flag
+  revisions   RevisionNode[]
 
   request   Request? @relation(fields: [requestId], references: [id])
   requestId Int?
@@ -784,12 +782,12 @@ model Effector {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
-  title     String         @unique
+  title       String         @unique
   description String
-  isDirty   Boolean? // Client-server-clients sync flag
-  revisions RevisionNode[]
+  isDirty     Boolean? // Client-server-clients sync flag
+  revisions   RevisionNode[]
 
   from   Effect @relation("from", fields: [fromId], references: [id], onDelete: Cascade)
   fromId Int
@@ -809,7 +807,7 @@ model CommunityNode {
   createdAt  DateTime @default(now())
   isActive   Boolean  @default(true)
 
-  title String @unique
+  title       String @unique
   description String
 
   path     String          @unique

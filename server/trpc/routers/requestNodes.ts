@@ -9,12 +9,14 @@ const createInput = RequestNodeSchema.pick({
 	title: true,
 	description: true,
 	parentId: true,
+	ownerId: true,
 	isVariantsGroup: true,
 	isNonNegotiable: true,
 	position: true,
 	requestId: true,
 }).extend({
 	id: z.number().optional(),
+	ownerId: z.string().optional(),
 	tagIds: z.array(z.number()).optional().default([]),
 	expertiseNodeId: z.number().int().nullable().optional(),
 })
@@ -103,7 +105,6 @@ export const requestNodesRouter = router({
 
 			const node = await createTreeNode(prisma.requestNode, {
 				...rest,
-				isActive: true,
 				parentId,
 				request: { connect: { id: requestId } },
 				owner: { connect: { id: ctx.user!.id } },
@@ -112,7 +113,9 @@ export const requestNodesRouter = router({
 							connect: tagIds.map((id: number) => ({ id })),
 						}
 					: undefined,
-				...(expertiseNodeId ? { expertise: { connect: { id: expertiseNodeId } } } : {}),
+				...(expertiseNodeId
+					? { expertise: { connect: { id: expertiseNodeId } } }
+					: {}),
 			})
 
 			return prisma.requestNode.findUnique({

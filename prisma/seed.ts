@@ -98,44 +98,268 @@ async function main() {
 		isActive: true,
 	})
 
-	console.log('Community nodes created')
+	console.log('Creating community nodes...')
 
-	const expertiseWaterEngineering = await createTreeNode(prisma.expertiseNode, {
-		title: 'Water Engineering',
-		description:
-			'Expertise in water supply systems, distribution networks, and hydraulic design.',
-		isActive: true,
+	// --- Expertise categories and areas ---
+
+	const expertiseCategories: Record<string, string[]> = {
+		'Building & Making': [
+			'Carpentry',
+			'Masonry',
+			'Plumbing',
+			'Electrical Work',
+			'HVAC',
+			'Welding',
+			'Metalworking',
+			'Woodworking',
+			'3D Printing',
+			'Electronics Repair',
+			'Appliance Repair',
+			'Roofing',
+			'Painting & Finishing',
+			'CNC Machining',
+			'Laser Cutting',
+			'Fabrication',
+		],
+		Design: [
+			'Architecture',
+			'Interior Design',
+			'Landscape Architecture',
+			'Urban Design',
+			'Graphic Design',
+			'Illustration',
+			'UI/UX Design',
+			'Industrial Design',
+			'Fashion & Textile Design',
+			'Typography',
+			'Branding',
+		],
+		'Growing & Land': [
+			'Permaculture',
+			'Organic Farming',
+			'Market Gardening',
+			'Horticulture',
+			'Soil Science',
+			'Composting',
+			'Agroforestry',
+			'Beekeeping',
+			'Animal Husbandry',
+			'Aquaculture',
+			'Foraging',
+			'Mycology',
+			'Irrigation & Water Systems',
+			'Food Preservation',
+			'Vertical Farming',
+			'Controlled Environment Agriculture',
+		],
+		'Food & Cooking': [
+			'Cooking',
+			'Baking & Pastry',
+			'Fermentation',
+			'Nutrition & Dietetics',
+			'Food Science',
+			'Brewing & Winemaking',
+			'Preserving & Canning',
+		],
+		'Health & Care': [
+			'General Medicine',
+			'Nursing',
+			'Midwifery',
+			'Dentistry',
+			'Physiotherapy',
+			'Occupational Therapy',
+			'Mental Health Counseling',
+			'Psychiatry',
+			'Nutrition',
+			'Herbal Medicine',
+			'First Aid & Emergency Care',
+			'Palliative Care',
+			'Elder Care',
+			'Childcare',
+			'Disability Support',
+		],
+		'Wellness & Body': [
+			'Personal Training',
+			'Yoga',
+			'Massage Therapy',
+			'Meditation & Mindfulness',
+			'Breathwork',
+			'Somatic Therapy',
+			'Sleep Coaching',
+			'Stress Management',
+		],
+		'Education & Learning': [
+			'Early Childhood Education',
+			'Primary Education',
+			'Secondary Education',
+			'Special Education',
+			'Adult Learning',
+			'Language Teaching',
+			'Tutoring',
+			'Curriculum Design',
+			'Instructional Design',
+			'Facilitation',
+			'Mentoring',
+		],
+		'Arts & Culture': [
+			'Music (Performance)',
+			'Music (Composition)',
+			'Music Production',
+			'Sound Design',
+			'Visual Arts',
+			'Photography',
+			'Videography',
+			'Film & Video Editing',
+			'Animation',
+			'Storytelling',
+			'Creative Writing',
+			'Poetry',
+			'Theater & Performance',
+			'Dance',
+		],
+		Technology: [
+			'Software Development',
+			'Web Development',
+			'Mobile Development',
+			'Data Science',
+			'Machine Learning / AI',
+			'Cybersecurity',
+			'Networking & Infrastructure',
+			'Database Management',
+			'DevOps',
+			'Hardware & Electronics',
+			'Robotics',
+			'Automation',
+			'Embedded Systems',
+			'IoT',
+			'Drone Technology',
+			'Augmented & Virtual Reality',
+		],
+		'Communication & Media': [
+			'Writing & Editing',
+			'Technical Writing',
+			'Translation & Interpretation',
+			'Journalism',
+			'Podcasting',
+			'Public Speaking',
+			'Social Media',
+			'Sign Language',
+		],
+		'Community & Social': [
+			'Community Organizing',
+			'Conflict Resolution & Mediation',
+			'Social Work',
+			'Counseling & Listening',
+			'Youth Work',
+			'Elder Support',
+			'Peer Support',
+			'Volunteer Coordination',
+			'Event Organizing',
+			'Group Dynamics',
+		],
+		'Research & Knowledge': [
+			'Research Methods',
+			'Documentation',
+			'Knowledge Management',
+			'Archiving',
+			'Data Analysis',
+			'Mapping & GIS',
+			'Survey Design',
+			'Scientific Writing',
+		],
+		'Governance & Coordination': [
+			'Project Management',
+			'Sociocracy & Consensus Facilitation',
+			'Legal Advice',
+			'Policy & Advocacy',
+			'Grant Writing',
+			'Fundraising',
+			'Financial Management',
+			'Accounting',
+			'Administration',
+		],
+		'Environment & Ecology': [
+			'Ecology',
+			'Conservation',
+			'Reforestation',
+			'Wildlife Management',
+			'Water Management',
+			'Waste Management & Recycling',
+			'Renewable Energy Systems',
+			'Environmental Monitoring',
+			'Environmental Education',
+		],
+		Engineering: [
+			'Civil Engineering',
+			'Mechanical Engineering',
+			'Electrical Engineering',
+			'Chemical Engineering',
+			'Structural Engineering',
+			'Environmental Engineering',
+			'Surveying & Geomatics',
+			'Hydraulic Engineering',
+			'Materials Science',
+			'Quality Assurance & Inspection',
+		],
+	}
+
+	const expertiseParentNodes: Record<string, { id: number }> = {}
+	for (const category of Object.keys(expertiseCategories)) {
+		const node = await createTreeNode(prisma.expertiseNode, {
+			title: category,
+			description: '',
+			isActive: true,
+		})
+		expertiseParentNodes[category] = { id: node.id }
+	}
+
+	let childIndex = 0
+	await prisma.expertiseNode.createMany({
+		data: Object.entries(expertiseCategories).flatMap(([category, areas]) =>
+			areas.map(title => ({
+				title,
+				description: '',
+				isActive: true,
+				parentId: expertiseParentNodes[category].id,
+				path: `__placeholder_${childIndex++}__`, // unique placeholder — fixed below
+				depth: 1,
+				numchild: 0,
+			})),
+		),
 	})
 
-	const expertiseHydrology = await createTreeNode(prisma.expertiseNode, {
-		title: 'Hydrology',
-		description:
-			'Knowledge of water cycle, groundwater recharge, rainfall patterns, and surface water management.',
-		isActive: true,
-	})
+	// Fix child paths: parentPath/childId (single UPDATE statement)
+	await prisma.$executeRaw`
+		UPDATE "ExpertiseNode" child
+		SET path = parent.path || '/' || child.id
+		FROM "ExpertiseNode" parent
+		WHERE child."parentId" = parent.id
+		  AND child.path LIKE '__placeholder_%'
+	`
 
-	const expertiseFiltration = await createTreeNode(prisma.expertiseNode, {
-		title: 'Filtration Systems',
-		description:
-			'Specialization in water treatment methods including bio-sand filters, membrane filtration, and chemical purification.',
-		isActive: true,
-	})
+	// Fix parent numchild counts (single UPDATE statement)
+	await prisma.$executeRaw`
+		UPDATE "ExpertiseNode" parent
+		SET numchild = (SELECT COUNT(*) FROM "ExpertiseNode" child WHERE child."parentId" = parent.id)
+		WHERE parent."parentId" IS NULL
+	`
 
-	const expertiseCommunityHealth = await createTreeNode(prisma.expertiseNode, {
-		title: 'Community Health',
-		description:
-			'Understanding of public health impacts related to water quality, sanitation, and disease prevention.',
-		isActive: true,
-	})
+	// Helper to look up expertise node IDs by title
+	const expertiseByTitle = async (title: string) => {
+		const node = await prisma.expertiseNode.findFirst({ where: { title } })
+		if (!node) throw new Error(`Expertise "${title}" not found`)
+		return node
+	}
 
-	const expertiseConstruction = await createTreeNode(prisma.expertiseNode, {
-		title: 'Construction',
-		description:
-			'Skills in civil construction, ferro-cement work, hand-dug wells, and low-tech infrastructure building.',
-		isActive: true,
-	})
+	const expertiseBuildingMaking = expertiseParentNodes['Building & Making']
+	const expertiseHealthCare = expertiseParentNodes['Health & Care']
+	const expertiseEnvironmentEcology =
+		expertiseParentNodes['Environment & Ecology']
+	const expertiseEngineering = expertiseParentNodes['Engineering']
+	const expertiseHydraulicEngineering = await expertiseByTitle('Hydraulic Engineering')
+	const expertiseWaterManagement = await expertiseByTitle('Water Management')
 
-	console.log('Expertise nodes created')
+	console.log('Creating expertise nodes...')
 
 	const adminUser = await prisma.user.upsert({
 		where: { username: 'admin@example.com' },
@@ -153,8 +377,10 @@ async function main() {
 			countryId: countryB.id,
 			expertise: {
 				connect: [
-					{ id: expertiseConstruction.id },
-					{ id: expertiseWaterEngineering.id },
+					{ id: expertiseBuildingMaking.id },
+					{ id: expertiseEnvironmentEcology.id },
+					{ id: expertiseEngineering.id },
+					{ id: expertiseHydraulicEngineering.id },
 				],
 			},
 		},
@@ -173,12 +399,12 @@ async function main() {
 			communityId: city2.id,
 			countryId: countryA.id,
 			expertise: {
-				connect: [{ id: expertiseCommunityHealth.id }],
+				connect: [{ id: expertiseHealthCare.id }],
 			},
 		},
 	})
 
-	console.log('Users created')
+	console.log('Creating users...')
 
 	// --- Single request: reliable water supply for dry season ---
 
@@ -203,7 +429,7 @@ async function main() {
 		},
 	})
 
-	console.log('Request created')
+	console.log('Creating request...')
 
 	// --- RequestNode tree ---
 
@@ -312,7 +538,7 @@ async function main() {
 		position: 2,
 	})
 
-	console.log('RequestNodes created')
+	console.log('Creating request nodes...')
 
 	// --- Tags ---
 
@@ -341,41 +567,36 @@ async function main() {
 		},
 	})
 
-	console.log('Tags created and assigned')
+	console.log('Creating tags...')
 
 	// --- Expertise assignments ---
 
 	await prisma.requestNode.update({
 		where: { id: rnNaturalFiltration.id },
-		data: { expertise: { connect: { id: expertiseFiltration.id } } },
+		data: { expertise: { connect: { id: expertiseWaterManagement.id } } },
 	})
 
 	await prisma.requestNode.update({
 		where: { id: rnNoChlorine.id },
-		data: { expertise: { connect: { id: expertiseCommunityHealth.id } } },
+		data: { expertise: { connect: { id: expertiseWaterManagement.id } } },
 	})
 
 	await prisma.requestNode.update({
 		where: { id: rnRainFed.id },
-		data: { expertise: { connect: { id: expertiseHydrology.id } } },
+		data: { expertise: { connect: { id: expertiseWaterManagement.id } } },
 	})
-
-	// await prisma.requestNode.update({
-	// 	where: { id: rnBorehole.id },
-	// 	data: { expertise: { connect: { id: expertiseHydrology.id } } },
-	// })
 
 	await prisma.requestNode.update({
 		where: { id: rnBuildableByHand.id },
-		data: { expertise: { connect: { id: expertiseConstruction.id } } },
+		data: { expertise: { connect: { id: expertiseHydraulicEngineering.id } } },
 	})
 
 	await prisma.requestNode.update({
 		where: { id: rnNoDrilling.id },
-		data: { expertise: { connect: { id: expertiseConstruction.id } } },
+		data: { expertise: { connect: { id: expertiseHydraulicEngineering.id } } },
 	})
 
-	console.log('Expertise created and assigned')
+	console.log('Creating expertise assignments...')
 
 	// --- Proposals ---
 
@@ -427,7 +648,7 @@ async function main() {
 		},
 	})
 
-	console.log('Proposals created')
+	console.log('Creating proposals...')
 
 	// --- Seed feedback so proposals appear with ratings ---
 
@@ -512,7 +733,7 @@ async function main() {
 		})
 	}
 
-	console.log('Feedbacks created')
+	console.log('Creating feedbacks...')
 	console.log('Seed completed!')
 }
 

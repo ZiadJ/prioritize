@@ -169,7 +169,6 @@ export const requestsRouter = router({
 				where: { id: input.id },
 				include: {
 					tags: true,
-					expertise: true,
 					effects: true,
 					owner: true,
 					editors: true,
