@@ -554,9 +554,9 @@ model Proposal {
   revisions   RevisionNode[]
 
   // Variants
-  parent   Proposal?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  parentId Int?
-  children Proposal[] @relation("Self")
+  variantParent   Proposal?  @relation("Self", fields: [variantParentId], references: [id], onDelete: Cascade)
+  variantParentId Int?
+  variants        Proposal[] @relation("Self")
 
   request   Request @relation(fields: [requestId], references: [id])
   requestId Int
@@ -567,13 +567,11 @@ model Proposal {
   duration   Int // Proposal duration which can be calculated from child nodes if any
   priority   Int // Only necessary when isSequential is true on parent node
   riskFactor Int
-  // isVariantsGroup Boolean // Children are variants 
 
   approvedAt   DateTime?
-  deliveryDays Int // Proposal preparation time
-  avgRating    Int       @default(0) // Average of the product feedback ratings from proposal step, request nodes and effects
-  // minRating    Int
-  // maxRating    Int
+  deliveryDays Int // Production and delivery time
+
+  netValue Int @default(0)
 
   isDraft       Boolean?
   isUnavailable Boolean?

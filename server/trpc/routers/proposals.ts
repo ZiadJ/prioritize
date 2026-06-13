@@ -14,12 +14,11 @@ const createInput = ProposalSchema.pick({
 	priority: true,
 	riskFactor: true,
 	deliveryDays: true,
-	avgRating: true,
 	isDraft: true,
 	isUnavailable: true,
 	requestId: true,
 	tags: true,
-	parentId: true,
+	variantParentId: true,
 }).extend({
 	tagIds: z.array(z.number()).optional().default([]),
 })
@@ -70,16 +69,16 @@ export const proposalsRouter = router({
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       return prisma.proposal.findUnique({
-        where: { id: input.id },
-        include: {
-          stepNodes: true,
-          tags: true,
-          owner: true,
-          editors: true,
-          children: true,
-          parent: true,
-        },
-      })
+				where: { id: input.id },
+				include: {
+					stepNodes: true,
+					tags: true,
+					owner: true,
+					editors: true,
+					variants: true,
+					variantParent: true,
+				},
+			})
     }),
 
   byRequestId: publicProcedure
@@ -112,7 +111,7 @@ create: protectedProcedure
       }
 
       if (parentId !== undefined && parentId !== null) {
-        data.parent = { connect: { id: parentId } }
+        data.variantParent = { connect: { id: parentId } }
       }
 
       const proposal = await prisma.proposal.create({
@@ -130,7 +129,7 @@ create: protectedProcedure
 update: protectedProcedure
     .input(updateInput)
     .mutation(async ({ ctx, input }) => {
-      const { id, tagIds, parentId, ...rest } = input as z.infer<
+      const { id, tagIds, variantParentId, ...rest } = input as z.infer<
 				typeof updateInput
 			>
 
@@ -160,19 +159,28 @@ update: protectedProcedure
           set: tagIds.map((tagId: number) => ({ id: tagId })),
         }
       }
-      if (parentId !== undefined) {
-        updateData.parent = parentId
-          ? {
-              connect: { id: parentId },
-            }
-          : {
-              disconnect: true,
-            }
-      }
+      if (variantParentId !== undefined) {
+				updateData.variantParent = variantParentId
+					? {
+							connect: { id: variantParentId },
+						}
+					: {
+							disconnect: true,
+						}
+			}
 
       return prisma.proposal.update({
         where: { id },
         data: updateData,
+      })
+    }),
+
+  updateNetValues: publicProcedure
+    .input(z.object({ requestId: z.number() }))
+    .query(async ({ input }) => {
+      return prisma.proposal.findMany({
+        where: { requestId: input.requestId },
+        select: { id: true, netValue: true },
       })
     }),
 
