@@ -18,12 +18,22 @@ const feedbackInput = z.object({
  *
  * The proposal's netValue is the sum of all actual values across request nodes.
  */
-async function updateProposalNetValue(proposalId: number, requestId: number) {
-	// Fetch all request nodes for this request with their feedback
-	const requestNodes = await prisma.requestNode.findMany({
-		where: { requestId },
-		include: { feedback: true },
-	})
+type RequestNodeWithFeedback = Prisma.RequestNodeGetPayload<{
+	include: { feedback: true }
+}>
+
+async function updateProposalNetValue(
+	proposalId: number,
+	requestId: number,
+	cachedRequestNodes?: RequestNodeWithFeedback[],
+) {
+	// Use cached request nodes if provided, otherwise fetch from database
+	const requestNodes =
+		cachedRequestNodes ??
+		(await prisma.requestNode.findMany({
+			where: { requestId },
+			include: { feedback: true },
+		}))
 
 	let netValue = 0
 
@@ -38,9 +48,7 @@ async function updateProposalNetValue(proposalId: number, requestId: number) {
 		)
 
 		// Average ratings of feedback related to this proposal
-		const proposalFeedback = feedback.filter(
-			f => f.proposalId === proposalId,
-		)
+		const proposalFeedback = feedback.filter(f => f.proposalId === proposalId)
 		const avgProposalRatings =
 			proposalFeedback.length > 0
 				? proposalFeedback.reduce((sum, f) => sum + f.rating, 0) /
@@ -121,13 +129,17 @@ export const feedbackRouter = router({
 			if (proposalId && requestId) {
 				await updateProposalNetValue(proposalId, requestId)
 			} else if (requestId) {
-				// Value column feedback affects all proposals
+				// Value column feedback affects all proposals — cache request nodes to avoid repeated queries
+				const requestNodes = await prisma.requestNode.findMany({
+					where: { requestId },
+					include: { feedback: true },
+				})
 				const proposals = await prisma.proposal.findMany({
 					where: { requestId },
 					select: { id: true },
 				})
 				for (const p of proposals) {
-					await updateProposalNetValue(p.id, requestId)
+					await updateProposalNetValue(p.id, requestId, requestNodes)
 				}
 			}
 
