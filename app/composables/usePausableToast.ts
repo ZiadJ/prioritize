@@ -7,7 +7,7 @@ export function usePausableToast() {
 	const toast = useToast()
 
 	function add(
-		summaryOrMessage: string | 'Warning' | 'Error' | ToastMessageOptions,
+		summaryOrMessage: string | ToastMessageOptions,
 		detail?: string,
 		severity?: 'success' | 'info' | 'warn' | 'error',
 		life?: number,
@@ -21,13 +21,13 @@ export function usePausableToast() {
 		}
 
 		if (!message.severity) {
-			if (message.summary == 'Success') message.severity = 'success'
-			if (message.summary == 'Error') message.severity = 'error'
-			if (message.summary == 'Warning') message.severity = 'warn'
+			if (message.summary?.startsWith('Success')) message.severity = 'success'
+			if (message.summary?.startsWith('Error')) message.severity = 'error'
+			if (message.summary?.startsWith('Warning')) message.severity = 'warn'
 		}
 
-		// Set default life to 3000ms if not set and 5000s if severity is error
-		if (!message.life) {
+		// Set default life to 3000ms or 5000s if severity is error
+		if (message.life === undefined) {
 			if (message.severity === 'error') {
 				message.life = 5000
 			} else {
@@ -35,11 +35,11 @@ export function usePausableToast() {
 			}
 		}
 
-		if (!message.life) {
-			// No life set — add normally (sticky)
-			toast.add(message)
-			return
-		}
+		// if (message.life === 0) {
+		// 	// Make it sticky
+		// 	toast.add(message)
+		// 	return
+		// }
 
 		const lifeTime = message.life
 		// Spread so we keep a stable reference; strip `life` so PrimeVue never
