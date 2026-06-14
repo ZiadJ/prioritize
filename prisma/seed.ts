@@ -362,10 +362,10 @@ async function main() {
 	console.log('Creating expertise nodes...')
 
 	const adminUser = await prisma.user.upsert({
-		where: { username: 'admin@example.com' },
+		where: { username: 'admin_user' },
 		update: { password: hashedPassword },
 		create: {
-			username: 'admin@example.com',
+			username: 'admin_user',
 			email: 'admin@example.com',
 			password: hashedPassword,
 			firstname: 'Admin',
@@ -387,10 +387,10 @@ async function main() {
 	})
 
 	const regularUser = await prisma.user.upsert({
-		where: { username: 'user@example.com' },
+		where: { username: 'regular_user' },
 		update: { password: hashedPassword },
 		create: {
-			username: 'user@example.com',
+			username: 'regular_user',
 			email: 'user@example.com',
 			password: hashedPassword,
 			firstname: 'Regular',

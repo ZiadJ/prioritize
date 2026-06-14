@@ -177,7 +177,13 @@ export const requestsRouter = router({
 							expertise: true,
 						},
 					},
-					proposals: true,
+			proposals: {
+				include: {
+					owner: {
+						select: { username: true },
+					},
+				},
+			},
 					orders: true,
 					communityNode: true,
 					country: true,

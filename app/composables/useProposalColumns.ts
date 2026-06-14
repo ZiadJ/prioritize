@@ -21,11 +21,17 @@ export interface ProposalColumn extends ColumnProps {
 	isDirty?: boolean
 	isLoading?: boolean
 	isActive?: boolean
+	ownerId?: string
+	ownerName?: string
+}
+
+type ProposalWithOwner = Omit<Proposal, 'owner'> & {
+	owner?: { username?: string }
 }
 
 export function useProposalColumns(
 	requestId: number,
-	initialProposals: Proposal[] = [],
+	initialProposals: ProposalWithOwner[] = [],
 ) {
 	const { $trpcClient } = useNuxtApp()
 	const toast = usePausableToast()
@@ -37,7 +43,7 @@ export function useProposalColumns(
 
 	const formDialogVisible = ref(false)
 	const formSaving = ref(false)
-	const formData = ref({ title: '', description: '' })
+	const formData = ref({ title: '', description: '', isActive: true })
 
 	function syncVisibleColumns() {
 		visibleColumns.value = columns.value.filter(c =>
@@ -45,7 +51,7 @@ export function useProposalColumns(
 		)
 	}
 
-	function init(proposals: Proposal[]) {
+	function init(proposals: ProposalWithOwner[]) {
 		columns.value = proposals.map(mapProposalToColumn)
 		visibleKeys.value = new Set(columns.value.map(c => c.columnKey!))
 		syncVisibleColumns()
@@ -60,7 +66,7 @@ export function useProposalColumns(
 		if (!visible) editingColumn.value = null
 	})
 
-	function mapProposalToColumn(p: Proposal): ProposalColumn {
+	function mapProposalToColumn(p: ProposalWithOwner): ProposalColumn {
 		return {
 			id: p.id,
 			field: 'p' + p.id,
@@ -69,12 +75,14 @@ export function useProposalColumns(
 			description: p.description,
 			netValue: p.netValue ?? 0,
 			isActive: p.isActive,
+			ownerId: p.ownerId,
+			ownerName: p.owner?.username ?? undefined,
 		}
 	}
 
 	function openCreateForm() {
 		editingColumn.value = null
-		formData.value = { title: '', description: '' }
+		formData.value = { title: '', description: '', isActive: true }
 		formDialogVisible.value = true
 	}
 
@@ -189,6 +197,7 @@ export function useProposalColumns(
 		formData.value = {
 			title: col.header || '',
 			description: col.description || '',
+			isActive: col.isActive ?? true,
 		}
 		formDialogVisible.value = true
 	}
@@ -197,11 +206,12 @@ export function useProposalColumns(
 		const col = editingColumn.value
 		if (!col) return
 
-		const { title, description } = formData.value
+		const { title, description, isActive } = formData.value
 		if (!title.trim()) return
 
 		formSaving.value = true
 		try {
+			col.isActive = isActive
 			await updateProposal(col, { header: title, description })
 			editingColumn.value = null
 			formDialogVisible.value = false
@@ -217,7 +227,8 @@ export function useProposalColumns(
 
 	async function refreshNetValues() {
 		try {
-			const updatedProposals = await $trpcClient.proposals.updateNetValues.query({ requestId })
+			const updatedProposals =
+				await $trpcClient.proposals.updateNetValues.query({ requestId })
 			for (const updated of updatedProposals) {
 				const col = columns.value.find(c => c.id === updated.id)
 				if (col) {

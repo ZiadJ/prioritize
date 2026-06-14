@@ -2,10 +2,12 @@
 defineProps<{
 	saving?: boolean
 	editMode?: boolean
+	isOwner?: boolean
+	ownerName?: string
 }>()
 
 const visible = defineModel<boolean>('visible', { default: false })
-const form = defineModel<{ title: string; description: string }>('form', { default: { title: '', description: '' } })
+const form = defineModel<{ title: string; description: string; isActive: boolean }>('form', { default: { title: '', description: '', isActive: true } })
 
 const emit = defineEmits<{
 	save: []
@@ -39,6 +41,16 @@ const emit = defineEmits<{
 					v-model="form.description"
 					placeholder="Describe the proposal"
 					rows="3" />
+			</div>
+			<div v-if="editMode && ownerName" class="form-field">
+				<label>Author</label>
+				<p class="mb-1 text-sm text-gray-600 dark:text-gray-400">{{ ownerName }}</p>
+			</div>
+			<div v-if="editMode && isOwner" class="form-field">
+				<div class="flex items-center gap-2">
+					<Checkbox v-model="form.isActive" :binary="true" inputId="proposal-active" />
+					<label for="proposal-active">Active</label>
+				</div>
 			</div>
 		</div>
 		<template #footer>
