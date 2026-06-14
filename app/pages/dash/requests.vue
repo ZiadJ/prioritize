@@ -53,6 +53,8 @@ const selectedTagIds = ref<number[]>([])
 const allExpertise = ref<{ id: number; title: string }[]>([])
 const selectedExpertiseId = ref<number | null>(null)
 
+const { setRef, checkOverflow, isOverflow } = useTextOverflow()
+
 const scopeOptions = [
 	{ label: 'Local', value: 'local' },
 	{ label: 'Regional', value: 'regional' },
@@ -90,14 +92,6 @@ const formData = ref({
 		isBasicNeed: false,
 	},
 })
-
-const checkOverflowAndSetTitle = (
-	event: MouseEvent,
-	text: string | undefined,
-) => {
-	const el = event.currentTarget as HTMLElement
-	if (el) el.title = el.scrollWidth > el.clientWidth ? text || '-' : ''
-}
 
 const fetchRequests = async () => {
 	loading.value = true
@@ -427,16 +421,18 @@ onMounted(async () => {
 				</div>
 			</template>
 		</Column>
-		<Column
-			field="description"
-			header="Description"
-			style="max-width: 400px"
-			bodyStyle="overflow: hidden">
+		<Column field="description" header="Description" style="max-width: 400px">
 			<template #body="{ data }">
 				<span
-					v-tooltip.top="data.description"
+					:ref="el => setRef(data.id, el as HTMLElement)"
+					v-tooltip.top="{
+						value: data.description,
+						disabled: !isOverflow(data.id),
+						showDelay: 100,
+						pt: { root: { style: { maxWidth: '450px' } } },
+					}"
 					class="auto-ellipsis"
-					@mouseenter="checkOverflowAndSetTitle($event, data.description)"
+					@mouseenter="checkOverflow(data.id)"
 					>{{ data.description }}</span
 				>
 			</template>

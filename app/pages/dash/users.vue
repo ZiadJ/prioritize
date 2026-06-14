@@ -3,7 +3,7 @@
 		<div class="flex items-center gap-4 mb-4">
 			<h1 class="text-xl font-bold">Users</h1>
 			<div class="flex items-center gap-2">
-				<label class="text-sm font-semibold">Filter by Expertise:</label>
+				<!-- <label class="text-sm font-semibold">Filter by Expertise:</label> -->
 				<Dropdown
 					v-model="selectedExpertiseFilter"
 					:options="expertiseOptions"
