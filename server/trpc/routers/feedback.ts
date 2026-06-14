@@ -5,6 +5,7 @@ import prisma, { Prisma } from '~~/lib/prisma'
 const feedbackInput = z.object({
 	requestNodeId: z.number().int().nullable().optional(),
 	proposalId: z.number().int().nullable().optional(),
+	requestId: z.number().int(),
 	rating: z.number().int(),
 })
 
@@ -12,9 +13,9 @@ const feedbackInput = z.object({
  * Recalculates and persists the netValue for a single proposal.
  *
  * For each request node in the request:
- *   1. Sum the ratings of feedback where proposalId IS NULL (the "value" column)
+ *   1. Average the ratings of feedback where proposalId IS NULL (the "Value" column)
  *   2. Average the ratings of feedback where proposalId equals the proposal's id
- *   3. Actual value per request node = sum × average
+ *   3. Actual value per request node = value average × proposal average
  *
  * The proposal's netValue is the sum of all actual values across request nodes.
  */
@@ -24,39 +25,31 @@ type RequestNodeWithFeedback = Prisma.RequestNodeGetPayload<{
 
 async function updateProposalNetValue(
 	proposalId: number,
-	requestId: number,
-	cachedRequestNodes?: RequestNodeWithFeedback[],
+	requestNodes: RequestNodeWithFeedback[],
 ) {
-	// Use cached request nodes if provided, otherwise fetch from database
-	const requestNodes =
-		cachedRequestNodes ??
-		(await prisma.requestNode.findMany({
-			where: { requestId },
-			include: { feedback: true },
-		}))
-
 	let netValue = 0
 
 	for (const requestNode of requestNodes) {
 		const feedback = requestNode.feedback
 
-		// Sum ratings of feedback without a proposalId (the "value" column)
+		// Average ratings of feedback without a proposalId (the "value" column)
 		const nullProposalFeedback = feedback.filter(f => f.proposalId === null)
-		const sumValueRatings = nullProposalFeedback.reduce(
-			(sum, f) => sum + f.rating,
-			0,
-		)
+		const avgValueRating =
+			nullProposalFeedback.length > 0
+				? nullProposalFeedback.reduce((sum, f) => sum + f.rating, 0) /
+					nullProposalFeedback.length
+				: 0
 
 		// Average ratings of feedback related to this proposal
 		const proposalFeedback = feedback.filter(f => f.proposalId === proposalId)
-		const avgProposalRatings =
+		const avgProposalRating =
 			proposalFeedback.length > 0
 				? proposalFeedback.reduce((sum, f) => sum + f.rating, 0) /
 					proposalFeedback.length
 				: 0
 
 		// Actual value per request node = sum × average
-		netValue += sumValueRatings * avgProposalRatings
+		netValue += avgValueRating * avgProposalRating
 	}
 
 	// Persist the calculated netValue
@@ -70,18 +63,7 @@ export const feedbackRouter = router({
 	set: protectedProcedure
 		.input(feedbackInput)
 		.mutation(async ({ ctx, input }) => {
-			const { requestNodeId, proposalId, rating } = input
-
-			// Determine the requestId for netValue recalculation
-			let requestId: number | null = null
-
-			if (requestNodeId) {
-				const requestNode = await prisma.requestNode.findUnique({
-					where: { id: requestNodeId },
-					select: { requestId: true },
-				})
-				requestId = requestNode?.requestId ?? null
-			}
+			const { requestNodeId, proposalId, requestId, rating } = input
 
 			let result
 			if (rating === 0) {
@@ -125,21 +107,23 @@ export const feedbackRouter = router({
 				}
 			}
 
+			const requestNodes = await prisma.requestNode.findMany({
+				where: { requestId },
+				include: { feedback: true },
+			})
+
 			// Recalculate netValue for the affected proposal(s)
-			if (proposalId && requestId) {
-				await updateProposalNetValue(proposalId, requestId)
-			} else if (requestId) {
-				// Value column feedback affects all proposals — cache request nodes to avoid repeated queries
-				const requestNodes = await prisma.requestNode.findMany({
-					where: { requestId },
-					include: { feedback: true },
-				})
+			if (proposalId) {
+				await updateProposalNetValue(proposalId, requestNodes)
+			} else {
+				// Feedback without the proposal Id is a value feedback which affects all proposals
 				const proposals = await prisma.proposal.findMany({
 					where: { requestId },
 					select: { id: true },
 				})
+
 				for (const p of proposals) {
-					await updateProposalNetValue(p.id, requestId, requestNodes)
+					await updateProposalNetValue(p.id, requestNodes)
 				}
 			}
 

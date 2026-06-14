@@ -17,12 +17,14 @@ const {
 	userId,
 	proposalId,
 	requestNodeId,
+	requestId,
 	parentSelector,
 	expertiseNodeId,
 } = defineProps<{
 	max: number
 	proposalId: number | null
 	requestNodeId: number | null
+	requestId: number
 	userId: string
 	parentSelector?: string
 	expertiseNodeId?: number
@@ -122,6 +124,7 @@ async function setValue(value: number) {
 		await $trpcClient.feedback.set.mutate({
 			requestNodeId,
 			proposalId,
+			requestId,
 			rating: value,
 		})
 
