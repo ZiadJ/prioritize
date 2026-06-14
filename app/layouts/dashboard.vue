@@ -4,18 +4,18 @@
 		<ConfirmPopup
 			group="right"
 			pt:root:style="transform: translateX(15px); padding: 10px"
-      pt:content:style="padding: 20px"/>
+			pt:content:style="padding: 20px" />
 		<Toast />
 		<div class="flex flex-col w-full h-screen">
-			<HeaderTopBarDash class="h-20" />
-			<div class="flex min-h-[calc(100vh-5rem)] h-full">
-				<div class="sidebar-inner transition-all duration-300">
+			<HeaderTopBarDash class="h-14" />
+			<div class="flex min-h-[calc(100vh-3.5rem)] h-full">
+				<div class="w-[3.85rem] pr-[0.35rem] transition-all duration-300 hover:w-64 hover:delay-300 group/sidebar">
 					<HeaderSideBarDash />
 				</div>
-				<div class="content-inner transition-all duration-300">
+				<div class="flex-1 min-w-0 transition-all duration-300 group-hover/sidebar:delay-300">
 					<div
-						class="body-content-dash"
-						:class="{ 'fade-enter-active': isNavigating }">
+class="bg-white dark:bg-zinc-900 h-full rounded-lg shadow-md pt-3 pb-4 px-0"
+						:class="{ 'animate-[pageIn_0.3s_ease-out]': isNavigating }">
 						<slot />
 					</div>
 				</div>
@@ -40,52 +40,6 @@ watch(
 </script>
 
 <style>
-/* Default collapsed */
-.sidebar-inner {
-	width: 3.85rem;
-	padding-right: 0.35rem;
-	transition: width 0.3s ease;
-}
-.content-inner {
-	flex: 1;
-	min-width: 0;
-	transition: width 0.3s ease;
-}
-
-/* Hover to expand with delay */
-.sidebar-inner:hover {
-	width: 16rem;
-	transition-delay: 0.3s;
-}
-.sidebar-inner:hover + .content-inner {
-	transition-delay: 0.3s;
-}
-
-/* Show labels on hover with delay */
-.sidebar-inner:hover .sidebar-label {
-	opacity: 1;
-	transition-delay: 0.3s;
-}
-
-/* Center menu items when collapsed, left-align when expanded/hover */
-.sidebar-inner .p-menuitem-link {
-	justify-content: center;
-	padding: 0.5rem;
-	position: relative;
-}
-.sidebar-inner:hover .p-menuitem-link {
-	justify-content: flex-start;
-}
-
-/* Body content styling */
-.body-content-dash {
-	@apply bg-white dark:bg-zinc-900 h-full rounded-lg shadow-md;
-}
-
-.fade-enter-active {
-	animation: pageIn 0.3s ease-out;
-}
-
 @keyframes pageIn {
 	from {
 		opacity: 0;

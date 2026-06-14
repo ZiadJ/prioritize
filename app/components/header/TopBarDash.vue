@@ -26,11 +26,12 @@
         </template>
 
         <template #end>
-            <div class="card flex justify-center items-center gap-2">
+            <div class="card flex justify-center items-center gap-3">
                 <button @click="changeColorMode" class="flex items-center gap-2 outline-none"
                     v-if="!$colorMode.unknown && !$colorMode.forced">
                     <Icon :name="determineIconMode" :class="determineIconColorMode" />
                 </button>
+                
                 <Button type="button" @click="toggle" aria-haspopup="true" aria-controls="overlay_tmenu" 
                     icon="pi pi-user" :pt="{
                     root: 'rounded-full !bg-transparent !border-none !p-0',
