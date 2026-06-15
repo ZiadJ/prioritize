@@ -61,11 +61,13 @@ function filterTreeByExpertise(
 }
 
 const usedExpertiseOptions = computed(() => {
-	const usedIds = new Set<number>()
+	const seen = new Map<number, any>()
 	utils.tree.traverseTreeUntil(rootNodes.value, (node: TreeNodeEx) => {
-		if (node.data?.expertise?.id) usedIds.add(node.data.expertise.id)
+		if (node.data?.expertise?.id && !seen.has(node.data.expertise.id)) {
+			seen.set(node.data.expertise.id, node.data.expertise)
+		}
 	})
-	return expertiseOptions.filter((e: any) => usedIds.has(e.id))
+	return Array.from(seen.values())
 })
 
 const filteredRootNodes = computed(() =>
@@ -90,7 +92,6 @@ const { $trpcClient } = useNuxtApp()
 const request = await $trpcClient.requests.byId.query({
 	id: Number(route.params.id),
 })
-const expertiseOptions = await $trpcClient.expertise.list.query()
 
 type ProposalWithOwner = Omit<Proposal, 'owner'> & {
 	owner?: { username?: string }
@@ -149,6 +150,7 @@ onMounted(async () => {
 	dataLoaded.value = true
 })
 
+// Adjust table height to fit window
 const windowHeight = useWindowSize()
 const tableHeight = computed<string>(() => {
 	const top = (treeTable.value as any)?.$el.getBoundingClientRect().top
@@ -245,7 +247,6 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			v-model:form="nodeFormData"
 			:saving="nodeFormSaving"
 			:editMode="nodeFormEditMode"
-			:expertiseOptions="expertiseOptions"
 			@save="saveNodeForm" />
 		<Panel class="rounded-b-none" :header="request?.title" toggleable collapsed>
 			{{ request?.description }}
