@@ -360,7 +360,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							:proposalId="null"
 							:requestId="Number(route.params.id)"
 							:userId="session?.user.id!"
-							:max="5"
+							:max="3"
 							parentSelector="td"
 							@change="refreshNetValues" />
 					</div>
