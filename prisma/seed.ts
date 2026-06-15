@@ -618,7 +618,7 @@ async function main() {
 
 	const proposal2 = await prisma.proposal.create({
 		data: {
-			title: 'Communal Well with Hand Pump',
+			title: 'Communal Well with Electric Pump',
 			description:
 				'Drill a borehole to the water table (~30 m) and install an India Mark II hand pump. The pump is located centrally so no household is more than 500 m away. Water is chlorinated monthly by a trained community health volunteer. Maintenance relies on a community committee trained in basic pump repair, with a spare-parts fund built from household contributions.',
 			isComplete: true,

@@ -29,14 +29,6 @@ import { useNuxtApp } from '#app'
 const { data: session } = useAuth()
 const route = useRoute()
 
-const state = reactive({
-	isEditMode: false,
-	hasChange: false,
-	editorButtons: ['bold', 'italic', 'underline', 'link', 'color', 'background'],
-	ratingControlType: ref('vote'),
-	count: 0,
-})
-
 const searchFilters = ref({ global: '' })
 const selectedExpertiseFilter = ref<number | null>(null)
 
@@ -100,7 +92,9 @@ const request = await $trpcClient.requests.byId.query({
 })
 const expertiseOptions = await $trpcClient.expertise.list.query()
 
-type ProposalWithOwner = Omit<Proposal, 'owner'> & { owner?: { username?: string } }
+type ProposalWithOwner = Omit<Proposal, 'owner'> & {
+	owner?: { username?: string }
+}
 
 const requestProposals: ProposalWithOwner[] = request?.proposals ?? []
 
@@ -156,27 +150,9 @@ onMounted(async () => {
 })
 
 const windowHeight = useWindowSize()
-const treeTableHeight = computed<string>(() => {
-	if (treeTable.value) {
-		const treeTableTop = (treeTable.value as any).$el.getBoundingClientRect()
-			.top
-		const height =
-			(windowHeight.height.value - treeTableTop + 15).toFixed() + 'px'
-		return height
-	} else return '500px'
-})
-
-const jsonData = computed(() => {
-	return json(
-		{
-			data: [
-				{
-					requestNodes: rootNodes.value,
-				},
-			],
-		},
-		2,
-	)
+const tableHeight = computed<string>(() => {
+	const top = (treeTable.value as any)?.$el.getBoundingClientRect().top
+	return `${ windowHeight.height.value - top - 66 }px`
 })
 
 function onNodeSelect(node: TreeNodeEx) {
@@ -305,24 +281,6 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							@click="openCreateForm()" />
 					</div>
 				</div>
-				<!-- <Button
-				:label="state.hasChange ? 'Save' : state.isEditMode ? 'Lock' : 'Edit'"
-					:icon="
-						'pi pi-' +
-						(state.hasChange ? 'check' : state.isEditMode ? 'lock' : 'pencil')
-					"
-					@click="editButtonClicked"
-					:class="
-						'p-button-' +
-						(state.hasChange ? 'success' : state.isEditMode ? '' : 'warning')
-					"
-					v-tooltip="
-						state.hasChange
-							? 'Save Changes'
-							: state.isEditMode
-								? 'Lock Data'
-								: 'Edit Data'
-					" /> -->
 			</template>
 
 			<template #end>
@@ -390,7 +348,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			columnResizeMode="expand"
 			:scrollable="true"
 			responsiveLayout="scroll"
-			:scrollHeight="treeTableHeight">
+			:scrollHeight="tableHeight">
 			<Column field="rating" header="Value" class="w-[40px]">
 				<template #body="{ node }">
 					<div :class="'w-full hover-info request_node_key_' + node.data.id">
@@ -401,7 +359,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							:proposalId="null"
 							:requestId="Number(route.params.id)"
 							:userId="session?.user.id!"
-							:max="3"
+							:max="5"
 							parentSelector="td"
 							@change="refreshNetValues" />
 					</div>
@@ -537,17 +495,6 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 		</TreeTable>
 		<br />
 		<!-- {{ expandedKeys }} -->
-		<div v-if="state.isEditMode">
-			<Textarea
-				v-model="jsonData"
-				style="
-					height: 150px;
-					width: 100%;
-					margin-top: 200px;
-					overflow: scroll;
-				"></Textarea>
-			<div style="position: relative; height: 200px; margin-top: 200px"></div>
-		</div>
 	</div>
 </template>
 
@@ -579,13 +526,6 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 	transition: opacity 0.001s ease;
 }
 
-/*.ql-toolbar {
-	display: none;
-}
-.ql-toolbar.ql-snow + .ql-container.ql-snow {
-	border: none;
-}*/
-
 :deep(.tree-drag-item) {
 	cursor: move;
 	border-radius: 6px;
@@ -610,4 +550,11 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 :deep(.tree-drag-over-after::after) {
 	bottom: 0;
 }
+
+/*.ql-toolbar {
+	display: none;
+}
+.ql-toolbar.ql-snow + .ql-container.ql-snow {
+	border: none;
+}*/
 </style>
