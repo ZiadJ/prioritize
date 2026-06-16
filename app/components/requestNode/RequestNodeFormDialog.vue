@@ -66,13 +66,15 @@ watch(visible, val => {
 			</div>
 			<div class="form-field">
 				<label for="node-expertise">Required Expertise</label>
-				<Dropdown
+				<Select
 					id="node-expertise"
 					v-model="form.expertiseNodeId"
 					:options="expertiseOptions"
+
 					optionLabel="title"
 					optionValue="id"
 					placeholder="Select expertise (optional)"
+					:loading="expertiseOptions.length === 0" 					
 					showClear
 					filter
 					class="w-full" />
