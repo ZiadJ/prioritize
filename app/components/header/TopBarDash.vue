@@ -1,6 +1,6 @@
 <template>
     <Toolbar :pt="{
-        root: '!bg-transparent !border-none flex',
+        root: '!bg-surface-50 dark:!bg-surface-900 !border-none flex',
         start: 'flex items-center',
         center: 'flex items-center justify-center',
         end: 'flex items-center'
@@ -26,17 +26,18 @@
         </template>
 
         <template #end>
-            <div class="card flex justify-center items-center gap-3">
-                <button @click="changeColorMode" class="flex items-center gap-2 outline-none"
-                    v-if="!$colorMode.unknown && !$colorMode.forced">
+            <div class="flex justify-center gap-3 mt-[-10px]">
+                <Button @click="changeColorMode"
+                    v-if="!$colorMode.unknown && !$colorMode.forced"
+                    pt:root="!bg-transparent !border-none">
                     <Icon :name="determineIconMode" :class="determineIconColorMode" />
-                </button>
+                </Button>
                 
-                <Button type="button" @click="toggle" aria-haspopup="true" aria-controls="overlay_tmenu" 
-                    icon="pi pi-user" :pt="{
-                    root: 'rounded-full !bg-transparent !border-none !p-0',
-                    icon: 'text-gray-800 dark:text-white'
-                }">
+                <Button @click="toggle" aria-haspopup="true" aria-controls="overlay_tmenu" 
+                    icon="pi pi-user"
+                    pt:root="!bg-transparent !border-none"
+                    pt:icon="text-gray-800 dark:text-white"
+                >
                     <!-- <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" shape="circle" /> -->
                 </Button>
                 <TieredMenu ref="menu" id="overlay_tmenu" :model="profileActions" popup />
