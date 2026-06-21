@@ -321,14 +321,14 @@ async function setValue(value: number) {
 
 				<span
 					v-if="!expanded"
-					class="flex items-center gap-[2px] text-xs font-semibold"
+					class="flex items-center gap-[2px] text-xs font-semibold ml-1"
 					style="color: var(--feedbackNeg)">
 					<i class="pi pi-thumbs-down text-[10px] mr-1"></i>
 					{{ downvoteCount }}
 				</span>
 				<span
 					v-if="!expanded"
-					class="flex items-center gap-[2px] text-xs font-semibold"
+					class="flex items-center gap-[2px] text-xs font-semibold mr-1"
 					style="color: var(--ratepos)">
 					<i class="pi pi-thumbs-up text-[10px] mr-1"></i>
 					{{ upvoteCount }}
