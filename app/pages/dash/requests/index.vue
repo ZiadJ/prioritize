@@ -385,9 +385,11 @@ onMounted(async () => {
 			</Column>			 -->
 		<Column field="title" header="Title" sortable>
 			<template #body="{ data }">
-				<a :href="`/dash/request/${data.id}`" class="underline">{{
-					data.title
-				}}</a>
+			<NuxtLink
+				:to="`/dash/requests/${data.id}`"
+				class="underline">
+				{{ data.title }}
+			</NuxtLink>
 			</template>
 		</Column>
 		<Column class="!p-0">

@@ -31,12 +31,7 @@
 </template>
 
 <script lang="ts" setup>
-type MenuItem = {
-	label: string
-	icon: string
-	to?: string | null
-	activeFor?: string[]
-}
+import type { MenuItem } from 'primevue/menuitem'
 
 const route = useRoute()
 const expandedKeys = ref<Record<string, boolean>>({})
@@ -54,8 +49,8 @@ const items = ref<MenuItem[]>([
 
 function isActive(item: MenuItem): boolean {
 	if (!item.to) return false
-	if (route.path === item.to) return true
-	return (item.activeFor ?? []).some(
+	const patterns = [item.to, ...(item.activeFor ?? [])]
+	return patterns.some(
 		(pattern) => route.path === pattern || route.path.startsWith(`${pattern}/`),
 	)
 }
