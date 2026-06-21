@@ -329,7 +329,7 @@ onMounted(async () => {
 					:options="scopeOptions"
 					optionLabel="label"
 					optionValue="value"
-					placeholder="by region"
+					placeholder="All regions"
 					@change="fetchRequests"
 					showClear />
 				<Dropdown
@@ -337,7 +337,7 @@ onMounted(async () => {
 					:options="allExpertise"
 					optionLabel="title"
 					optionValue="id"
-					placeholder="by expertise"
+					placeholder="All expertise"
 					@change="fetchRequests"
 					showClear
 					filter
@@ -347,7 +347,7 @@ onMounted(async () => {
 					:options="allTags"
 					optionLabel="name"
 					optionValue="id"
-					placeholder="by tags"
+					placeholder="All tags"
 					@change="fetchRequests"
 					:showToggleAll="false"
 					filter

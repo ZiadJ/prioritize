@@ -60,6 +60,10 @@
 </template>
 
 <script lang="ts" setup>
+definePageMeta({
+	layout: 'dashboard',
+})
+
 const loading = ref(true);
 const users = ref<any[]>([]);
 const expertiseOptions = ref<{ id: number; title: string }[]>([]);

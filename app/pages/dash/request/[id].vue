@@ -26,6 +26,10 @@ import { useRoute } from 'vue-router'
 import { utils } from '@/methods/utils'
 import { useNuxtApp } from '#app'
 
+definePageMeta({
+	layout: 'dashboard',
+})
+
 const { data: session } = useAuth()
 const route = useRoute()
 
@@ -258,7 +262,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 						<InputText
 							v-if="rootNodes.length"
 							v-model.lazy="searchFilters['global']"
-							placeholder="Search"
+							placeholder="Search request nodes..."
 							size="small"
 							style="z-index: 1" />
 						<Dropdown

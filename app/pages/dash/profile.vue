@@ -96,6 +96,10 @@
 </template>
 
 <script lang="ts" setup>
+definePageMeta({
+	layout: 'dashboard',
+})
+
 const { data: session } = useAuth()
 const toast = usePausableToast()
 

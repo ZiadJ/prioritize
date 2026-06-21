@@ -82,6 +82,18 @@ function toggle(event: MouseEvent) {
 	op.value?.toggle(event, '', parentSelector)
 }
 
+function handleClick(event: MouseEvent) {
+	if (hasExpertise.value) {
+		toggle(event)
+	} else {
+		toast.add(
+			'You do not have the necessary expertise to rate this proposal',
+			'',
+			'warn',
+		)
+	}
+}
+
 function isInRange(num: number) {
 	const val = userRating.value ?? 0
 	if (num > 0) return num <= val
@@ -175,9 +187,9 @@ async function setValue(value: number) {
 
 	<div
 		v-bind="$attrs"
-		@click="hasExpertise && toggle($event)"
+		@click="handleClick($event)"
 		class="relative h-[80px]"
-		:class="{ 'pointer-events-none opacity-60': !hasExpertise }">
+		:class="hasExpertise ? 'cursor-pointer' : 'cursor-default'">
 		<Knob
 			rangeColor="#8882"
 			:valueColor="
