@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { protectedProcedure, router } from '../trpc'
+import { protectedProcedure, publicProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
 
 const feedbackInput = z.object({
@@ -7,6 +7,7 @@ const feedbackInput = z.object({
 	proposalId: z.number().int().nullable().optional(),
 	requestId: z.number().int(),
 	rating: z.number().int(),
+	comment: z.string().optional().default(''),
 })
 
 /**
@@ -60,10 +61,46 @@ async function updateProposalNetValue(
 }
 
 export const feedbackRouter = router({
+	names: publicProcedure
+		.input(z.object({ userIds: z.array(z.string()) }))
+		.query(async ({ input }) => {
+			const users = await prisma.user.findMany({
+				where: { id: { in: input.userIds } },
+				select: { id: true, firstname: true, lastname: true },
+			})
+			return Object.fromEntries(
+				users.map(u => [u.id, u]),
+			) as Record<
+				string,
+				{ firstname: string; lastname: string }
+			>
+		}),
+
+	comments: publicProcedure
+		.input(
+			z.object({
+				requestNodeId: z.number().int().nullable(),
+				proposalId: z.number().int().nullable(),
+			}),
+		)
+		.query(async ({ input }) => {
+			const where: Prisma.FeedbackWhereInput = {
+				requestNodeId: input.requestNodeId,
+				proposalId: input.proposalId,
+			}
+			const feedback = await prisma.feedback.findMany({
+				where,
+				select: { userId: true, comment: true },
+			})
+			return Object.fromEntries(
+				feedback.map(f => [f.userId, f.comment]),
+			) as Record<string, string>
+		}),
+
 	set: protectedProcedure
 		.input(feedbackInput)
 		.mutation(async ({ ctx, input }) => {
-			const { requestNodeId, proposalId, requestId, rating } = input
+			const { requestNodeId, proposalId, requestId, rating, comment } = input
 
 			let result
 			if (rating === 0) {
@@ -87,16 +124,15 @@ export const feedbackRouter = router({
 				if (existing) {
 					result = await prisma.feedback.update({
 						where: { id: existing.id },
-						data: { rating },
+						data: { rating, comment },
 					})
 				} else {
 					const data: Prisma.FeedbackUncheckedCreateInput = {
 						userId: ctx.user!.id,
 						rating,
+						comment,
 						type: 0,
 						confidence: 0,
-						title: '',
-						description: '',
 						requireCommentOnNeg: false,
 						// isActive: true,
 						requestNodeId: requestNodeId ?? null,

@@ -1,7 +1,6 @@
 <template>
 	<div class="p-4">
 		<div class="flex items-center gap-4 mb-4">
-			<h1 class="text-xl font-bold">Users</h1>
 			<div class="flex items-center gap-2">
 				<!-- <label class="text-sm font-semibold">Filter by Expertise:</label> -->
 				<Dropdown
@@ -27,7 +26,15 @@
 			<template #empty>
 				<div class="text-center py-4 text-gray-500">No users found.</div>
 			</template>
-			<Column field="username" header="Username" sortable />
+		<Column field="username" header="Username" sortable>
+			<template #body="{ data }">
+				<NuxtLink
+					:to="`/dash/users/${data.username}`"
+					class="text-primary-500 hover:underline cursor-pointer">
+					{{ data.username }}
+				</NuxtLink>
+			</template>
+		</Column>
 			<Column field="email" header="Email" sortable />
 			<Column field="firstname" header="First Name" sortable />
 			<Column field="lastname" header="Last Name" sortable />

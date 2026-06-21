@@ -176,8 +176,7 @@ model Feedback {
   confidence          Int
   // type             Int // FeedbackType // User, Revision, RequestNode, Effect, ProposalStep
   // targetId         String
-  title               String  @default("")
-  description         String  @default("")
+  comment             String  @default("")
   requireCommentOnNeg Boolean @default(false) // Require a comment for negative feedback unless a related rating is specified
 
   Revisions RevisionNode[]

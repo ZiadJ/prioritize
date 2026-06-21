@@ -10,6 +10,7 @@ interface Feedback {
 	proposalId: number | null
 	requestNodeId: number | null
 	rating: number
+	comment?: string
 }
 
 const {
@@ -37,7 +38,14 @@ const emit = defineEmits<{
 }>()
 
 const op = useTemplateRef('op')
+const commentTextareaRef = ref<any>(null)
 const { $trpcClient } = useNuxtApp()
+
+function onCommentOpen() {
+	nextTick(() => {
+		commentTextareaRef.value?.$el?.focus()
+	})
+}
 
 const hasExpertise = computed(
 	() =>
@@ -71,27 +79,103 @@ const averageRating = computed(() => {
 	)
 })
 
-const voteCount = computed(
-	() =>
-		modelValue.value.filter(
-			f => f.proposalId === proposalId && f.requestNodeId === requestNodeId,
-		).length,
+const nodeFeedback = computed(() =>
+	modelValue.value.filter(
+		f => f.proposalId === proposalId && f.requestNodeId === requestNodeId,
+	),
 )
+
+const voteCount = computed(() => nodeFeedback.value.length)
+
+const upvoteCount = computed(
+	() => nodeFeedback.value.filter(f => f.rating > 0).length,
+)
+
+const downvoteCount = computed(
+	() => nodeFeedback.value.filter(f => f.rating < 0).length,
+)
+
+const expanded = ref(false)
+const namesLoading = ref(false)
+const nameMap = ref<Record<string, { firstname: string; lastname: string }>>(
+	{},
+)
+const commentMap = ref<Record<string, string>>({})
+const commentInput = ref('')
+
+const existingComment = computed(
+	() =>
+		modelValue.value.find(
+			f =>
+				f.proposalId === proposalId &&
+				f.requestNodeId === requestNodeId &&
+				f.userId === userId,
+		)?.comment ?? '',
+)
+
+const hasComment = computed(() => !!existingComment.value.trim())
+
+const userComment = computed({
+	get: () => existingComment.value || commentInput.value,
+	set: val => {
+		commentInput.value = val
+	},
+})
+
+const downvoteFeedback = computed(() =>
+	nodeFeedback.value
+		.filter(f => f.rating < 0)
+		.slice()
+		.sort((a, b) => b.rating - a.rating),
+)
+const upvoteFeedback = computed(() =>
+	nodeFeedback.value
+		.filter(f => f.rating > 0)
+		.slice()
+		.sort((a, b) => b.rating - a.rating),
+)
+
+async function toggleFeedback() {
+	expanded.value = !expanded.value
+	if (expanded.value) {
+		const userIds = [
+			...new Set(nodeFeedback.value.map(f => f.userId)),
+		].filter(id => !nameMap.value[id])
+
+		namesLoading.value = true
+		try {
+			const [namesResult, commentsResult] = await Promise.all([
+				userIds.length
+					? $trpcClient.feedback.names.query({ userIds })
+					: Promise.resolve({}),
+				$trpcClient.feedback.comments.query({
+					requestNodeId,
+					proposalId,
+				}),
+			])
+			if (userIds.length)
+				nameMap.value = { ...nameMap.value, ...namesResult }
+			commentMap.value = { ...commentMap.value, ...commentsResult }
+		} catch (e: any) {
+			toast.add('Failed to load details', e.message, 'error')
+		} finally {
+			namesLoading.value = false
+		}
+	}
+}
+
+function formatName(userId: string) {
+	const name = nameMap.value[userId]
+	if (!name) return userId
+	return `${name.firstname} ${name.lastname}`.trim() || userId
+}
+
+function formatComment(userId: string) {
+	return commentMap.value[userId] || ''
+}
 
 function toggle(event: MouseEvent) {
 	op.value?.toggle(event, '', parentSelector)
-}
-
-function handleClick(event: MouseEvent) {
-	if (hasExpertise.value) {
-		toggle(event)
-	} else {
-		toast.add(
-			'You do not have the necessary expertise to rate this proposal',
-			'',
-			'warn',
-		)
-	}
 }
 
 function isInRange(num: number) {
@@ -115,11 +199,12 @@ async function setValue(value: number) {
 	if (value === 0) {
 		modelValue.value.splice(index, 1)
 	} else {
-		const updated: Feedback = {
+	const updated: Feedback = {
 			userId,
 			proposalId,
 			requestNodeId,
 			rating: value,
+			comment: commentInput.value,
 		}
 
 		modelValue.value =
@@ -138,6 +223,7 @@ async function setValue(value: number) {
 			proposalId,
 			requestId,
 			rating: value,
+			comment: commentInput.value,
 		})
 
 		emit('change', value)
@@ -158,38 +244,182 @@ async function setValue(value: number) {
 
 <template>
 	<Popup ref="op" position="top" alignment="center">
-		<div class="relative flex gap-[2px] pb-[12px]">
-			<div
-				v-for="num in range"
-				@mousedown="setValue(num)"
-				class="pi rating p-[15px] rounded-full bg-[#8882] cursor-pointer hover:bg-[#8883]"
-				:class="{
-					'pi-ban': num == 0,
-					'bg-[#8885]': num == 0 && userRating == 0,
-					'pi-star': num != 0 && !isInRange(num),
-					'pi-star-fill bg-[#8885]': num != 0 && isInRange(num),
-				}"
-				:style="{
-					color:
-						num == 0
-							? 'gray'
-							: num < 0
-								? `var(--feedbackNeg)`
-								: `var(--ratepos)`,
+		<div class="flex flex-col gap-1 min-w-[230px]">
+		<Textarea
+				v-if="hasExpertise && hasComment"
+				v-model="userComment"
+				autoResize
+				rows="1"
+				placeholder="Comment..."
+				class="w-full !text-xs !px-2 !py-1 mb-2"
+				:pt="{
+					root: {
+						style: 'min-height: 1.5rem',
+					},
 				}" />
-			<span
-				v-if="voteCount"
-				class="absolute bottom-[-6px] right-[-3px] text-xs font-semibold text-gray-500">
-				{{ voteCount + (voteCount > 1 ? ' votes' : ' vote') }}
-			</span>
+
+		<Inplace
+				v-if="hasExpertise && !hasComment"
+				:pt="{
+					display: {
+						class: 'w-full !p-[1px] flex justify-center text-gray-400 hover:text-gray-600 cursor-pointer',
+					},
+				}"
+				@open="onCommentOpen">
+				<template #display>
+					<i class="pi pi-ellipsis-h text-xs"></i>
+				</template>
+				<template #content>
+					<Textarea
+						ref="commentTextareaRef"
+						v-model="userComment"
+						autoResize
+						rows="1"
+						placeholder="Comment..."
+						class="w-full !text-xs !px-2 !py-1 mb-2"
+						:pt="{
+							root: {
+								style: 'min-height: 1.5rem',
+							},
+						}" />
+				</template>
+			</Inplace>
+
+		<div
+			v-if="!hasExpertise"
+			class="text-[11px] text-gray-400 text-center py-1">
+			You don't have the expertise to rate here
+		</div>
+
+		<div v-if="hasExpertise" class="flex gap-[2px]">
+				<div
+					v-for="num in range"
+					@mousedown="setValue(num)"
+					class="pi rating p-[15px] rounded-full bg-[#8882] cursor-pointer hover:bg-[#8883]"
+					:class="{
+						'pi-ban': num == 0,
+						'bg-[#8885]': num == 0 && userRating == 0,
+						'pi-star': num != 0 && !isInRange(num),
+						'pi-star-fill bg-[#8885]': num != 0 && isInRange(num),
+					}"
+					:style="{
+						color:
+							num == 0
+								? 'gray'
+								: num < 0
+									? `var(--feedbackNeg)`
+									: `var(--ratepos)`,
+					}" />
+			</div>
+
+		<div class="relative flex items-center justify-between pt-1 min-h-[16px]">
+				<i
+					v-if="voteCount"
+					@click="toggleFeedback"
+					class="pi absolute left-1/2 -translate-x-1/2 cursor-pointer text-gray-500 hover:text-gray-700 text-sm"
+					:class="expanded ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+
+				<span
+					v-if="!expanded"
+					class="flex items-center gap-[2px] text-xs font-semibold"
+					style="color: var(--feedbackNeg)">
+					<i class="pi pi-thumbs-down text-[10px] mr-1"></i>
+					{{ downvoteCount }}
+				</span>
+				<span
+					v-if="!expanded"
+					class="flex items-center gap-[2px] text-xs font-semibold"
+					style="color: var(--ratepos)">
+					<i class="pi pi-thumbs-up text-[10px] mr-1"></i>
+					{{ upvoteCount }}
+				</span>
+			</div>
+
+			<div v-if="expanded" class="-mt-1 min-w-[160px]">
+				<div
+					v-if="namesLoading"
+					class="text-xs text-gray-500 text-center py-2">
+					<i class="pi pi-spin pi-spinner"></i> Loading...
+				</div>
+
+			<Tabs v-else value="downvotes">
+					<TabList pt:tablist:style="justify-content: center">
+						<Tab
+							value="downvotes"
+							pt:root:style="padding: 0.25rem 0.5rem">
+							<i
+								class="pi pi-thumbs-down text-xs mr-2"
+								style="color: var(--feedbackNeg)"></i>
+							<span
+								class="text-xs"
+								style="color: var(--feedbackNeg)">{{
+								downvoteFeedback.length
+							}}</span>
+						</Tab>
+						<Tab
+							value="upvotes"
+							pt:root:style="padding: 0.25rem 0.5rem">
+							<i
+								class="pi pi-thumbs-up text-xs mr-2"
+								style="color: var(--ratepos)"></i>
+							<span class="text-xs" style="color: var(--ratepos)">{{
+								upvoteFeedback.length
+							}}</span>
+						</Tab>
+					</TabList>
+					<TabPanels>
+						<TabPanel value="downvotes">
+							<div
+								v-if="!downvoteFeedback.length"
+								class="text-xs text-gray-500 text-center py-2">
+								No downvotes
+							</div>
+				<div
+							v-for="f in downvoteFeedback"
+							:key="f.userId"
+							class="text-xs flex flex-col gap-[2px] py-[2px]"
+							style="color: var(--feedbackNeg)">
+							<div class="flex items-center gap-1">
+								{{ formatName(f.userId) }}
+								<span>({{ f.rating }})</span>
+							</div>
+							<span
+								v-if="formatComment(f.userId)"
+								class="pl-[2px] text-gray-500"
+								>{{ formatComment(f.userId) }}</span>
+						</div>
+						</TabPanel>
+						<TabPanel value="upvotes">
+							<div
+								v-if="!upvoteFeedback.length"
+								class="text-xs text-gray-500 text-center py-2">
+								No upvotes
+							</div>
+				<div
+							v-for="f in upvoteFeedback"
+							:key="f.userId"
+							class="text-xs flex flex-col gap-[2px] py-[2px]"
+							style="color: var(--ratepos)">
+							<div class="flex items-center gap-1">
+								{{ formatName(f.userId) }}
+								<span>({{ f.rating }})</span>
+							</div>
+							<span
+								v-if="formatComment(f.userId)"
+								class="pl-[2px] text-gray-500"
+								>{{ formatComment(f.userId) }}</span>
+						</div>
+						</TabPanel>
+					</TabPanels>
+				</Tabs>
+			</div>
 		</div>
 	</Popup>
 
 	<div
 		v-bind="$attrs"
-		@click="handleClick($event)"
-		class="relative h-[80px]"
-		:class="hasExpertise ? 'cursor-pointer' : 'cursor-default'">
+		@click="toggle($event)"
+		class="relative h-[80px] cursor-pointer">
 		<Knob
 			rangeColor="#8882"
 			:valueColor="
