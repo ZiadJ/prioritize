@@ -288,7 +288,7 @@ async function setValue(value: number) {
 		<div
 			v-if="!hasExpertise"
 			class="text-[11px] text-gray-400 text-center py-1">
-			You don't have the expertise to rate here
+			You don't have the expertise to rate this relationship
 		</div>
 
 		<div v-if="hasExpertise" class="flex gap-[2px]">

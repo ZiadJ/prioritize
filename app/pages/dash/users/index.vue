@@ -30,7 +30,7 @@
 			<template #body="{ data }">
 				<NuxtLink
 					:to="`/dash/users/${data.username}`"
-					class="text-primary-500 hover:underline cursor-pointer">
+					class="underline">
 					{{ data.username }}
 				</NuxtLink>
 			</template>
