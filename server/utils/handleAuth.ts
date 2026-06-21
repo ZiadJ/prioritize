@@ -134,7 +134,9 @@ export const handleRefreshToken = async (event: H3Event) => {
 	}
 
 	const decode = (await validateRefreshToken(refreshToken)) as JwtPayload
-	const newAccessToken = returnToken(decode.id)
+	// Keep issuing long-lived access tokens for remembered sessions.
+	const remember = decode.remember === true
+	const newAccessToken = returnToken(decode.id, remember)
 
 	// Use refreshToken as the stable key, not the old accessToken
 	await prisma.token.update({
@@ -285,17 +287,24 @@ export const validatePassword = async (password: string, hash: string) => {
 
 // Generate access and refresh tokens
 export const generateTokens = (userId: string, remember?: boolean) => {
+	const accessTtl = remember
+		? REMEMBER_ME_REFRESH_TOKEN_TTL
+		: ACCESS_TOKEN_TTL;
 	const refreshTtl = remember
 		? REMEMBER_ME_REFRESH_TOKEN_TTL
 		: REFRESH_TOKEN_TTL;
 
-const accessToken = jwt.sign({ id: userId }, JWT_SECRET as jwt.Secret, {
-	expiresIn: ACCESS_TOKEN_TTL as SignOptions['expiresIn'],
-})
+	const accessToken = jwt.sign({ id: userId }, JWT_SECRET as jwt.Secret, {
+		expiresIn: accessTtl as SignOptions['expiresIn'],
+	})
 
-const refreshToken = jwt.sign({ id: userId }, REFRESH_SECRET as jwt.Secret, {
-	expiresIn: refreshTtl as SignOptions['expiresIn'],
-})
+	// Embed `remember` so the refresh endpoint can keep issuing long-lived
+	// access tokens for remembered sessions.
+	const refreshToken = jwt.sign(
+		{ id: userId, remember: !!remember },
+		REFRESH_SECRET as jwt.Secret,
+		{ expiresIn: refreshTtl as SignOptions['expiresIn'] },
+	)
 
 	return { accessToken, refreshToken };
 };
@@ -325,9 +334,15 @@ export const clearAndStoreTokens = async (
 	});
 };
 
-export const returnToken = (id: number): string => {
+export const returnToken = (
+	id: string | number,
+	remember?: boolean,
+): string => {
+	const accessTtl = remember
+		? REMEMBER_ME_REFRESH_TOKEN_TTL
+		: ACCESS_TOKEN_TTL;
   return jwt.sign({ id }, JWT_SECRET as jwt.Secret, {
-		expiresIn: ACCESS_TOKEN_TTL as SignOptions['expiresIn'],
+		expiresIn: accessTtl as SignOptions['expiresIn'],
 	})
 };
 
