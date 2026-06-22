@@ -66,35 +66,14 @@ export const feedbackRouter = router({
 		.query(async ({ input }) => {
 			const users = await prisma.user.findMany({
 				where: { id: { in: input.userIds } },
-				select: { id: true, firstname: true, lastname: true },
+				select: { id: true, firstname: true, lastname: true, username: true },
 			})
 			return Object.fromEntries(
 				users.map(u => [u.id, u]),
 			) as Record<
 				string,
-				{ firstname: string; lastname: string }
+				{ firstname: string; lastname: string; username: string }
 			>
-		}),
-
-	comments: publicProcedure
-		.input(
-			z.object({
-				requestNodeId: z.number().int().nullable(),
-				proposalId: z.number().int().nullable(),
-			}),
-		)
-		.query(async ({ input }) => {
-			const where: Prisma.FeedbackWhereInput = {
-				requestNodeId: input.requestNodeId,
-				proposalId: input.proposalId,
-			}
-			const feedback = await prisma.feedback.findMany({
-				where,
-				select: { userId: true, comment: true },
-			})
-			return Object.fromEntries(
-				feedback.map(f => [f.userId, f.comment]),
-			) as Record<string, string>
 		}),
 
 	set: protectedProcedure

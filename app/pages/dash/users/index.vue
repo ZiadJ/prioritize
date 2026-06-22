@@ -1,8 +1,63 @@
+<script lang="ts" setup>
+import { FilterMatchMode } from '@primevue/core/api'
+
+definePageMeta({
+	layout: 'dashboard',
+})
+
+const loading = ref(true);
+const users = ref<any[]>([]);
+const expertiseOptions = ref<{ id: number; title: string }[]>([]);
+const selectedExpertiseFilter = ref<number | null>(null);
+const searchQuery = ref('');
+
+const filters = ref<{
+	global: { value: string | null; matchMode: string };
+}>({
+	global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+});
+
+// Keep the DataTable global filter in sync with the search box
+watch(searchQuery, (value) => {
+	filters.value.global.value = value || null;
+});
+
+const filteredUsers = computed(() => {
+	let result = users.value;
+	if (selectedExpertiseFilter.value) {
+		result = result.filter((user) =>
+			user.expertise?.some((exp: any) => exp.id === selectedExpertiseFilter.value),
+		);
+	}
+	return result;
+});
+
+onMounted(async () => {
+	try {
+		const [usersRes, expertiseRes] = await Promise.all([
+			$fetch('/api/users'),
+			$fetch('/api/expertise'),
+		]);
+		users.value = (usersRes as any).users ?? [];
+		expertiseOptions.value = (expertiseRes as any).expertise ?? [];
+	} catch (error) {
+		console.error('Failed to fetch data:', error);
+	} finally {
+		loading.value = false;
+	}
+});
+</script>
+
 <template>
 	<div class="p-4">
 		<div class="flex items-center gap-4 mb-4">
-			<div class="flex items-center gap-2">
-				<!-- <label class="text-sm font-semibold">Filter by Expertise:</label> -->
+			<InputGroup class="w-auto">
+				<InputGroupAddon>
+					<i class="pi pi-search" />
+				</InputGroupAddon>
+				<InputText
+					v-model="searchQuery"
+					placeholder="Search users..." />
 				<Dropdown
 					v-model="selectedExpertiseFilter"
 					:options="expertiseOptions"
@@ -13,7 +68,7 @@
 					filter
 					class="w-64"
 				/>
-			</div>
+			</InputGroup>
 		</div>
 
 		<DataTable
@@ -21,6 +76,7 @@
 			:value="filteredUsers"
 			:loading="loading"
 			tableStyle="min-width: 50rem"
+			v-model:filters="filters"
 			:globalFilterFields="['username', 'email', 'firstname', 'lastname']"
 		>
 			<template #empty>
@@ -65,36 +121,3 @@
 		</DataTable>
 	</div>
 </template>
-
-<script lang="ts" setup>
-definePageMeta({
-	layout: 'dashboard',
-})
-
-const loading = ref(true);
-const users = ref<any[]>([]);
-const expertiseOptions = ref<{ id: number; title: string }[]>([]);
-const selectedExpertiseFilter = ref<number | null>(null);
-
-const filteredUsers = computed(() => {
-	if (!selectedExpertiseFilter.value) return users.value;
-	return users.value.filter((user) =>
-		user.expertise?.some((exp: any) => exp.id === selectedExpertiseFilter.value),
-	);
-});
-
-onMounted(async () => {
-	try {
-		const [usersRes, expertiseRes] = await Promise.all([
-			$fetch('/api/users'),
-			$fetch('/api/expertise'),
-		]);
-		users.value = (usersRes as any).users ?? [];
-		expertiseOptions.value = (expertiseRes as any).expertise ?? [];
-	} catch (error) {
-		console.error('Failed to fetch data:', error);
-	} finally {
-		loading.value = false;
-	}
-});
-</script>

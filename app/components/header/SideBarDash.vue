@@ -1,3 +1,29 @@
+<script lang="ts" setup>
+import type { MenuItem } from 'primevue/menuitem'
+
+const route = useRoute()
+const expandedKeys = ref<Record<string, boolean>>({})
+const items = ref<MenuItem[]>([
+	// { label: 'Profile', icon: 'pi pi-user', to: '/dash/profile' },
+	{ label: 'Users', icon: 'pi pi-users', to: '/dash/users' },
+	{
+		label: 'Requests',
+		icon: 'pi pi-wave-pulse',
+		to: '/dash/requests',
+		activeFor: ['/dash/request'],
+	},
+	{ label: 'Expertise', icon: 'pi pi-graduation-cap', to: '/dash/expertise' },
+])
+
+function isActive(item: MenuItem): boolean {
+	if (!item.to) return false
+	const patterns = [item.to, ...(item.activeFor ?? [])]
+	return patterns.some(
+		(pattern) => route.path === pattern || route.path.startsWith(`${pattern}/`),
+	)
+}
+</script>
+
 <template>
 	<div class="h-full group/sidebar">
 		<PanelMenu
@@ -29,29 +55,3 @@
 		</PanelMenu>
 	</div>
 </template>
-
-<script lang="ts" setup>
-import type { MenuItem } from 'primevue/menuitem'
-
-const route = useRoute()
-const expandedKeys = ref<Record<string, boolean>>({})
-const items = ref<MenuItem[]>([
-	// { label: 'Profile', icon: 'pi pi-user', to: '/dash/profile' },
-	{ label: 'Users', icon: 'pi pi-users', to: '/dash/users' },
-	{
-		label: 'Requests',
-		icon: 'pi pi-wave-pulse',
-		to: '/dash/requests',
-		activeFor: ['/dash/request'],
-	},
-	{ label: 'Expertise', icon: 'pi pi-graduation-cap', to: '/dash/expertise' },
-])
-
-function isActive(item: MenuItem): boolean {
-	if (!item.to) return false
-	const patterns = [item.to, ...(item.activeFor ?? [])]
-	return patterns.some(
-		(pattern) => route.path === pattern || route.path.startsWith(`${pattern}/`),
-	)
-}
-</script>

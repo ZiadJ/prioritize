@@ -97,10 +97,9 @@ const downvoteCount = computed(
 
 const expanded = ref(false)
 const namesLoading = ref(false)
-const nameMap = ref<Record<string, { firstname: string; lastname: string }>>(
-	{},
-)
-const commentMap = ref<Record<string, string>>({})
+const nameMap = ref<
+	Record<string, { firstname: string; lastname: string; username: string }>
+>({})
 const commentInput = ref('')
 
 const existingComment = computed(
@@ -138,24 +137,16 @@ const upvoteFeedback = computed(() =>
 async function toggleFeedback() {
 	expanded.value = !expanded.value
 	if (expanded.value) {
-		const userIds = [
-			...new Set(nodeFeedback.value.map(f => f.userId)),
-		].filter(id => !nameMap.value[id])
+		const userIds = [...new Set(nodeFeedback.value.map(f => f.userId))].filter(
+			id => !nameMap.value[id],
+		)
 
 		namesLoading.value = true
 		try {
-			const [namesResult, commentsResult] = await Promise.all([
-				userIds.length
-					? $trpcClient.feedback.names.query({ userIds })
-					: Promise.resolve({}),
-				$trpcClient.feedback.comments.query({
-					requestNodeId,
-					proposalId,
-				}),
-			])
-			if (userIds.length)
+			if (userIds.length) {
+				const namesResult = await $trpcClient.feedback.names.query({ userIds })
 				nameMap.value = { ...nameMap.value, ...namesResult }
-			commentMap.value = { ...commentMap.value, ...commentsResult }
+			}
 		} catch (e: any) {
 			toast.add('Failed to load details', e.message, 'error')
 		} finally {
@@ -170,8 +161,8 @@ function formatName(userId: string) {
 	return `${name.firstname} ${name.lastname}`.trim() || userId
 }
 
-function formatComment(userId: string) {
-	return commentMap.value[userId] || ''
+function userProfileUrl(userId: string) {
+	return `/dash/users/${nameMap.value[userId]?.username ?? userId}`
 }
 
 function toggle(event: MouseEvent) {
@@ -199,7 +190,7 @@ async function setValue(value: number) {
 	if (value === 0) {
 		modelValue.value.splice(index, 1)
 	} else {
-	const updated: Feedback = {
+		const updated: Feedback = {
 			userId,
 			proposalId,
 			requestNodeId,
@@ -227,6 +218,7 @@ async function setValue(value: number) {
 		})
 
 		emit('change', value)
+
 		if (value !== 0) {
 			toast.add(`Rating ${value} successfully saved`)
 		} else {
@@ -234,8 +226,6 @@ async function setValue(value: number) {
 		}
 	} catch (e: any) {
 		modelValue.value = previous
-
-		// emit('change', previous[index]?.rating ?? 0)
 
 		toast.add(`Failed to save rating ${value}`, e.message, 'error')
 	}
@@ -245,26 +235,10 @@ async function setValue(value: number) {
 <template>
 	<Popup ref="op" position="top" alignment="center">
 		<div class="flex flex-col gap-1 min-w-[230px]">
-		<Textarea
-				v-if="hasExpertise && hasComment"
-				v-model="userComment"
-				autoResize
-				rows="1"
-				placeholder="Comment..."
-				class="w-full !text-xs !px-2 !py-1 mb-2"
-				:pt="{
-					root: {
-						style: 'min-height: 1.5rem',
-					},
-				}" />
-
-		<Inplace
-				v-if="hasExpertise && !hasComment"
-				:pt="{
-					display: {
-						class: 'w-full !p-[1px] flex justify-center text-gray-400 hover:text-gray-600 cursor-pointer',
-					},
-				}"
+			<Inplace
+				v-if="hasExpertise"
+				:active="hasComment"
+				pt:display:class="w-full !p-[1px] flex justify-center text-gray-400 hover:text-gray-600 cursor-pointer"
 				@open="onCommentOpen">
 				<template #display>
 					<i class="pi pi-ellipsis-h text-xs"></i>
@@ -276,22 +250,18 @@ async function setValue(value: number) {
 						autoResize
 						rows="1"
 						placeholder="Comment..."
-						class="w-full !text-xs !px-2 !py-1 mb-2"
-						:pt="{
-							root: {
-								style: 'min-height: 1.5rem',
-							},
-						}" />
+						class="w-full !text-xs mb-2"
+						pt:root:style="min-height: 1.5rem" />
 				</template>
 			</Inplace>
 
-		<div
-			v-if="!hasExpertise"
-			class="text-[11px] text-gray-400 text-center py-1">
-			You don't have the expertise to rate this relationship
-		</div>
+			<div
+				v-if="!hasExpertise"
+				class="text-[11px] text-gray-400 text-center py-1">
+				You don't have the expertise to rate this relationship
+			</div>
 
-		<div v-if="hasExpertise" class="flex gap-[2px]">
+			<div v-if="hasExpertise" class="flex gap-[2px]">
 				<div
 					v-for="num in range"
 					@mousedown="setValue(num)"
@@ -312,7 +282,7 @@ async function setValue(value: number) {
 					}" />
 			</div>
 
-		<div class="relative flex items-center justify-between pt-1 min-h-[16px]">
+			<div class="relative flex items-center justify-between pt-1 min-h-[16px]">
 				<i
 					v-if="voteCount"
 					@click="toggleFeedback"
@@ -336,29 +306,21 @@ async function setValue(value: number) {
 			</div>
 
 			<div v-if="expanded" class="-mt-1 min-w-[160px]">
-				<div
-					v-if="namesLoading"
-					class="text-xs text-gray-500 text-center py-2">
+				<div v-if="namesLoading" class="text-xs text-gray-500 text-center py-2">
 					<i class="pi pi-spin pi-spinner"></i> Loading...
 				</div>
 
-			<Tabs v-else value="downvotes">
+				<Tabs v-else value="downvotes">
 					<TabList pt:tablist:style="justify-content: center">
-						<Tab
-							value="downvotes"
-							pt:root:style="padding: 0.25rem 0.5rem">
+						<Tab value="downvotes" pt:root:style="padding: 0.25rem 0.5rem">
 							<i
 								class="pi pi-thumbs-down text-xs mr-2"
 								style="color: var(--feedbackNeg)"></i>
-							<span
-								class="text-xs"
-								style="color: var(--feedbackNeg)">{{
+							<span class="text-xs" style="color: var(--feedbackNeg)">{{
 								downvoteFeedback.length
 							}}</span>
 						</Tab>
-						<Tab
-							value="upvotes"
-							pt:root:style="padding: 0.25rem 0.5rem">
+						<Tab value="upvotes" pt:root:style="padding: 0.25rem 0.5rem">
 							<i
 								class="pi pi-thumbs-up text-xs mr-2"
 								style="color: var(--ratepos)"></i>
@@ -374,20 +336,23 @@ async function setValue(value: number) {
 								class="text-xs text-gray-500 text-center py-2">
 								No downvotes
 							</div>
-				<div
-							v-for="f in downvoteFeedback"
-							:key="f.userId"
-							class="text-xs flex flex-col gap-[2px] py-[2px]"
-							style="color: var(--feedbackNeg)">
-							<div class="flex items-center gap-1">
-								{{ formatName(f.userId) }}
-								<span>({{ f.rating }})</span>
+							<div
+								v-for="f in downvoteFeedback"
+								:key="f.userId"
+								class="text-xs flex flex-col gap-[2px] py-[2px]"
+								style="color: var(--feedbackNeg)">
+								<div class="flex items-center gap-1">
+									<NuxtLink
+										:to="userProfileUrl(f.userId)"
+										class="underline hover:opacity-70">
+										{{ formatName(f.userId) }}
+									</NuxtLink>
+									<span>({{ f.rating }})</span>
+								</div>
+								<span v-if="f.comment" class="pl-[2px] text-gray-500">{{
+									f.comment
+								}}</span>
 							</div>
-							<span
-								v-if="formatComment(f.userId)"
-								class="pl-[2px] text-gray-500"
-								>{{ formatComment(f.userId) }}</span>
-						</div>
 						</TabPanel>
 						<TabPanel value="upvotes">
 							<div
@@ -395,20 +360,23 @@ async function setValue(value: number) {
 								class="text-xs text-gray-500 text-center py-2">
 								No upvotes
 							</div>
-				<div
-							v-for="f in upvoteFeedback"
-							:key="f.userId"
-							class="text-xs flex flex-col gap-[2px] py-[2px]"
-							style="color: var(--ratepos)">
-							<div class="flex items-center gap-1">
-								{{ formatName(f.userId) }}
-								<span>({{ f.rating }})</span>
+							<div
+								v-for="f in upvoteFeedback"
+								:key="f.userId"
+								class="text-xs flex flex-col gap-[2px] py-[2px]"
+								style="color: var(--ratepos)">
+								<div class="flex items-center gap-1">
+									<NuxtLink
+										:to="userProfileUrl(f.userId)"
+										class="underline hover:opacity-70">
+										{{ formatName(f.userId) }}
+									</NuxtLink>
+									<span>({{ f.rating }})</span>
+								</div>
+								<span v-if="f.comment" class="pl-[2px] text-gray-500">{{
+									f.comment
+								}}</span>
 							</div>
-							<span
-								v-if="formatComment(f.userId)"
-								class="pl-[2px] text-gray-500"
-								>{{ formatComment(f.userId) }}</span>
-						</div>
 						</TabPanel>
 					</TabPanels>
 				</Tabs>

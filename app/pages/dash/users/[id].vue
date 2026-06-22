@@ -37,9 +37,10 @@
 				</div>
 			</div>
 
-			<div v-if="user.bio" class="field">
+			<div class="field">
 				<span class="block text-sm text-gray-500">Bio</span>
-				<p class="font-medium whitespace-pre-wrap">{{ user.bio }}</p>
+				<p v-if="user.bio" class="font-medium whitespace-pre-wrap">{{ user.bio }}</p>
+				<span v-else class="text-gray-400">—</span>
 			</div>
 
 			<div class="field">
