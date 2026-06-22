@@ -519,7 +519,7 @@ onMounted(async () => {
 							" />
 					</div>
 					<div class="form-field flex-1">
-						<label for="priority">Priority Points</label>
+						<label for="priority">Priority</label>
 						<InputNumber id="priority" v-model="formData.order.priority" />
 					</div>
 				</div>

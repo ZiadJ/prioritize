@@ -134,9 +134,15 @@ const upvoteFeedback = computed(() =>
 		.sort((a, b) => b.rating - a.rating),
 )
 
+const activeTab = ref<'downvotes' | 'upvotes'>('downvotes')
+
 async function toggleFeedback() {
 	expanded.value = !expanded.value
 	if (expanded.value) {
+		activeTab.value =
+			downvoteFeedback.value.length === 0 && upvoteFeedback.value.length > 0
+				? 'upvotes'
+				: 'downvotes'
 		const userIds = [...new Set(nodeFeedback.value.map(f => f.userId))].filter(
 			id => !nameMap.value[id],
 		)
@@ -258,7 +264,7 @@ async function setValue(value: number) {
 			<div
 				v-if="!hasExpertise"
 				class="text-[11px] text-gray-400 text-center py-1">
-				You don't have the expertise to rate this relationship
+				You don't have the expertise to rate this proposal
 			</div>
 
 			<div v-if="hasExpertise" class="flex gap-[2px]">
@@ -310,7 +316,7 @@ async function setValue(value: number) {
 					<i class="pi pi-spin pi-spinner"></i> Loading...
 				</div>
 
-				<Tabs v-else value="downvotes">
+				<Tabs v-else v-model:value="activeTab">
 					<TabList pt:tablist:style="justify-content: center">
 						<Tab value="downvotes" pt:root:style="padding: 0.25rem 0.5rem">
 							<i

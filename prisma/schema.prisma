@@ -157,10 +157,15 @@ enum UnitOfMeasure {
   Units // Generic unit for countable items
   Hours // Time
   Kilograms // Weight
-  CubicMetres // Volume
+  CubicMetres @map("m³") // Volume
   SquareMetres // Area
   Metres // Length
   Joules // Energy
+}
+
+enum VolumeUnit {
+  CUBIC_METER
+  LITER       @map("L")
 }
 
 model Feedback {
