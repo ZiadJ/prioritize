@@ -24,10 +24,16 @@ class="bg-white dark:bg-zinc-900 h-full rounded-lg shadow-md pt-3 pb-4 px-0"
 		<div class="flex flex-col w-full h-screen bg-surface-ground">
 			<HeaderTopBarDash class="h-14" />
 			<div class="flex min-h-[calc(100vh-3.5rem)] h-full">
-				<div
-					class="fixed top-14 left-0 w-[4.5rem] h-[calc(100vh-3.5rem)] z-50 bg-surface-ground transition-all duration-300 hover:w-48 hover:delay-300 group/sidebar px-2">
-					<HeaderSideBarDash />
-				</div>
+			<!-- class="fixed top-14 left-0 w-[4.5rem] h-[calc(100vh-3.5rem)] z-50 bg-surface-ground transition-all duration-300 hover:w-48 hover:delay-300 group/sidebar px-2" -->
+			<div
+				class="sidebar-container fixed top-14 left-0 h-[calc(100vh-3.5rem)] z-50 bg-surface-ground transition-all duration-300 overflow-hidden px-2 group/sidebar"
+				:class="sidebarExpanded ? 'w-48' : 'w-[4.5rem]'"
+				@mousemove="handleSidebarHover"
+				@mouseout="handleSidebarHover"
+				@mouseleave="collapseSidebar"
+				@click="collapseSidebar">
+				<HeaderSideBarDash />
+			</div>
 				<div class="flex-1 min-w-0 ml-[4.5rem]">
 					<div
 						class="bg-surface-ground h-full rounded-lg shadow-md pt-0 px-0"
@@ -41,8 +47,24 @@ class="bg-white dark:bg-zinc-900 h-full rounded-lg shadow-md pt-3 pb-4 px-0"
 </template>
 
 <script setup>
+import { utils } from '@/methods/utils'
+
 const route = useRoute()
 const isNavigating = ref(false)
+
+const sidebarExpanded = ref(false)
+
+const handleSidebarHover = utils.uiElements.delayedHover(
+	() => {
+		sidebarExpanded.value = true
+	},
+	'.sidebar-container',
+	300,
+)
+
+function collapseSidebar() {
+	sidebarExpanded.value = false
+}
 
 watch(
 	() => route.path,
