@@ -157,15 +157,10 @@ enum UnitOfMeasure {
   Units // Generic unit for countable items
   Hours // Time
   Kilograms // Weight
-  CubicMetres @map("m³") // Volume
+  CubicMetres // Volume
   SquareMetres // Area
   Metres // Length
   Joules // Energy
-}
-
-enum VolumeUnit {
-  CUBIC_METER
-  LITER       @map("L")
 }
 
 model Feedback {
@@ -234,7 +229,8 @@ model User {
   isVerified    Boolean   @default(false)
   role          String    @default("")
 
-  priorityPoints Float @default(0) // The available budget spendable on an order within a request
+  pointsReceived  Float @default(0) // The total points received over time
+  pointsAvailable Float @default(0) // The available points spendable on an order
 
   community   CommunityNode? @relation(fields: [communityId], references: [id])
   communityId Int?
@@ -420,7 +416,7 @@ model Request {
   createdAt  DateTime @default(now())
   isActive   Boolean  @default(true)
 
-  title       String         @unique
+  title       String
   description String
   isDirty     Boolean? // Client-server-clients sync flag
   revisions   RevisionNode[]
@@ -498,7 +494,7 @@ model RequestNode {
   createdAt  DateTime @default(now())
   isActive   Boolean  @default(true)
 
-  title       String         @unique
+  title       String
   description String
   isDirty     Boolean? // Client-to-server synched
   revisions   RevisionNode[]
@@ -619,8 +615,8 @@ model StepNode {
   next     StepNode? @relation("Sibbling", fields: [nextId], references: [id])
   previous StepNode? @relation("Sibbling")
 
-  Resource   Resource? @relation(fields: [resourceId], references: [id])
-  resourceId Int?
+  ResourceNode   ResourceNode? @relation(fields: [resourceNodeId], references: [id])
+  resourceNodeId Int?
 
   duration         Int
   durationVariance Int
@@ -631,9 +627,11 @@ model StepNode {
   assignedTo User[]     @relation("AssignedSteps")
   tags       Tag[]
 
-  owner   User   @relation("StepNodeOwner", fields: [ownerId], references: [id])
-  ownerId String
-  editors User[] @relation("StepNodeEditors")
+  owner      User      @relation("StepNodeOwner", fields: [ownerId], references: [id])
+  ownerId    String
+  editors    User[]    @relation("StepNodeEditors")
+  resource   Resource? @relation(fields: [resourceId], references: [id])
+  resourceId Int?
 
   @@index([path])
 }
@@ -651,10 +649,10 @@ model StepCost {
   isDirty     Boolean? // Client-server-clients sync flag
   revisions   RevisionNode[]
 
-  resource   Resource? @relation(fields: [resourceId], references: [id])
-  resourceId Int?
-  stepNode   StepNode? @relation(fields: [stepNodeId], references: [id])
-  stepNodeId Int?
+  resourceNode   ResourceNode? @relation(fields: [resourceNodeId], references: [id])
+  resourceNodeId Int?
+  stepNode       StepNode?     @relation(fields: [stepNodeId], references: [id])
+  stepNodeId     Int?
 
   duration          Int
   riskFactor        Int
@@ -665,14 +663,16 @@ model StepCost {
 
   tags Tag[]
 
-  owner   User   @relation("StepCostOwner", fields: [ownerId], references: [id])
-  ownerId String
-  editors User[] @relation("StepCostEditors")
+  owner      User      @relation("StepCostOwner", fields: [ownerId], references: [id])
+  ownerId    String
+  editors    User[]    @relation("StepCostEditors")
+  resource   Resource? @relation(fields: [resourceId], references: [id])
+  resourceId Int?
 
-  @@unique([resourceId, stepNodeId])
+  @@unique([resourceNodeId, stepNodeId])
 }
 
-// Availability of a specific resource used or produced through 
+// Availability of a specific resource used or produced in 
 // associated proposal steps
 
 model Resource {
@@ -685,13 +685,6 @@ model Resource {
   description String
   isDirty     Boolean? // Client-server-clients sync flag
   revisions   RevisionNode[]
-
-  // path     String         @unique
-  // depth    Int            @default(0)
-  // numchild Int            @default(0)
-  // parent   Resource?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  // parentId Int?
-  // children Resource[] @relation("Self")
 
   type                   Int // ResourceType // ServiceTime, Material, Digital
   unitOfMeasure          UnitOfMeasure
@@ -707,45 +700,44 @@ model Resource {
   stepsPerAdditionalRenewalCapacity StepNode[] //
   stepCosts                         StepCost[] // Step cost referencing this resource node
   tags                              Tag[]
+  resourceNodes                     ResourceNode[]
 
+  // tags  Tag[]
   owner   User   @relation("ResourceOwner", fields: [ownerId], references: [id])
   ownerId String
   editors User[] @relation("ResourceEditors")
-
-  //@@index([path])
 }
 
-/**
- * model ResourceComponent {
- * id         Int      @id @default(autoincrement())
- * modifiedAt DateTime @updatedAt
- * createdAt  DateTime @default(now())
- * isActive   Boolean
- * title   String   @unique
- * description    String
- * isDirty Boolean?
- * //revisions RevisionNode[]
- * // Tree structure — each node is one ingredient in its parent's composition
- * path     String              @unique
- * depth    Int                 @default(0)
- * numchild Int                 @default(0)
- * parent   ResourceComponent?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
- * parentId Int?
- * children ResourceComponent[] @relation("Self")
- * // What resource this component node represents (the ingredient) (e.g. "Glass", "Sand", "Fuel")
- * resource   Resource? @relation(fields: [resourceId], references: [id])
- * resourceId Int?
- * // How much of this resource is required to produce one unit of the parent
- * quantity       Float  @default(1)
- * unit           String @default("unit") // "g", "kg", "hr", "L", etc.
- * quantityMargin Float  @default(0)
- * // tags      Tag[]
- * // owner   User   @relation("ResourceComponentOwner", fields: [ownerId], references: [id])
- * // ownerId String
- * // editors User[] @relation("ResourceComponentEditors")
- * @@index([path])
- * }
- */
+model ResourceNode {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  //revisions RevisionNode[]
+  // Tree structure — each node is one ingredient in its parent's composition
+  path     String         @unique
+  depth    Int            @default(0)
+  numchild Int            @default(0)
+  parent   ResourceNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId Int?
+  children ResourceNode[] @relation("Self")
+
+  // What resource this component node represents (the ingredient) (e.g. "Glass", "Sand", "Fuel")
+  resource       Resource?  @relation(fields: [resourceId], references: [id])
+  resourceId     Int?
+  // How much of this resource is required to produce one unit of the parent
+  quantity       Float      @default(1)
+  unit           String     @default("unit") // "g", "kg", "hr", "L", etc.
+  quantityMargin Float      @default(0)
+  stepNodes      StepNode[]
+  stepCosts      StepCost[]
+
+  // owner   User   @relation("ResourceComponentOwner", fields: [ownerId], references: [id])
+  // ownerId String
+  // editors User[] @relation("ResourceComponentEditors")
+  @@index([path])
+}
 
 // A impacting side-effect when a request node is enacted upon
 
