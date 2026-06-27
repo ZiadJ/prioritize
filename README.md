@@ -19,11 +19,14 @@ npm install
 # Generate Prisma files
 npx prisma generate
 
-# Create .env file and set a Postgres DB url (currently using Supabase)
+# Create .env file with a Postgres DB url (currently using Supabase)
 copy .env.example .env
 
 # Initialize database
 npm prisma db push
+
+# Insert sample data
+npm prisma db seed
 
 # Start the development server
 npm run dev
