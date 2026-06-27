@@ -160,39 +160,7 @@ export function useRequestNodes(
 
 		const parentNode = pendingParent.value
 		const siblingNode = pendingInsertAfter.value
-		const tempKey = `temp_${Date.now()}`
 
-		// Save form data so we can re-open the form on failure for retry
-		const savedFormData = { ...formData.value }
-
-		const newNode: TreeNodeEx = {
-			key: tempKey,
-			data: {
-				title: title.trim(),
-				description: description.trim(),
-			},
-		}
-
-		selectedKeys.value[tempKey] = true
-
-		if (siblingNode) {
-			const parentArray = getParentArray(rootNodes.value, siblingNode)
-			const siblingIndex = parentArray.findIndex(
-				(n: TreeNodeEx) => n.key === siblingNode.key,
-			)
-			parentArray.splice(siblingIndex + 1, 0, newNode)
-		} else if (!parentNode) {
-			rootNodes.value.push(newNode)
-		} else {
-			if (!parentNode.children) {
-				parentNode.children = [newNode]
-			} else {
-				parentNode.children.push(newNode)
-			}
-			toggleNode(parentNode, true)
-		}
-
-		formDialogVisible.value = false
 		formSaving.value = true
 
 		try {
@@ -210,27 +178,35 @@ export function useRequestNodes(
 				expertiseNodeId: expertiseNodeId ?? undefined,
 			})) as any
 
-			newNode.key = String(result.id)
-			newNode.id = result.id
-			newNode.data = result
-			delete selectedKeys.value[tempKey]
+			// Insert the node only after it is confirmed saved, so it always
+			// carries its real id and there is no temp/stale reference.
+			const newNode: TreeNodeEx = {
+				key: String(result.id),
+				id: result.id,
+				data: result,
+				children: [],
+			}
+
+			if (siblingNode) {
+				const parentArray = getParentArray(rootNodes.value, siblingNode)
+				const siblingIndex = parentArray.findIndex(
+					(n: TreeNodeEx) => n.key === siblingNode.key,
+				)
+				parentArray.splice(siblingIndex + 1, 0, newNode)
+			} else if (!parentNode) {
+				rootNodes.value.push(newNode)
+			} else {
+				if (!parentNode.children) parentNode.children = []
+				parentNode.children.push(newNode)
+				toggleNode(parentNode, true)
+			}
+
 			selectedKeys.value[String(result.id)] = true
-			rootNodes.value = [...rootNodes.value]
+			formDialogVisible.value = false
 
 			toast.add('Node created', title.trim())
 		} catch (e: any) {
-			// Restore nodes by removing the temp node
-			const parentArray = getParentArray(rootNodes.value, newNode)
-			const idx = parentArray.findIndex(
-				(n: TreeNodeEx) => n.key === newNode.key,
-			)
-			if (idx !== -1) parentArray.splice(idx, 1)
-			delete selectedKeys.value[tempKey]
 			toast.add('Failed to create node', e.message, 'error')
-
-			// Re-open the creation form with the original data so the user can retry
-			formData.value = savedFormData
-			formDialogVisible.value = true
 		} finally {
 			formSaving.value = false
 		}
