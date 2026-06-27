@@ -427,7 +427,7 @@ async function main() {
 			ownerId: adminUser.id,
 			communityId: city1.id,
 			countryId: countryA.id,
-		demands: {
+		userRequests: {
 			create: {
 				userId: adminUser.id,
 				quantity: 500,

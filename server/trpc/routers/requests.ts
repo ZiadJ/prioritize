@@ -4,11 +4,11 @@ import prisma, { Prisma } from '~~/lib/prisma'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { createTreeNode } from '~~/lib/tree'
 import { RequestSchema } from '~~/prisma/generated/zod/schemas/models/Request.schema'
-import { DemandSchema } from '~~/prisma/generated/zod/schemas/models/Demand.schema'
+import { UserRequestSchema } from '~~/prisma/generated/zod/schemas/models/UserRequest.schema'
 
-// Helper to update request totals from all its demands
+// Helper to update request totals from all its user requests
 async function updateRequestTotals(requestId: number) {
-	const aggregates = await prisma.demand.aggregate({
+	const aggregates = await prisma.userRequest.aggregate({
 		where: { requestId },
 		_sum: { quantity: true, priority: true },
 		_count: true,
@@ -18,7 +18,7 @@ async function updateRequestTotals(requestId: number) {
 		data: {
 			totalQuantity: aggregates._sum.quantity || 0,
 			totalPriority: aggregates._sum.priority || 0,
-			demandCount: aggregates._count,
+			userRequestCount: aggregates._count,
 		},
 	})
 }
@@ -30,7 +30,7 @@ export const createInput = RequestSchema.pick({
 	unitOfMeasure: true,
 }).extend({
 	tagIds: z.array(z.number()).optional().default([]),
-	demand: DemandSchema.pick({
+	userRequest: UserRequestSchema.pick({
 		quantity: true,
 		priority: true,
 		recurrencePeriod: true,
@@ -183,7 +183,7 @@ export const requestsRouter = router({
 					},
 				},
 			},
-				demands: true,
+				userRequests: true,
 				community: true,
 				country: true,
 					_count: {
@@ -199,9 +199,9 @@ export const requestsRouter = router({
 	create: protectedProcedure
 		.input(createInput)
 		.mutation(async ({ ctx, input }) => {
-		const { tagIds, parentId, demand, ...data } = input as z.infer<
-			typeof createInput
-		>
+	const { tagIds, parentId, userRequest, ...data } = input as z.infer<
+		typeof createInput
+	>
 
 		if (!ctx.user!.communityId) {
 			throw new Error('User must be assigned to a community')
@@ -221,24 +221,24 @@ export const requestsRouter = router({
 					: undefined,
 			})
 
-			// Create Demand if demand data is provided and has quantity or recurrencePeriod
-			if (
-				demand &&
-				((demand.quantity !== null && demand.quantity !== undefined) ||
-					(demand.recurrencePeriod && demand.recurrencePeriod > 0))
-			) {
-				await prisma.demand.create({
-					data: {
-						request: { connect: { id: node.id } },
-						user: { connect: { id: ctx.user!.id } },
-						recurrencePeriod: demand.recurrencePeriod || 0,
-						quantity: demand.quantity ?? 1,
-						isBasicNeed: demand.isBasicNeed ?? false,
-						priority: demand.priority ?? 0,
-						dueAt: demand.dueAt ? new Date(demand.dueAt) : null,
-					},
-				})
-			}
+		// Create UserRequest if userRequest data is provided and has quantity or recurrencePeriod
+		if (
+			userRequest &&
+			((userRequest.quantity !== null && userRequest.quantity !== undefined) ||
+				(userRequest.recurrencePeriod && userRequest.recurrencePeriod > 0))
+		) {
+			await prisma.userRequest.create({
+				data: {
+					request: { connect: { id: node.id } },
+					user: { connect: { id: ctx.user!.id } },
+					recurrencePeriod: userRequest.recurrencePeriod || 0,
+					quantity: userRequest.quantity ?? 1,
+					isBasicNeed: userRequest.isBasicNeed ?? false,
+					priority: userRequest.priority ?? 0,
+					dueAt: userRequest.dueAt ? new Date(userRequest.dueAt) : null,
+				},
+			})
+		}
 
 				// Update denormalized totals
 				await updateRequestTotals(node.id)
@@ -253,9 +253,9 @@ export const requestsRouter = router({
 	update: protectedProcedure
 		.input(updateInput)
 		.mutation(async ({ ctx, input }) => {
-		const { id, tagIds, demand, unitOfMeasure, ...data } = input as z.infer<
-			typeof updateInput
-		>
+	const { id, tagIds, userRequest, unitOfMeasure, ...data } = input as z.infer<
+		typeof updateInput
+	>
 
 			// Fetch the request to check permissions
 			const existingRequest = await prisma.request.findUnique({
@@ -300,53 +300,53 @@ export const requestsRouter = router({
 				updatedRequest = existingRequest
 			}
 
-		// Handle Demand update/creation - allowed for any user
-		if (demand !== undefined) {
-			const existingDemand = await prisma.demand.findFirst({
-				where: { requestId: id, userId: ctx.user!.id },
-			})
+	// Handle UserRequest update/creation - allowed for any user
+	if (userRequest !== undefined) {
+		const existingUserRequest = await prisma.userRequest.findFirst({
+			where: { requestId: id, userId: ctx.user!.id },
+		})
 
-			if (existingDemand) {
-				const demandUpdateData: Prisma.DemandUpdateInput = {}
-				if (demand.recurrencePeriod !== undefined) {
-					demandUpdateData.recurrencePeriod = demand.recurrencePeriod
-				}
-				if (demand.quantity != null) {
-					demandUpdateData.quantity = demand.quantity
-				}
-				if (demand.priority !== undefined) {
-					demandUpdateData.priority = demand.priority
-				}
-				if (demand.dueAt !== undefined) {
-					demandUpdateData.dueAt = demand.dueAt ? new Date(demand.dueAt) : null
-				}
-				if (demand.isBasicNeed !== undefined) {
-					demandUpdateData.isBasicNeed = demand.isBasicNeed
-				}
-				await prisma.demand.update({
-					where: { id: existingDemand.id },
-					data: demandUpdateData,
-				})
-			} else if (
-				(demand.quantity !== null && demand.quantity !== undefined) ||
-				(demand.recurrencePeriod !== undefined && demand.recurrencePeriod > 0)
-			) {
-				await prisma.demand.create({
-					data: {
-						request: { connect: { id } },
-						user: { connect: { id: ctx.user!.id } },
-						recurrencePeriod: demand.recurrencePeriod || 0,
-						quantity: demand.quantity ?? 1,
-						isBasicNeed: demand.isBasicNeed ?? false,
-						priority: demand.priority ?? 0,
-						dueAt: demand.dueAt ? new Date(demand.dueAt) : null,
-					},
-				})
+		if (existingUserRequest) {
+			const userRequestUpdateData: Prisma.UserRequestUpdateInput = {}
+			if (userRequest.recurrencePeriod !== undefined) {
+				userRequestUpdateData.recurrencePeriod = userRequest.recurrencePeriod
 			}
-
-			// Update denormalized totals after any demand change
-			await updateRequestTotals(id!)
+			if (userRequest.quantity != null) {
+				userRequestUpdateData.quantity = userRequest.quantity
+			}
+			if (userRequest.priority !== undefined) {
+				userRequestUpdateData.priority = userRequest.priority
+			}
+			if (userRequest.dueAt !== undefined) {
+				userRequestUpdateData.dueAt = userRequest.dueAt ? new Date(userRequest.dueAt) : null
+			}
+			if (userRequest.isBasicNeed !== undefined) {
+				userRequestUpdateData.isBasicNeed = userRequest.isBasicNeed
+			}
+			await prisma.userRequest.update({
+				where: { id: existingUserRequest.id },
+				data: userRequestUpdateData,
+			})
+		} else if (
+			(userRequest.quantity !== null && userRequest.quantity !== undefined) ||
+			(userRequest.recurrencePeriod !== undefined && userRequest.recurrencePeriod > 0)
+		) {
+			await prisma.userRequest.create({
+				data: {
+					request: { connect: { id } },
+					user: { connect: { id: ctx.user!.id } },
+					recurrencePeriod: userRequest.recurrencePeriod || 0,
+					quantity: userRequest.quantity ?? 1,
+					isBasicNeed: userRequest.isBasicNeed ?? false,
+					priority: userRequest.priority ?? 0,
+					dueAt: userRequest.dueAt ? new Date(userRequest.dueAt) : null,
+				},
+			})
 		}
+
+		// Update denormalized totals after any user request change
+		await updateRequestTotals(id!)
+	}
 
 			return updatedRequest
 		}),
@@ -366,11 +366,11 @@ export const requestsRouter = router({
 			})
 		}),
 
-	// Get all demands for a specific request (for demands dialog)
-	getDemands: publicProcedure
+	// Get all user requests for a specific request (for user requests dialog)
+	getUserRequests: publicProcedure
 		.input(z.object({ requestId: z.number() }))
 		.query(async ({ input }) => {
-			return prisma.demand.findMany({
+			return prisma.userRequest.findMany({
 				where: { requestId: input.requestId },
 				include: {
 					user: {
@@ -386,12 +386,12 @@ export const requestsRouter = router({
 			})
 		}),
 
-	// Get the current user's demand for a specific request (for edit form)
-	getUserDemand: publicProcedure
+	// Get the current user's user request for a specific request (for edit form)
+	getUserRequest: publicProcedure
 		.input(z.object({ requestId: z.number() }))
 		.query(async ({ ctx, input }) => {
 			if (!ctx.user) return null
-			return prisma.demand.findFirst({
+			return prisma.userRequest.findFirst({
 				where: { requestId: input.requestId, userId: ctx.user.id },
 				include: {
 					user: {

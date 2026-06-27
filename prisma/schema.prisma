@@ -232,7 +232,7 @@ model User {
   role          String    @default("")
 
   pointsReceived  Float @default(0) // The total points received over time
-  pointsAvailable Float @default(0) // The available points spendable on an demand
+  pointsAvailable Float @default(0) // The available points spendable on a user request
 
   community   Community? @relation(fields: [communityId], references: [id])
   communityId Int?
@@ -260,8 +260,8 @@ model User {
   editableResources    Resource[]    @relation("ResourceEditors")
   ownedResources       Resource[]    @relation("ResourceOwner")
 
-  demands Demand[]
-  tokens  Token[]
+  userRequests UserRequest[]
+  tokens       Token[]
 }
 
 model UserRelation {
@@ -445,7 +445,7 @@ model Request {
   requestNodes RequestNode[]
   tags         Tag[]
   effects      Effect[]
-  demands      Demand[]
+  userRequests UserRequest[]
   proposals    Proposal[] // Auto-generated when adding proposed steps
 
   editors User[] @relation("requestEditors")
@@ -453,7 +453,7 @@ model Request {
   // Denormalized aggregates
   totalQuantity Float @default(0)
   totalPriority Float @default(0)
-  demandCount   Int   @default(0)
+  userRequestCount Int   @default(0)
 
   @@index([path])
   @@index([communityId])
@@ -461,7 +461,7 @@ model Request {
 }
 
 // Tracks the quantity of material requested by a user 
-model Demand {
+model UserRequest {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
@@ -477,7 +477,7 @@ model Demand {
   isBasicNeed Boolean @default(false)
 
   recurrencePeriod    Int // In days even thoughDaily, Weekly, Monthly, Quaterly, Semi-anually, Anually
-  dueAt               DateTime? // The demand deadline
+  dueAt               DateTime? // The user request deadline
   deliveredAt         DateTime? // Is reset based on the recurrence period using a cron job
   estimatedDeliveryAt DateTime?
   missedDeliveryAt    DateTime? // For tracking missed deliveries and adjusting the next delivery date accordingly

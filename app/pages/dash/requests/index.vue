@@ -10,14 +10,14 @@ import type { Tag } from '~/components/Tags.vue'
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
 import Tags from '~/components/Tags.vue'
-import DemandsList from '~/components/requests/DemandsList.vue'
+import UserRequestsList from '~/components/requests/UserRequestsList.vue'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 import { useConfirm } from 'primevue/useconfirm'
 import type { DataTableSortEvent } from 'primevue/datatable'
 
 type RequestRouterOutput = inferRouterOutputs<AppRouter>['requests']
 type Request = RequestRouterOutput['list'][number]
-type RequestDemand = RequestRouterOutput['getDemands'][number]
+type RequestUserRequest = RequestRouterOutput['getUserRequests'][number]
 
 definePageMeta({
 	layout: 'dashboard',
@@ -43,10 +43,10 @@ const dialogVisible = ref(false)
 const dialogMode = ref<'create' | 'update'>('create')
 const currentRequestId = ref<number | null>(null)
 const currentRequest = ref<Request | null>(null)
-const demandsDialogVisible = ref(false)
-const currentRequestDemands = ref<RequestDemand[]>([])
+const userRequestsDialogVisible = ref(false)
+const currentRequestUserRequests = ref<RequestUserRequest[]>([])
 const currentRequestTitle = ref('')
-const hasUserDemand = ref(false)
+const hasUserRequest = ref(false)
 
 const allTags = ref<Tag[]>([])
 const selectedTagIds = ref<number[]>([])
@@ -83,7 +83,7 @@ const formData = ref({
 	// totalPriority: 0,
 	selectedTags: [] as Tag[],
 	unitOfMeasure: 'None' as UnitOfMeasure,
-	demand: {
+	userRequest: {
 		quantity: undefined as number | undefined,
 		recurrencePeriod: 0,
 		priority: 0,
@@ -134,7 +134,7 @@ const openNewDialog = () => {
 		// totalPriority: 0,
 		selectedTags: [],
 		unitOfMeasure: 'None' as UnitOfMeasure,
-		demand: {
+		userRequest: {
 			quantity: 1,
 			recurrencePeriod: 0,
 			priority: 0,
@@ -143,33 +143,33 @@ const openNewDialog = () => {
 			isBasicNeed: false,
 		},
 	}
-	hasUserDemand.value = false
+	hasUserRequest.value = false
 	dialogMode.value = 'create'
 	dialogVisible.value = true
 }
 
 const editRequest = async (request: Request) => {
-	const userDemand = await $trpcClient.requests.getUserDemand.query({
+	const userRequestData = await $trpcClient.requests.getUserRequest.query({
 		requestId: request.id,
 	})
-	const demand = userDemand
-	hasUserDemand.value = !!userDemand
+	const userRequest = userRequestData
+	hasUserRequest.value = !!userRequestData
 	formData.value = {
 		title: request.title,
 		description: request.description || '',
 		isActive: request.isActive,
-		// totalPriority: demand?.priority || 0,
+		// totalPriority: userRequest?.priority || 0,
 		selectedTags: request.tags || [],
 		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure,
-		demand: {
-			quantity: demand?.quantity ?? undefined,
-			recurrencePeriod: demand?.recurrencePeriod || 0,
-			priority: demand?.priority ?? 0,
-			estimatedDeliveryAt: demand?.estimatedDeliveryAt
-				? new Date(demand?.estimatedDeliveryAt)
+		userRequest: {
+			quantity: userRequest?.quantity ?? undefined,
+			recurrencePeriod: userRequest?.recurrencePeriod || 0,
+			priority: userRequest?.priority ?? 0,
+			estimatedDeliveryAt: userRequest?.estimatedDeliveryAt
+				? new Date(userRequest?.estimatedDeliveryAt)
 				: undefined,
-			dueAt: demand?.dueAt ? new Date(demand.dueAt) : undefined,
-			isBasicNeed: demand?.isBasicNeed || false,
+			dueAt: userRequest?.dueAt ? new Date(userRequest.dueAt) : undefined,
+			isBasicNeed: userRequest?.isBasicNeed || false,
 		},
 	}
 	currentRequestId.value = request.id
@@ -208,7 +208,7 @@ const saveRequest = async () => {
 		const payload = {
 			...formData.value,
 			tagIds: realTagIds,
-			// Note: demand is already nested in formData.value.demand
+			// Note: userRequest is already nested in formData.value.userRequest
 		}
 
 		if (dialogMode.value === 'create') {
@@ -267,23 +267,23 @@ const confirmDelete = (event: MouseEvent, request: Request) => {
 	})
 }
 
-const showDemands = async () => {
+const showUserRequests = async () => {
 	if (!currentRequest.value) return
 	currentRequestTitle.value = currentRequest.value.title
-	const demands = await $trpcClient.requests.getDemands.query({
+	const userRequests = await $trpcClient.requests.getUserRequests.query({
 		requestId: currentRequest.value.id,
 	})
-	const allDemands = (demands || []).map(demand => ({
-		...demand,
+	const allUserRequests = (userRequests || []).map(userRequest => ({
+		...userRequest,
 		unitOfMeasure: currentRequest.value!.unitOfMeasure,
 	}))
-	currentRequestDemands.value = allDemands
-	demandsDialogVisible.value = true
+	currentRequestUserRequests.value = allUserRequests
+	userRequestsDialogVisible.value = true
 }
 
-const closeDemandsDialog = () => {
-	demandsDialogVisible.value = false
-	currentRequestDemands.value = []
+const closeUserRequestsDialog = () => {
+	userRequestsDialogVisible.value = false
+	currentRequestUserRequests.value = []
 	currentRequestTitle.value = ''
 }
 
@@ -379,7 +379,7 @@ onMounted(async () => {
 		<!-- <Column selectionMode="multiple" headerStyle="width: 3rem"></Column> -->
 		<!-- <Column header="Essential">
 				<template #body="{ data }">
-					<Checkbox v-if="data.demands?.[0]" :modelValue="data.demands[0].isBasicNeed" :binary="true" disabled />
+					<Checkbox v-if="data.userRequests?.[0]" :modelValue="data.userRequests[0].isBasicNeed" :binary="true" disabled />
 					<span v-else>-</span>
 				</template>
 			</Column>			 -->
@@ -512,15 +512,15 @@ onMounted(async () => {
 						class="form-field flex-1">
 						<label for="quantity">&nbsp;</label>
 					<Button
-						:label="formData.demand.quantity ? 'Update' : 'Join'"
+						:label="formData.userRequest.quantity ? 'Update' : 'Join'"
 						class="w-full"
 						@click="
-							formData.demand.quantity = formData.demand.quantity ? 0 : 1
+							formData.userRequest.quantity = formData.userRequest.quantity ? 0 : 1
 						" />
 				</div>
 				<div class="form-field flex-1">
 					<label for="priority">Priority</label>
-					<InputNumber id="priority" v-model="formData.demand.priority" />
+					<InputNumber id="priority" v-model="formData.userRequest.priority" />
 				</div>
 				</div>
 			</div>
@@ -533,8 +533,8 @@ onMounted(async () => {
 						<label for="quantity">Quantity</label>
 					<InputNumber
 						id="quantity"
-						v-model="formData.demand.quantity"
-						@input="e => (formData.demand.quantity = e.value as number)" />
+						v-model="formData.userRequest.quantity"
+						@input="e => (formData.userRequest.quantity = e.value as number)" />
 					</div>
 					<div
 						v-else-if="dialogMode !== 'create'"
@@ -542,10 +542,10 @@ onMounted(async () => {
 						class="form-field flex-1">
 						<label for="quantity">&nbsp;</label>
 					<Button
-						:label="formData.demand.quantity ? 'Joined' : 'Join'"
+						:label="formData.userRequest.quantity ? 'Joined' : 'Join'"
 						class="w-full"
 						@click="
-							formData.demand.quantity = formData.demand.quantity ? 0 : 1
+							formData.userRequest.quantity = formData.userRequest.quantity ? 0 : 1
 						" />
 					</div>
 				</Transition>
@@ -567,13 +567,13 @@ onMounted(async () => {
 				</div>
 			<div class="form-field flex-1">
 				<label for="priority">Priority Points</label>
-				<InputNumber id="priority" v-model="formData.demand.priority" />
+				<InputNumber id="priority" v-model="formData.userRequest.priority" />
 			</div>
 			<div class="form-field flex-1">
 				<label for="isBasicNeed" class="cursor-pointer">Essential</label>
 				<Checkbox
 					inputId="isBasicNeed"
-					v-model="formData.demand.isBasicNeed"
+					v-model="formData.userRequest.isBasicNeed"
 					:binary="true" />
 			</div>
 			</div>
@@ -582,7 +582,7 @@ onMounted(async () => {
 					<label for="recurrence">Recurrence</label>
 					<Dropdown
 						id="recurrence"
-						v-model="formData.demand.recurrencePeriod"
+						v-model="formData.userRequest.recurrencePeriod"
 						:options="[
 							{ label: 'None', value: 0 },
 							{ label: 'Daily', value: 1 },
@@ -600,14 +600,14 @@ onMounted(async () => {
 					<label for="dueAt">Due Date</label>
 					<DatePicker
 					id="dueAt"
-					v-model="formData.demand.dueAt"
+					v-model="formData.userRequest.dueAt"
 						dateFormat="mm/dd/yy" />
 				</div>
 				<div class="form-field flex-1">
 					<label for="estimatedDeliveryAt">Est. Delivery Date</label>
 					<DatePicker
 					id="estimatedDeliveryAt"
-					v-model="formData.demand.estimatedDeliveryAt"
+					v-model="formData.userRequest.estimatedDeliveryAt"
 						dateFormat="mm/dd/yy"
 						disabled />
 				</div>
@@ -633,13 +633,13 @@ onMounted(async () => {
 				<div class="flex-1">
 					<Button
 						v-if="dialogMode !== 'create'"
-					:label="`${currentRequest?.demandCount ?? 0} ${(currentRequest?.demandCount ?? 0) === 1 ? 'request' : 'requests'}${
+					:label="`${currentRequest?.userRequestCount ?? 0} ${(currentRequest?.userRequestCount ?? 0) === 1 ? 'request' : 'requests'}${
 							totalRequestedQuantity > 0
 								? ` (${totalRequestedQuantity} ${totalRequestedQuantity === 1 ? 'item' : 'items'} total)`
 								: ''
 						}`"
 					text
-					@click="showDemands" />
+					@click="showUserRequests" />
 				</div>
 				<div class="flex gap-2">
 					<Button label="Cancel" text @click="dialogVisible = false" />
@@ -649,7 +649,7 @@ onMounted(async () => {
 								? dialogMode === 'create'
 									? 'Create'
 									: 'Update'
-								: hasUserDemand
+								: hasUserRequest
 									? 'Update'
 									: 'Join'
 						"
@@ -661,17 +661,17 @@ onMounted(async () => {
 	</Dialog>
 
 	<Dialog
-		v-model:visible="demandsDialogVisible"
-		:header="`Demands - ${currentRequestTitle}`"
+		v-model:visible="userRequestsDialogVisible"
+		:header="`User Requests - ${currentRequestTitle}`"
 		:modal="true"
 		dismissableMask
 		:style="{ width: '700px' }"
 		:breakpoints="{ '960px': '90vw', '640px': '95vw' }"
 		show-effect="fadeIn"
 		hide-effect="fadeOut"
-		@update:visible="closeDemandsDialog">
-		<DemandsList
-			:demands="currentRequestDemands"
+		@update:visible="closeUserRequestsDialog">
+		<UserRequestsList
+			:userRequests="currentRequestUserRequests"
 			:unitOfMeasure="currentRequest?.unitOfMeasure || UnitOfMeasure.None" />
 	</Dialog>
 </template>
