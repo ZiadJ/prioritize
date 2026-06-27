@@ -11,7 +11,8 @@ import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
 import Tags from '~/components/Tags.vue'
 import UserRequestsList from '~/components/requests/UserRequestsList.vue'
-import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
+import QuantityInput from '~/components/requests/QuantityInput.vue'
+import { MeasurementType } from '~~/prisma/generated/client/enums'
 import { useConfirm } from 'primevue/useconfirm'
 import type { DataTableSortEvent } from 'primevue/datatable'
 
@@ -61,10 +62,6 @@ const scopeOptions = [
 	{ label: 'Community', value: 'community' },
 ]
 
-const totalRequestedQuantity = computed(() => {
-	return currentRequest.value?.totalQuantity || 0
-})
-
 const isOwner = computed(() => {
 	if (dialogMode.value === 'create') return true
 	return (
@@ -76,13 +73,23 @@ const isOwner = computed(() => {
 	)
 })
 
+const isJoined = computed(() => !!formData.value.userRequest.isJoined)
+
+function toggleJoin() {
+	formData.value.userRequest.isJoined = !formData.value.userRequest.isJoined
+	if (formData.value.userRequest.isJoined) {
+		formData.value.userRequest.quantity = 0
+	}
+}
+
 const formData = ref({
 	title: '',
 	description: '',
 	isActive: true,
+	isJoinable: false,
 	// totalPriority: 0,
 	selectedTags: [] as Tag[],
-	unitOfMeasure: 'None' as UnitOfMeasure,
+	measurementType: 'None' as MeasurementType,
 	userRequest: {
 		quantity: undefined as number | undefined,
 		recurrencePeriod: 0,
@@ -90,6 +97,7 @@ const formData = ref({
 		estimatedDeliveryAt: undefined as Date | undefined,
 		dueAt: undefined as Date | undefined,
 		isBasicNeed: false,
+		isJoined: false,
 	},
 })
 
@@ -131,9 +139,10 @@ const openNewDialog = () => {
 		title: '',
 		description: '',
 		isActive: true,
+		isJoinable: false,
 		// totalPriority: 0,
 		selectedTags: [],
-		unitOfMeasure: 'None' as UnitOfMeasure,
+		measurementType: 'None' as MeasurementType,
 		userRequest: {
 			quantity: 1,
 			recurrencePeriod: 0,
@@ -141,6 +150,7 @@ const openNewDialog = () => {
 			estimatedDeliveryAt: undefined,
 			dueAt: undefined,
 			isBasicNeed: false,
+			isJoined: false,
 		},
 	}
 	hasUserRequest.value = false
@@ -158,9 +168,10 @@ const editRequest = async (request: Request) => {
 		title: request.title,
 		description: request.description || '',
 		isActive: request.isActive,
+		isJoinable: request.isJoinable ?? false,
 		// totalPriority: userRequest?.priority || 0,
 		selectedTags: request.tags || [],
-		unitOfMeasure: request.unitOfMeasure as UnitOfMeasure,
+		measurementType: request.measurementType as MeasurementType,
 		userRequest: {
 			quantity: userRequest?.quantity ?? undefined,
 			recurrencePeriod: userRequest?.recurrencePeriod || 0,
@@ -170,6 +181,7 @@ const editRequest = async (request: Request) => {
 				: undefined,
 			dueAt: userRequest?.dueAt ? new Date(userRequest.dueAt) : undefined,
 			isBasicNeed: userRequest?.isBasicNeed || false,
+			isJoined: userRequest?.isJoined || false,
 		},
 	}
 	currentRequestId.value = request.id
@@ -275,7 +287,7 @@ const showUserRequests = async () => {
 	})
 	const allUserRequests = (userRequests || []).map(userRequest => ({
 		...userRequest,
-		unitOfMeasure: currentRequest.value!.unitOfMeasure,
+		measurementType: currentRequest.value!.measurementType,
 	}))
 	currentRequestUserRequests.value = allUserRequests
 	userRequestsDialogVisible.value = true
@@ -385,11 +397,9 @@ onMounted(async () => {
 			</Column>			 -->
 		<Column field="title" header="Title" sortable>
 			<template #body="{ data }">
-			<NuxtLink
-				:to="`/dash/requests/${data.id}`"
-				class="underline">
-				{{ data.title }}
-			</NuxtLink>
+				<NuxtLink :to="`/dash/requests/${data.id}`" class="underline">
+					{{ data.title }}
+				</NuxtLink>
 			</template>
 		</Column>
 		<Column class="!p-0">
@@ -400,11 +410,11 @@ onMounted(async () => {
 				<span class="">{{ data.totalPriority }}</span>
 			</template>
 		</Column>
-	<Column field="community.title" header="Community" sortable>
-		<template #body="{ data }">
-			<span>{{ data.community?.title || '-' }}</span>
-		</template>
-	</Column>
+		<Column field="community.title" header="Community" sortable>
+			<template #body="{ data }">
+				<span>{{ data.community?.title || '-' }}</span>
+			</template>
+		</Column>
 		<Column field="createdAt" header="Created" sortable>
 			<template #body="{ data }">
 				<span>{{ new Date(data.createdAt).toLocaleDateString() }}</span>
@@ -504,6 +514,57 @@ onMounted(async () => {
 					:disabled="!isOwner"
 					rows="3" />
 			</div>
+	<div
+		v-if="!formData.title.endsWith('?')"
+	class="flex items-end gap-4">
+		<div v-if="isOwner" class="form-field">
+			<label for="measurementType">Measurement</label>
+			<Dropdown
+				id="measurementType"
+				v-model="formData.measurementType"
+				:options="
+					Object.keys(MeasurementType).map(key => ({
+						label: key,
+						value: key as MeasurementType,
+					}))
+				"
+				optionLabel="label"
+				optionValue="value"
+				:disabled="!isOwner"
+				placeholder="Select measurement"
+				class="w-48" />
+		</div>
+		<div class="flex items-center gap-2 pb-2">
+			<Checkbox
+				inputId="isJoinable"
+				v-model="formData.isJoinable"
+				:binary="true"
+				:disabled="!isOwner" />
+			<label for="isJoinable" class="cursor-pointer"
+				>Shared</label
+			>
+		</div>
+	</div>
+			<Panel header="My Request">
+			<div
+				v-if="dialogMode !== 'create'"
+				class="flex items-center gap-3 mb-3 text-sm">
+				<button
+					type="button"
+					class="text-zinc-500 hover:underline"
+					@click="showUserRequests">
+					{{ currentRequest?.userRequestCount ?? 0 }}
+					{{
+						(currentRequest?.userRequestCount ?? 0) === 1
+							? 'request'
+							: 'requests'
+					}}
+				</button>
+				<span class="text-zinc-400">·</span>
+				<span class="text-zinc-500"
+					>{{ currentRequest?.totalPriority ?? 0 }} total priority</span
+				>
+			</div>
 			<div v-if="formData.title.endsWith('?')">
 				<div class="flex gap-4">
 					<div
@@ -511,71 +572,60 @@ onMounted(async () => {
 						key="join-button"
 						class="form-field flex-1">
 						<label for="quantity">&nbsp;</label>
-					<Button
-						:label="formData.userRequest.quantity ? 'Update' : 'Join'"
-						class="w-full"
-						@click="
-							formData.userRequest.quantity = formData.userRequest.quantity ? 0 : 1
-						" />
-				</div>
-				<div class="form-field flex-1">
-					<label for="priority">Priority</label>
-					<InputNumber id="priority" v-model="formData.userRequest.priority" />
-				</div>
+						<Button
+							:label="formData.userRequest.quantity ? 'Update' : 'Join'"
+							class="w-full"
+							@click="
+								formData.userRequest.quantity = formData.userRequest.quantity
+									? 0
+									: 1
+							" />
+					</div>
+					<div class="form-field flex-1">
+						<label for="priority">Priority</label>
+						<InputNumber
+							id="priority"
+							v-model="formData.userRequest.priority" />
+					</div>
 				</div>
 			</div>
 			<div v-if="!formData.title.endsWith('?')" class="flex gap-4">
+				<div
+					v-if="formData.isJoinable"
+					key="join-button"
+					class="form-field flex-1">
+					<label for="quantity">&nbsp;</label>
+					<Button
+						:label="isJoined ? 'Joined' : 'Join'"
+						:severity="isJoined ? 'success' : undefined"
+						class="w-full"
+						@click="toggleJoin" />
+				</div>
 				<Transition name="slide-fade" mode="out-in">
 					<div
-						v-if="formData.unitOfMeasure !== UnitOfMeasure.None"
+						v-if="
+							!formData.isJoinable &&
+							formData.measurementType !== MeasurementType.None
+						"
 						key="quantity-input"
 						class="form-field flex-1">
 						<label for="quantity">Quantity</label>
-					<InputNumber
-						id="quantity"
-						v-model="formData.userRequest.quantity"
-						@input="e => (formData.userRequest.quantity = e.value as number)" />
+						<QuantityInput
+							v-model="formData.userRequest.quantity"
+							:measurementType="formData.measurementType" />
 					</div>
-					<div
-						v-else-if="dialogMode !== 'create'"
-						key="join-button"
-						class="form-field flex-1">
-						<label for="quantity">&nbsp;</label>
-					<Button
-						:label="formData.userRequest.quantity ? 'Joined' : 'Join'"
-						class="w-full"
-						@click="
-							formData.userRequest.quantity = formData.userRequest.quantity ? 0 : 1
-						" />
-					</div>
-				</Transition>
-				<div class="form-field flex-1">
-					<label for="unitOfMeasure">Unit</label>
-					<Dropdown
-						id="unitOfMeasure"
-						v-model="formData.unitOfMeasure"
-						:options="
-							Object.keys(UnitOfMeasure).map(key => ({
-								label: key,
-								value: key as UnitOfMeasure,
-							}))
-						"
-						optionLabel="label"
-						optionValue="value"
-						:disabled="!isOwner"
-						placeholder="Select unit" />
+			</Transition>
+			<div class="form-field flex-1">
+				<label for="priority">Priority</label>
+					<InputNumber id="priority" v-model="formData.userRequest.priority" />
 				</div>
-			<div class="form-field flex-1">
-				<label for="priority">Priority Points</label>
-				<InputNumber id="priority" v-model="formData.userRequest.priority" />
-			</div>
-			<div class="form-field flex-1">
-				<label for="isBasicNeed" class="cursor-pointer">Essential</label>
-				<Checkbox
-					inputId="isBasicNeed"
-					v-model="formData.userRequest.isBasicNeed"
-					:binary="true" />
-			</div>
+				<div class="form-field flex-1">
+					<label for="isBasicNeed" class="cursor-pointer">Essential</label>
+					<Checkbox
+						inputId="isBasicNeed"
+						v-model="formData.userRequest.isBasicNeed"
+						:binary="true" />
+				</div>
 			</div>
 			<div v-if="!formData.title.endsWith('?')" class="flex gap-4">
 				<div class="form-field flex-1">
@@ -599,21 +649,22 @@ onMounted(async () => {
 				<div class="form-field flex-1">
 					<label for="dueAt">Due Date</label>
 					<DatePicker
-					id="dueAt"
-					v-model="formData.userRequest.dueAt"
+						id="dueAt"
+						v-model="formData.userRequest.dueAt"
 						dateFormat="mm/dd/yy" />
 				</div>
 				<div class="form-field flex-1">
 					<label for="estimatedDeliveryAt">Est. Delivery Date</label>
 					<DatePicker
-					id="estimatedDeliveryAt"
-					v-model="formData.userRequest.estimatedDeliveryAt"
-						dateFormat="mm/dd/yy"
-						disabled />
-				</div>
+						id="estimatedDeliveryAt"
+						v-model="formData.userRequest.estimatedDeliveryAt"
+					dateFormat="mm/dd/yy"
+					disabled />
 			</div>
-			<div class="form-field">
-				<label for="tags">Tags</label>
+		</div>
+		</Panel>
+		<div class="form-field">
+			<label for="tags">Tags</label>
 				<Tags
 					v-model="formData.selectedTags"
 					:tags="allTags"
@@ -629,20 +680,8 @@ onMounted(async () => {
 				</div> -->
 		</div>
 		<template #footer>
-			<div class="flex justify-content-between gap-2 w-full">
-				<div class="flex-1">
-					<Button
-						v-if="dialogMode !== 'create'"
-					:label="`${currentRequest?.userRequestCount ?? 0} ${(currentRequest?.userRequestCount ?? 0) === 1 ? 'request' : 'requests'}${
-							totalRequestedQuantity > 0
-								? ` (${totalRequestedQuantity} ${totalRequestedQuantity === 1 ? 'item' : 'items'} total)`
-								: ''
-						}`"
-					text
-					@click="showUserRequests" />
-				</div>
-				<div class="flex gap-2">
-					<Button label="Cancel" text @click="dialogVisible = false" />
+			<div class="flex justify-end gap-2 w-full">
+				<Button label="Cancel" text @click="dialogVisible = false" />
 					<Button
 						:label="
 							isOwner
@@ -653,9 +692,8 @@ onMounted(async () => {
 									? 'Update'
 									: 'Join'
 						"
-						@click="saveRequest"
-						:loading="saving" />
-				</div>
+					@click="saveRequest"
+					:loading="saving" />
 			</div>
 		</template>
 	</Dialog>
@@ -672,7 +710,9 @@ onMounted(async () => {
 		@update:visible="closeUserRequestsDialog">
 		<UserRequestsList
 			:userRequests="currentRequestUserRequests"
-			:unitOfMeasure="currentRequest?.unitOfMeasure || UnitOfMeasure.None" />
+			:measurementType="
+				currentRequest?.measurementType || MeasurementType.None
+			" />
 	</Dialog>
 </template>
 

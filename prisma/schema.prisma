@@ -154,15 +154,15 @@ enum RequestLevel {
   SelfActualization
 }
 
-enum UnitOfMeasure {
+enum MeasurementType {
   None // For non-countable items such as "a better world" and "happiness"
   Units // Generic unit for countable items
-  Hours // Time
-  Kilograms // Weight
-  CubicMetres // Volume
-  SquareMetres // Area
-  Metres // Length
-  Joules // Energy
+  Time // Seconds
+  Weight // Kilograms
+  Volume // Cubic Metres
+  Area // Square Metres
+  Length // Metres
+  Energy // Joules
 }
 
 model Feedback {
@@ -440,7 +440,8 @@ model Request {
 
   isApproved    Boolean       @default(false)
   isPrivate     Boolean       @default(false)
-  unitOfMeasure UnitOfMeasure
+  isJoinable    Boolean       @default(false) // Whether other users can join this request as a shared request without specifying their own quantity
+  measurementType MeasurementType
 
   requestNodes RequestNode[]
   tags         Tag[]
@@ -475,6 +476,7 @@ model UserRequest {
   quantity    Float
   priority    Float // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
   isBasicNeed Boolean @default(false)
+  isJoined    Boolean @default(false) // Whether the user joined the request as a shared request rather than specifying their own quantity
 
   recurrencePeriod    Int // In days even thoughDaily, Weekly, Monthly, Quaterly, Semi-anually, Anually
   dueAt               DateTime? // The user request deadline
@@ -685,7 +687,7 @@ model Resource {
   revisions   RevisionNode[]
 
   type                   Int // ResourceType // ServiceTime, Material, Digital
-  unitOfMeasure          UnitOfMeasure
+  measurementType        MeasurementType
   quantityAvailable      Float
   monthlyCapacity        Float // Amount that can be renewed within a month (includes volunteer time)
   managedMonthlyCapacity Float

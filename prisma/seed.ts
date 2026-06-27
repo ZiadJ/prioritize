@@ -423,7 +423,7 @@ async function main() {
 			title: 'A reliable water supply for the dry season',
 			description:
 				'The community needs a dependable water supply that lasts through the annual dry season (roughly 4-6 months). Current sources become unreliable or dry up entirely, forcing residents to ration water. Any solution must be affordable, maintainable by the community, and provide enough clean water for drinking, cooking, and basic hygiene.',
-			unitOfMeasure: 'CubicMetres',
+			measurementType: 'Volume',
 			ownerId: adminUser.id,
 			communityId: city1.id,
 			countryId: countryA.id,

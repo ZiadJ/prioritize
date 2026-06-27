@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
+import { MeasurementType } from '~~/prisma/generated/client/enums'
 
 interface UserRequestWithUser {
 	id: number
 	quantity: number
-	unitOfMeasure?: UnitOfMeasure
+	measurementType?: MeasurementType
 	recurrencePeriod: number
 	priority: number
 	user: {
@@ -17,7 +17,7 @@ interface UserRequestWithUser {
 
 const props = defineProps<{
 	userRequests: UserRequestWithUser[]
-	unitOfMeasure: UnitOfMeasure
+	measurementType: MeasurementType
 }>()
 </script>
 
@@ -35,7 +35,7 @@ const props = defineProps<{
 				</template>
 			</Column>
 			<Column
-				v-if="props.unitOfMeasure !== UnitOfMeasure.None"
+				v-if="props.measurementType !== MeasurementType.None"
 				field="quantity"
 				header="Qty"
 				style="">

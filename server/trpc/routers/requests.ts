@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
-import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
+import { MeasurementType } from '~~/prisma/generated/client/enums'
 import { createTreeNode } from '~~/lib/tree'
 import { RequestSchema } from '~~/prisma/generated/zod/schemas/models/Request.schema'
 import { UserRequestSchema } from '~~/prisma/generated/zod/schemas/models/UserRequest.schema'
@@ -27,7 +27,8 @@ export const createInput = RequestSchema.pick({
 	title: true,
 	description: true,
 	parentId: true,
-	unitOfMeasure: true,
+	measurementType: true,
+	isJoinable: true,
 }).extend({
 	tagIds: z.array(z.number()).optional().default([]),
 	userRequest: UserRequestSchema.pick({
@@ -36,6 +37,7 @@ export const createInput = RequestSchema.pick({
 		recurrencePeriod: true,
 		dueAt: true,
 		isBasicNeed: true,
+		isJoined: true,
 	}).optional(),
 })
 
@@ -221,19 +223,21 @@ export const requestsRouter = router({
 					: undefined,
 			})
 
-		// Create UserRequest if userRequest data is provided and has quantity or recurrencePeriod
+		// Create UserRequest if userRequest data is provided and has quantity, recurrencePeriod or is a join
 		if (
 			userRequest &&
 			((userRequest.quantity !== null && userRequest.quantity !== undefined) ||
-				(userRequest.recurrencePeriod && userRequest.recurrencePeriod > 0))
+				(userRequest.recurrencePeriod && userRequest.recurrencePeriod > 0) ||
+				userRequest.isJoined)
 		) {
 			await prisma.userRequest.create({
 				data: {
 					request: { connect: { id: node.id } },
 					user: { connect: { id: ctx.user!.id } },
 					recurrencePeriod: userRequest.recurrencePeriod || 0,
-					quantity: userRequest.quantity ?? 1,
+					quantity: userRequest.isJoined ? 0 : (userRequest.quantity ?? 1),
 					isBasicNeed: userRequest.isBasicNeed ?? false,
+					isJoined: userRequest.isJoined ?? false,
 					priority: userRequest.priority ?? 0,
 					dueAt: userRequest.dueAt ? new Date(userRequest.dueAt) : null,
 				},
@@ -253,7 +257,7 @@ export const requestsRouter = router({
 	update: protectedProcedure
 		.input(updateInput)
 		.mutation(async ({ ctx, input }) => {
-	const { id, tagIds, userRequest, unitOfMeasure, ...data } = input as z.infer<
+	const { id, tagIds, userRequest, measurementType, ...data } = input as z.infer<
 		typeof updateInput
 	>
 
@@ -284,9 +288,9 @@ export const requestsRouter = router({
 						set: tagIds.map((tagId: number) => ({ id: tagId })),
 					}
 				}
-				if (unitOfMeasure !== undefined) {
-					updateData.unitOfMeasure = unitOfMeasure
-				}
+			if (measurementType !== undefined) {
+				updateData.measurementType = measurementType
+			}
 			}
 
 			let updatedRequest: any
@@ -323,21 +327,29 @@ export const requestsRouter = router({
 			if (userRequest.isBasicNeed !== undefined) {
 				userRequestUpdateData.isBasicNeed = userRequest.isBasicNeed
 			}
+			if (userRequest.isJoined !== undefined) {
+				userRequestUpdateData.isJoined = userRequest.isJoined
+				if (userRequest.isJoined) {
+					userRequestUpdateData.quantity = 0
+				}
+			}
 			await prisma.userRequest.update({
 				where: { id: existingUserRequest.id },
 				data: userRequestUpdateData,
 			})
 		} else if (
 			(userRequest.quantity !== null && userRequest.quantity !== undefined) ||
-			(userRequest.recurrencePeriod !== undefined && userRequest.recurrencePeriod > 0)
+			(userRequest.recurrencePeriod !== undefined && userRequest.recurrencePeriod > 0) ||
+			userRequest.isJoined
 		) {
 			await prisma.userRequest.create({
 				data: {
 					request: { connect: { id } },
 					user: { connect: { id: ctx.user!.id } },
 					recurrencePeriod: userRequest.recurrencePeriod || 0,
-					quantity: userRequest.quantity ?? 1,
+					quantity: userRequest.isJoined ? 0 : (userRequest.quantity ?? 1),
 					isBasicNeed: userRequest.isBasicNeed ?? false,
+					isJoined: userRequest.isJoined ?? false,
 					priority: userRequest.priority ?? 0,
 					dueAt: userRequest.dueAt ? new Date(userRequest.dueAt) : null,
 				},

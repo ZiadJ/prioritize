@@ -7,7 +7,7 @@ const createInput = ResourceSchema.pick({
 	title: true,
 	description: true,
 	type: true,
-	unitOfMeasure: true,
+	measurementType: true,
 	quantityAvailable: true,
 	monthlyCapacity: true,
 	managedMonthlyCapacity: true,
