@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
 
-interface OrderWithUser {
+interface DemandWithUser {
 	id: number
 	quantity: number
 	unitOfMeasure?: UnitOfMeasure
@@ -16,15 +16,15 @@ interface OrderWithUser {
 }
 
 const props = defineProps<{
-	orders: OrderWithUser[]
+	demands: DemandWithUser[]
 	unitOfMeasure: UnitOfMeasure
 }>()
 </script>
 
 <template>
-	<div class="orders-list">
+	<div class="demands-list">
 		<DataTable
-			:value="props.orders"
+			:value="props.demands"
 			:paginator="true"
 			:rows="10"
 			stripedRows
@@ -56,7 +56,7 @@ const props = defineProps<{
 
 			<template #empty>
 				<div class="flex justify-content-center align-items-center p-4">
-					<span class="text-zinc-500">No orders found.</span>
+					<span class="text-zinc-500">No demands found.</span>
 				</div>
 			</template>
 		</DataTable>
@@ -64,7 +64,7 @@ const props = defineProps<{
 </template>
 
 <style scoped>
-.orders-list {
+.demands-list {
 	padding: 1rem 0;
 }
 </style>

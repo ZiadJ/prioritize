@@ -9,7 +9,9 @@ async function main() {
 
 	const tables = await prisma.$queryRaw<{ tablename: string }[]>`
 		SELECT tablename FROM pg_tables
-		WHERE schemaname = 'public' AND tablename != '_prisma_migrations'
+		WHERE schemaname = 'public'
+		  AND tablename != '_prisma_migrations'
+		  AND tablename NOT IN ('spatial_ref_sys')
 	`
 
 	await prisma.$executeRawUnsafe(
@@ -34,68 +36,76 @@ async function main() {
 		},
 	})
 
-	const country1 = await createTreeNode(prisma.communityNode, {
-		title: 'Valley Region',
-		description: 'Region in the northern region',
-		country: { connect: { id: countryA.id } },
-		address: 'Country A',
-		longitude: -95.7129,
-		latitude: 37.0902,
-		isActive: true,
+	const country1 = await prisma.community.create({
+		data: {
+			title: 'Valley Region',
+			description: 'Region in the northern region',
+			country: { connect: { id: countryA.id } },
+			address: 'Country A',
+			longitude: -95.7129,
+			latitude: 37.0902,
+			isActive: true,
+		},
 	})
 
-	const state1 = await createTreeNode(prisma.communityNode, {
-		title: 'Arcadia',
-		description: 'State of Arcadia',
-		country: { connect: { id: countryA.id } },
-		address: 'Arcadia, Country A',
-		longitude: -119.4179,
-		latitude: 36.7783,
-		parentId: country1.id,
-		isActive: true,
+	const state1 = await prisma.community.create({
+		data: {
+			title: 'Arcadia',
+			description: 'State of Arcadia',
+			country: { connect: { id: countryA.id } },
+			address: 'Arcadia, Country A',
+			longitude: -119.4179,
+			latitude: 36.7783,
+			isActive: true,
+		},
 	})
 
-	const city1 = await createTreeNode(prisma.communityNode, {
-		title: 'Terravita',
-		description: 'Terravita ecovillage',
-		country: { connect: { id: countryA.id } },
-		address: 'Harbor City, Arcadia, Country A',
-		longitude: -122.4194,
-		latitude: 37.7749,
-		parentId: state1.id,
-		isActive: true,
+	const city1 = await prisma.community.create({
+		data: {
+			title: 'Terravita',
+			description: 'Terravita ecovillage',
+			country: { connect: { id: countryA.id } },
+			address: 'Harbor City, Arcadia, Country A',
+			longitude: -122.4194,
+			latitude: 37.7749,
+			isActive: true,
+		},
 	})
 
-	const country2 = await createTreeNode(prisma.communityNode, {
-		title: 'Mountain Region',
-		description: 'Region in the northern region',
-		country: { connect: { id: countryB.id } },
-		address: 'Country B',
-		longitude: -106.3468,
-		latitude: 56.1304,
-		isActive: true,
+	const country2 = await prisma.community.create({
+		data: {
+			title: 'Mountain Region',
+			description: 'Region in the northern region',
+			country: { connect: { id: countryB.id } },
+			address: 'Country B',
+			longitude: -106.3468,
+			latitude: 56.1304,
+			isActive: true,
+		},
 	})
 
-	const state2 = await createTreeNode(prisma.communityNode, {
-		title: 'Lake Province',
-		description: 'Province of Lake Province',
-		country: { connect: { id: countryB.id } },
-		address: 'Lake Province, Country B',
-		longitude: -79.3832,
-		latitude: 43.6532,
-		parentId: country2.id,
-		isActive: true,
+	const state2 = await prisma.community.create({
+		data: {
+			title: 'Lake Province',
+			description: 'Province of Lake Province',
+			country: { connect: { id: countryB.id } },
+			address: 'Lake Province, Country B',
+			longitude: -79.3832,
+			latitude: 43.6532,
+			isActive: true,
+		},
 	})
 
-	const city2 = await createTreeNode(prisma.communityNode, {
-		title: 'Central City',
-		description: 'City of Central City',
-		country: { connect: { id: countryB.id } },
-		address: 'Central City, Lake Province, Country B',
-		longitude: -79.3832,
-		latitude: 43.6532,
-		parentId: state2.id,
-		isActive: true,
+	const city2 = await prisma.community.create({
+		data: {
+			title: 'Central City',
+			description: 'City of Central City',
+			country: { connect: { id: countryB.id } },
+			address: 'Central City, Lake Province, Country B',
+			longitude: -79.3832,
+			latitude: 43.6532,
+			isActive: true,
+		},
 	})
 
 	console.log('Creating community nodes...')
@@ -417,15 +427,15 @@ async function main() {
 			ownerId: adminUser.id,
 			communityId: city1.id,
 			countryId: countryA.id,
-			orders: {
-				create: {
-					userId: adminUser.id,
-					quantity: 500,
-					priority: 300.0,
-					recurrencePeriod: 365,
-					isBasicNeed: true,
-				},
+		demands: {
+			create: {
+				userId: adminUser.id,
+				quantity: 500,
+				priority: 300.0,
+				recurrencePeriod: 365,
+				isBasicNeed: true,
 			},
+		},
 		},
 	})
 

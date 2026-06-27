@@ -11,24 +11,24 @@ const feedbackInput = z.object({
 })
 
 /**
- * Recalculates and persists the netValue for a single proposal.
+ * Recalculates and persists the netBenefit for a single proposal.
  *
  * For each request node in the request:
  *   1. Average the ratings of feedback where proposalId IS NULL (the "Value" column)
  *   2. Average the ratings of feedback where proposalId equals the proposal's id
  *   3. Actual value per request node = value average × proposal average
  *
- * The proposal's netValue is the sum of all actual values across request nodes.
+ * The proposal's netBenefit is the sum of all actual values across request nodes.
  */
 type RequestNodeWithFeedback = Prisma.RequestNodeGetPayload<{
 	include: { feedback: true }
 }>
 
-async function updateProposalNetValue(
+async function updateProposalNetBenefit(
 	proposalId: number,
 	requestNodes: RequestNodeWithFeedback[],
 ) {
-	let netValue = 0
+	let netBenefit = 0
 
 	for (const requestNode of requestNodes) {
 		const feedback = requestNode.feedback
@@ -50,13 +50,13 @@ async function updateProposalNetValue(
 				: 0
 
 		// Actual value per request node = sum × average
-		netValue += avgValueRating * avgProposalRating
+		netBenefit += avgValueRating * avgProposalRating
 	}
 
-	// Persist the calculated netValue
+	// Persist the calculated netBenefit
 	await prisma.proposal.update({
 		where: { id: proposalId },
-		data: { netValue: Math.round(netValue) },
+		data: { netBenefit: Math.round(netBenefit) },
 	})
 }
 
@@ -127,9 +127,9 @@ export const feedbackRouter = router({
 				include: { feedback: true },
 			})
 
-			// Recalculate netValue for the affected proposal(s)
+			// Recalculate netBenefit for the affected proposal(s)
 			if (proposalId) {
-				await updateProposalNetValue(proposalId, requestNodes)
+				await updateProposalNetBenefit(proposalId, requestNodes)
 			} else {
 				// Feedback without the proposal Id is a value feedback which affects all proposals
 				const proposals = await prisma.proposal.findMany({
@@ -138,7 +138,7 @@ export const feedbackRouter = router({
 				})
 
 				for (const p of proposals) {
-					await updateProposalNetValue(p.id, requestNodes)
+					await updateProposalNetBenefit(p.id, requestNodes)
 				}
 			}
 

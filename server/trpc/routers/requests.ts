@@ -1,15 +1,14 @@
-import { CommunityNode } from './../../../prisma/generated/interfaces'
 import { z } from 'zod'
 import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
 import { UnitOfMeasure } from '~~/prisma/generated/client/enums'
-import { createTreeNode, buildTreeSelectDataFromNodes } from '~~/lib/tree'
+import { createTreeNode } from '~~/lib/tree'
 import { RequestSchema } from '~~/prisma/generated/zod/schemas/models/Request.schema'
-import { OrderSchema } from '~~/prisma/generated/zod/schemas/models/Order.schema'
+import { DemandSchema } from '~~/prisma/generated/zod/schemas/models/Demand.schema'
 
-// Helper to update request totals from all its orders
+// Helper to update request totals from all its demands
 async function updateRequestTotals(requestId: number) {
-	const aggregates = await prisma.order.aggregate({
+	const aggregates = await prisma.demand.aggregate({
 		where: { requestId },
 		_sum: { quantity: true, priority: true },
 		_count: true,
@@ -19,7 +18,7 @@ async function updateRequestTotals(requestId: number) {
 		data: {
 			totalQuantity: aggregates._sum.quantity || 0,
 			totalPriority: aggregates._sum.priority || 0,
-			orderCount: aggregates._count,
+			demandCount: aggregates._count,
 		},
 	})
 }
@@ -31,7 +30,7 @@ export const createInput = RequestSchema.pick({
 	unitOfMeasure: true,
 }).extend({
 	tagIds: z.array(z.number()).optional().default([]),
-	order: OrderSchema.pick({
+	demand: DemandSchema.pick({
 		quantity: true,
 		priority: true,
 		recurrencePeriod: true,
@@ -94,14 +93,14 @@ export const requestsRouter = router({
 						return []
 					}
 
-					// Fetch user's community with relevant regional relation
-					const userCommunity = await prisma.communityNode.findUnique({
-						where: { id: ctx.user.communityId },
-						select: {
-							regionalCommunities: { select: { id: true } },
-							localCommunities: { select: { id: true } },
-						},
-					})
+				// Fetch user's community with relevant regional relation
+				const userCommunity = await prisma.community.findUnique({
+					where: { id: ctx.user.communityId },
+					select: {
+						regionalCommunities: { select: { id: true } },
+						localCommunities: { select: { id: true } },
+					},
+				})
 
 					// Get community IDs based on scope
 					let regionalIds: number[] = []
@@ -136,7 +135,7 @@ export const requestsRouter = router({
 			const sortOrder = input?.sortOrder === -1 ? 'desc' : 'asc'
 			const sortBy = input?.sortBy || 'totalPriority'
 
-			// Handle dot notation for nested sorting (e.g., 'communityNode.title')
+			// Handle dot notation for nested sorting (e.g., 'community.title')
 			if (sortBy.includes('.')) {
 				const [parentField, field] = sortBy.split('.')
 				orderBy[parentField!] = { [field!]: sortOrder }
@@ -148,10 +147,10 @@ export const requestsRouter = router({
 			const result = await prisma.request.findMany({
 				where,
 				orderBy,
-				include: {
-					tags: true,
-					communityNode: true,
-					editors: true,
+			include: {
+				tags: true,
+				community: true,
+				editors: true,
 					// _count: {
 					// 	select: { children: true },
 					// },
@@ -184,9 +183,9 @@ export const requestsRouter = router({
 					},
 				},
 			},
-					orders: true,
-					communityNode: true,
-					country: true,
+				demands: true,
+				community: true,
+				country: true,
 					_count: {
 						select: {
 							children: true,
@@ -200,46 +199,46 @@ export const requestsRouter = router({
 	create: protectedProcedure
 		.input(createInput)
 		.mutation(async ({ ctx, input }) => {
-			const { tagIds, parentId, order, ...data } = input as z.infer<
-				typeof createInput
-			>
+		const { tagIds, parentId, demand, ...data } = input as z.infer<
+			typeof createInput
+		>
 
-			if (!ctx.user!.communityId) {
-				throw new Error('User must be assigned to a community')
-			}
+		if (!ctx.user!.communityId) {
+			throw new Error('User must be assigned to a community')
+		}
 
-			try {
-			const node = await createTreeNode(prisma.request, {
-					...data,
-					parentId,
-					communityId: ctx.user!.communityId,
-					countryId: ctx.user!.countryId,
-					ownerId: ctx.user!.id,
-					tags: tagIds?.length
-						? {
-								connect: tagIds.map((id: number) => ({ id })),
-							}
-						: undefined,
+		try {
+		const node = await createTreeNode(prisma.request, {
+				...data,
+				parentId,
+				communityId: ctx.user!.communityId,
+				countryId: ctx.user!.countryId,
+				ownerId: ctx.user!.id,
+				tags: tagIds?.length
+					? {
+							connect: tagIds.map((id: number) => ({ id })),
+						}
+					: undefined,
+			})
+
+			// Create Demand if demand data is provided and has quantity or recurrencePeriod
+			if (
+				demand &&
+				((demand.quantity !== null && demand.quantity !== undefined) ||
+					(demand.recurrencePeriod && demand.recurrencePeriod > 0))
+			) {
+				await prisma.demand.create({
+					data: {
+						request: { connect: { id: node.id } },
+						user: { connect: { id: ctx.user!.id } },
+						recurrencePeriod: demand.recurrencePeriod || 0,
+						quantity: demand.quantity ?? 1,
+						isBasicNeed: demand.isBasicNeed ?? false,
+						priority: demand.priority ?? 0,
+						dueAt: demand.dueAt ? new Date(demand.dueAt) : null,
+					},
 				})
-
-				// Create Order if order data is provided and has quantity or recurrencePeriod
-				if (
-					order &&
-					((order.quantity !== null && order.quantity !== undefined) ||
-						(order.recurrencePeriod && order.recurrencePeriod > 0))
-				) {
-					await prisma.order.create({
-						data: {
-							request: { connect: { id: node.id } },
-							user: { connect: { id: ctx.user!.id } },
-							recurrencePeriod: order.recurrencePeriod || 0,
-							quantity: order.quantity ?? 1,
-							isBasicNeed: order.isBasicNeed ?? false,
-							priority: order.priority ?? 0,
-							dueAt: order.dueAt ? new Date(order.dueAt) : null,
-						},
-					})
-				}
+			}
 
 				// Update denormalized totals
 				await updateRequestTotals(node.id)
@@ -254,9 +253,9 @@ export const requestsRouter = router({
 	update: protectedProcedure
 		.input(updateInput)
 		.mutation(async ({ ctx, input }) => {
-			const { id, tagIds, order, unitOfMeasure, ...data } = input as z.infer<
-				typeof updateInput
-			>
+		const { id, tagIds, demand, unitOfMeasure, ...data } = input as z.infer<
+			typeof updateInput
+		>
 
 			// Fetch the request to check permissions
 			const existingRequest = await prisma.request.findUnique({
@@ -301,53 +300,53 @@ export const requestsRouter = router({
 				updatedRequest = existingRequest
 			}
 
-			// Handle Order update/creation - allowed for any user
-			if (order !== undefined) {
-				const existingOrder = await prisma.order.findFirst({
-					where: { requestId: id, userId: ctx.user!.id },
-				})
+		// Handle Demand update/creation - allowed for any user
+		if (demand !== undefined) {
+			const existingDemand = await prisma.demand.findFirst({
+				where: { requestId: id, userId: ctx.user!.id },
+			})
 
-				if (existingOrder) {
-					const orderUpdateData: Prisma.OrderUpdateInput = {}
-					if (order.recurrencePeriod !== undefined) {
-						orderUpdateData.recurrencePeriod = order.recurrencePeriod
-					}
-					if (order.quantity != null) {
-						orderUpdateData.quantity = order.quantity
-					}
-					if (order.priority !== undefined) {
-						orderUpdateData.priority = order.priority
-					}
-					if (order.dueAt !== undefined) {
-						orderUpdateData.dueAt = order.dueAt ? new Date(order.dueAt) : null
-					}
-					if (order.isBasicNeed !== undefined) {
-						orderUpdateData.isBasicNeed = order.isBasicNeed
-					}
-					await prisma.order.update({
-						where: { id: existingOrder.id },
-						data: orderUpdateData,
-					})
-				} else if (
-					(order.quantity !== null && order.quantity !== undefined) ||
-					(order.recurrencePeriod !== undefined && order.recurrencePeriod > 0)
-				) {
-					await prisma.order.create({
-						data: {
-							request: { connect: { id } },
-							user: { connect: { id: ctx.user!.id } },
-							recurrencePeriod: order.recurrencePeriod || 0,
-							quantity: order.quantity ?? 1,
-							isBasicNeed: order.isBasicNeed ?? false,
-							priority: order.priority ?? 0,
-							dueAt: order.dueAt ? new Date(order.dueAt) : null,
-						},
-					})
+			if (existingDemand) {
+				const demandUpdateData: Prisma.DemandUpdateInput = {}
+				if (demand.recurrencePeriod !== undefined) {
+					demandUpdateData.recurrencePeriod = demand.recurrencePeriod
 				}
-
-				// Update denormalized totals after any order change
-				await updateRequestTotals(id!)
+				if (demand.quantity != null) {
+					demandUpdateData.quantity = demand.quantity
+				}
+				if (demand.priority !== undefined) {
+					demandUpdateData.priority = demand.priority
+				}
+				if (demand.dueAt !== undefined) {
+					demandUpdateData.dueAt = demand.dueAt ? new Date(demand.dueAt) : null
+				}
+				if (demand.isBasicNeed !== undefined) {
+					demandUpdateData.isBasicNeed = demand.isBasicNeed
+				}
+				await prisma.demand.update({
+					where: { id: existingDemand.id },
+					data: demandUpdateData,
+				})
+			} else if (
+				(demand.quantity !== null && demand.quantity !== undefined) ||
+				(demand.recurrencePeriod !== undefined && demand.recurrencePeriod > 0)
+			) {
+				await prisma.demand.create({
+					data: {
+						request: { connect: { id } },
+						user: { connect: { id: ctx.user!.id } },
+						recurrencePeriod: demand.recurrencePeriod || 0,
+						quantity: demand.quantity ?? 1,
+						isBasicNeed: demand.isBasicNeed ?? false,
+						priority: demand.priority ?? 0,
+						dueAt: demand.dueAt ? new Date(demand.dueAt) : null,
+					},
+				})
 			}
+
+			// Update denormalized totals after any demand change
+			await updateRequestTotals(id!)
+		}
 
 			return updatedRequest
 		}),
@@ -367,11 +366,11 @@ export const requestsRouter = router({
 			})
 		}),
 
-	// Get all orders for a specific request (for orders dialog)
-	getOrders: publicProcedure
+	// Get all demands for a specific request (for demands dialog)
+	getDemands: publicProcedure
 		.input(z.object({ requestId: z.number() }))
 		.query(async ({ input }) => {
-			return prisma.order.findMany({
+			return prisma.demand.findMany({
 				where: { requestId: input.requestId },
 				include: {
 					user: {
@@ -387,12 +386,12 @@ export const requestsRouter = router({
 			})
 		}),
 
-	// Get the current user's order for a specific request (for edit form)
-	getUserOrder: publicProcedure
+	// Get the current user's demand for a specific request (for edit form)
+	getUserDemand: publicProcedure
 		.input(z.object({ requestId: z.number() }))
 		.query(async ({ ctx, input }) => {
 			if (!ctx.user) return null
-			return prisma.order.findFirst({
+			return prisma.demand.findFirst({
 				where: { requestId: input.requestId, userId: ctx.user.id },
 				include: {
 					user: {
@@ -431,10 +430,10 @@ export const requestsRouter = router({
 			})
 		}),
 
-	// Community Node procedures
-	listCommunityNodes: publicProcedure.query(async () => {
-		return prisma.communityNode.findMany({
-			orderBy: { path: 'asc' },
+	// Community procedures
+	listCommunities: publicProcedure.query(async () => {
+		return prisma.community.findMany({
+			orderBy: { title: 'asc' },
 		})
 	}),
 
@@ -457,9 +456,14 @@ export const requestsRouter = router({
 	}),
 
 	getCommunityTree: publicProcedure.query(async () => {
-		const allNodes = await prisma.communityNode.findMany({
+		const allCommunities = await prisma.community.findMany({
 			orderBy: { title: 'asc' },
 		})
-		return buildTreeSelectDataFromNodes(allNodes)
+		return allCommunities.map(c => ({
+			key: String(c.id),
+			label: c.title,
+			data: c,
+			children: [],
+		}))
 	}),
 })

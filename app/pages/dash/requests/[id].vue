@@ -279,7 +279,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 						<Button
 							v-if="dataLoaded && !rootNodes.length"
 							type="button"
-							label="Add request node"
+							label="Add a request node"
 							icon="pi pi-plus"
 							severity="info"
 							outlined

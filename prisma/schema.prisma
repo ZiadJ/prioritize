@@ -31,8 +31,9 @@ generator typescriptInterfaces {
 }
 
 generator client {
-  provider = "prisma-client"
-  output   = "../prisma/generated/client"
+  provider        = "prisma-client"
+  output          = "../prisma/generated/client"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 generator zod {
@@ -41,7 +42,8 @@ generator zod {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [postgis]
 }
 
 //                                               RELATIONAL MODEL EXAMPLES
@@ -230,11 +232,11 @@ model User {
   role          String    @default("")
 
   pointsReceived  Float @default(0) // The total points received over time
-  pointsAvailable Float @default(0) // The available points spendable on an order
+  pointsAvailable Float @default(0) // The available points spendable on an demand
 
-  community   CommunityNode? @relation(fields: [communityId], references: [id])
+  community   Community? @relation(fields: [communityId], references: [id])
   communityId Int?
-  country     Country?       @relation(fields: [countryId], references: [id])
+  country     Country?   @relation(fields: [countryId], references: [id])
   countryId   Int?
 
   expertise         ExpertiseNode[]
@@ -258,15 +260,15 @@ model User {
   editableResources    Resource[]    @relation("ResourceEditors")
   ownedResources       Resource[]    @relation("ResourceOwner")
 
-  orders Order[]
-  tokens Token[]
+  demands Demand[]
+  tokens  Token[]
 }
 
 model UserRelation {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
   type String @default("friend")
 
@@ -283,7 +285,7 @@ model RevisionNode {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
-  isActive   Boolean
+  isActive   Boolean  @default(true)
 
   title       String // @unique
   description String
@@ -429,12 +431,12 @@ model Request {
   parentId Int?
   children Request[] @relation("Self")
 
-  communityNode CommunityNode? @relation(fields: [communityId], references: [id])
-  communityId   Int?
-  country       Country?       @relation(fields: [countryId], references: [id])
-  countryId     Int?
-  owner         User           @relation("RequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId       String
+  community   Community? @relation(fields: [communityId], references: [id])
+  communityId Int?
+  country     Country?   @relation(fields: [countryId], references: [id])
+  countryId   Int?
+  owner       User       @relation("RequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId     String
 
   isApproved    Boolean       @default(false)
   isPrivate     Boolean       @default(false)
@@ -443,7 +445,7 @@ model Request {
   requestNodes RequestNode[]
   tags         Tag[]
   effects      Effect[]
-  orders       Order[]
+  demands      Demand[]
   proposals    Proposal[] // Auto-generated when adding proposed steps
 
   editors User[] @relation("requestEditors")
@@ -451,7 +453,7 @@ model Request {
   // Denormalized aggregates
   totalQuantity Float @default(0)
   totalPriority Float @default(0)
-  orderCount    Int   @default(0)
+  demandCount   Int   @default(0)
 
   @@index([path])
   @@index([communityId])
@@ -459,7 +461,7 @@ model Request {
 }
 
 // Tracks the quantity of material requested by a user 
-model Order {
+model Demand {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
@@ -475,7 +477,7 @@ model Order {
   isBasicNeed Boolean @default(false)
 
   recurrencePeriod    Int // In days even thoughDaily, Weekly, Monthly, Quaterly, Semi-anually, Anually
-  dueAt               DateTime? // The order deadline
+  dueAt               DateTime? // The demand deadline
   deliveredAt         DateTime? // Is reset based on the recurrence period using a cron job
   estimatedDeliveryAt DateTime?
   missedDeliveryAt    DateTime? // For tracking missed deliveries and adjusting the next delivery date accordingly
@@ -509,7 +511,7 @@ model RequestNode {
   request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
   requestId Int
 
-  position Int // For ordering within a parent node
+  position Int // For demanding within a parent node
 
   isVariantsGroup Boolean // Contains a list of variant nodes requested by different users
   isNonNegotiable Boolean
@@ -571,7 +573,7 @@ model Proposal {
   approvedAt   DateTime?
   deliveryDays Int // Production and delivery time
 
-  netValue Int @default(0)
+  netBenefit Int @default(0)
 
   isDraft       Boolean?
   isUnavailable Boolean?
@@ -615,11 +617,9 @@ model StepNode {
   next     StepNode? @relation("Sibbling", fields: [nextId], references: [id])
   previous StepNode? @relation("Sibbling")
 
-  ResourceNode   ResourceNode? @relation(fields: [resourceNodeId], references: [id])
-  resourceNodeId Int?
-
   duration         Int
   durationVariance Int
+  riskFactor       Int
 
   proposals  Proposal[]
   costs      StepCost[]
@@ -637,7 +637,7 @@ model StepNode {
 }
 
 // Resource quantity produced or consumed by a specific proposal step
-
+// The specified quantity is substracted from the community stock when consumedAt is specified
 model StepCost {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
@@ -649,32 +649,31 @@ model StepCost {
   isDirty     Boolean? // Client-server-clients sync flag
   revisions   RevisionNode[]
 
-  resourceNode   ResourceNode? @relation(fields: [resourceNodeId], references: [id])
-  resourceNodeId Int?
-  stepNode       StepNode?     @relation(fields: [stepNodeId], references: [id])
-  stepNodeId     Int?
+  resourceCostPerUnitNode   ResourceCostPerUnitNode? @relation(fields: [resourceCostPerUnitNodeId], references: [id])
+  resourceCostPerUnitNodeId Int?
+  communityResource         CommunityResource        @relation(fields: [communityResourceId], references: [id])
+  communityResourceId       Int
 
-  duration          Int
-  riskFactor        Int
-  isOpportunistic   Boolean // True when cost is negative 
-  quantity          Float // A negative value denotes a production output rather than a cost
-  quantityMargin    Float
-  costVariationType Int // Linear, Exponential, Custom
+  stepNode   StepNode? @relation(fields: [stepNodeId], references: [id])
+  stepNodeId Int?
 
+  quantity       Float // A negative value denotes a production output rather than a cost
+  quantityMargin Float
+  consumedAt     DateTime
+  // costVariationType Int // Linear, Exponential, Custom
+
+  // resourceDemand ResourceDemand[]
   tags Tag[]
 
-  owner      User      @relation("StepCostOwner", fields: [ownerId], references: [id])
-  ownerId    String
-  editors    User[]    @relation("StepCostEditors")
-  resource   Resource? @relation(fields: [resourceId], references: [id])
-  resourceId Int?
+  owner   User   @relation("StepCostOwner", fields: [ownerId], references: [id])
+  ownerId String
+  editors User[] @relation("StepCostEditors")
 
-  @@unique([resourceNodeId, stepNodeId])
+  @@unique([stepNodeId])
 }
 
 // Availability of a specific resource used or produced in 
 // associated proposal steps
-
 model Resource {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
@@ -695,43 +694,100 @@ model Resource {
   reservedQuantity       Float
   monetaryValue          Float // Per specified unit
 
-  // components ResourceComponent[] // "used as ingredient in these BOMs"
+  // components ResourceCostPerUnitNode[] // "used as ingredient in these BOMs"
 
-  stepsPerAdditionalRenewalCapacity StepNode[] //
-  stepCosts                         StepCost[] // Step cost referencing this resource node
-  tags                              Tag[]
-  resourceNodes                     ResourceNode[]
+  // stepsPerAdditionalRenewalCapacity StepNode[] //
+  tags           Tag[]
+  localResources CommunityResource[]
 
   // tags  Tag[]
-  owner   User   @relation("ResourceOwner", fields: [ownerId], references: [id])
-  ownerId String
-  editors User[] @relation("ResourceEditors")
+  owner     User       @relation("ResourceOwner", fields: [ownerId], references: [id])
+  ownerId   String
+  editors   User[]     @relation("ResourceEditors")
+  stepNodes StepNode[]
+
+  resourceCostPerUnitNodes ResourceCostPerUnitNode[]
 }
 
-model ResourceNode {
+model CommunityResource {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
   isActive   Boolean
 
+  resource    Resource  @relation(fields: [resourceId], references: [id])
+  resourceId  Int
+  community   Community @relation(fields: [communityId], references: [id])
+  communityId Int
+
+  quantity               Float
+  monthlyCapacity        Float // Amount that can be renewed within a month (includes volunteer time)
+  managedMonthlyCapacity Float
+  minQuantity            Float
+  reservedQuantity       Float
+  monetaryValuePerUnit   Float // Per specified unit
+
+  // resourceDemand          ResourceDemand[]
+  stepCosts StepCost[]
+}
+
+// model ResourceDemand {
+//   id         Int      @id @default(autoincrement())
+//   modifiedAt DateTime @updatedAt
+//   createdAt  DateTime @default(now())
+//   isActive   Boolean  @default(false)
+
+//   communityResource   CommunityResource @relation(fields: [communityResourceId], references: [id])
+//   communityResourceId Int
+
+//   quantity   Int
+//   consumedAt DateTime
+
+//   stepCosts StepCost[]
+// }
+
+model TravelCost {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean  @default(true)
+
+  origin        Community @relation("TravelCostOrigin", fields: [originId], references: [id])
+  originId      Int
+  destination   Community @relation("TravelCostDestination", fields: [destinationId], references: [id])
+  destinationId Int
+
+  // Actual cost = max(quantity_kg * costPerKg, volume_m3 * costPerM3)
+  costPerKg Float?
+  costPerM3 Float?
+  duration  Int // Travel duration in days (required for delivery date)
+}
+
+model ResourceCostPerUnitNode {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean  @default(true)
+
   //revisions RevisionNode[]
   // Tree structure — each node is one ingredient in its parent's composition
-  path     String         @unique
-  depth    Int            @default(0)
-  numchild Int            @default(0)
-  parent   ResourceNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  path     String                    @unique
+  depth    Int                       @default(0)
+  numchild Int                       @default(0)
+  parent   ResourceCostPerUnitNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
   parentId Int?
-  children ResourceNode[] @relation("Self")
+  children ResourceCostPerUnitNode[] @relation("Self")
 
   // What resource this component node represents (the ingredient) (e.g. "Glass", "Sand", "Fuel")
-  resource       Resource?  @relation(fields: [resourceId], references: [id])
-  resourceId     Int?
+  Resource   Resource? @relation(fields: [ResourceId], references: [id])
+  ResourceId Int?
+
   // How much of this resource is required to produce one unit of the parent
-  quantity       Float      @default(1)
-  unit           String     @default("unit") // "g", "kg", "hr", "L", etc.
-  quantityMargin Float      @default(0)
-  stepNodes      StepNode[]
-  stepCosts      StepCost[]
+  quantityPerParentUnit Float @default(1)
+  // quantityMargin        Float @default(0)
+  // unit           String     @default("unit") // "g", "kg", "hr", "L", etc.
+
+  stepCosts StepCost[]
 
   // owner   User   @relation("ResourceComponentOwner", fields: [ownerId], references: [id])
   // ownerId String
@@ -795,7 +851,7 @@ model Effector {
 
 // A community organization with hierarchical structure and location data
 
-model CommunityNode {
+model Community {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
@@ -804,12 +860,12 @@ model CommunityNode {
   title       String @unique
   description String
 
-  path     String          @unique
-  depth    Int             @default(0)
-  numchild Int             @default(0)
-  parent   CommunityNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  parentId Int?
-  children CommunityNode[] @relation("Self")
+  // path     String          @unique
+  // depth    Int             @default(0)
+  // numchild Int             @default(0)
+  // parent   Community?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  // parentId Int?
+  // children Community[] @relation("Self")
 
   country   Country? @relation(fields: [countryId], references: [id])
   countryId Int?
@@ -817,15 +873,19 @@ model CommunityNode {
   address   String
   longitude Float
   latitude  Float
+  location  Unsupported("geography(Point, 4326)")?
 
-  requests            Request[]
-  members             User[]
-  regionalCommunities CommunityNode[] @relation("RegionalCommunities")
-  regionalCommunityOf CommunityNode[] @relation("RegionalCommunities")
-  localCommunities    CommunityNode[] @relation("localCommunities")
-  localCommunityOf    CommunityNode[] @relation("localCommunities")
+  requests                Request[]
+  members                 User[]
+  regionalCommunities     Community[]         @relation("RegionalCommunities")
+  regionalCommunityOf     Community[]         @relation("RegionalCommunities")
+  localCommunities        Community[]         @relation("localCommunities")
+  localCommunityOf        Community[]         @relation("localCommunities")
+  communityResources      CommunityResource[]
+  travelCostOrigins       TravelCost[]        @relation("TravelCostOrigin")
+  travelCostsDestinations TravelCost[]        @relation("TravelCostDestination")
 
-  @@index([path])
+  // @@index([path])
 }
 
 model Country {
@@ -837,7 +897,7 @@ model Country {
   code       String   @unique
   phoneCode  String?
 
-  communities CommunityNode[]
+  communities Community[]
   users       User[]
   requests    Request[]
 
