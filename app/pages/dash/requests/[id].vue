@@ -18,8 +18,8 @@ import { useTreeDragAndDrop } from '@/composables/useTreeDragAndDrop'
 import {
 	useProposalColumns,
 	type ProposalColumn,
-} from '@/composables/useProposalColumns'
-import { useRequestNodes, type TreeNodeEx } from '@/composables/useRequestNodes'
+} from '~/composables/request/useProposalColumns'
+import { useRequestNodes, type TreeNodeEx } from '~/composables/request/useRequestNodes'
 
 import { json } from '@/methods/console'
 import { useRoute } from 'vue-router'

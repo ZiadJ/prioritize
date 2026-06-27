@@ -171,15 +171,12 @@ export function useRequestNodes(
 				parentId: siblingNode
 					? (siblingNode.data?.parentId ?? null)
 					: (parentNode?.data?.id ?? null),
-				isActive: true,
 				isVariantsGroup: false,
 				isNonNegotiable: false,
 				position: 0,
 				expertiseNodeId: expertiseNodeId ?? undefined,
 			})) as any
 
-			// Insert the node only after it is confirmed saved, so it always
-			// carries its real id and there is no temp/stale reference.
 			const newNode: TreeNodeEx = {
 				key: String(result.id),
 				id: result.id,

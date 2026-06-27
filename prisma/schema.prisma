@@ -489,7 +489,6 @@ model Demand {
 
 // A request containing proposal nodes each assignable to a step. Each
 // node is weighed in terms of expert-based costs and side-effects
-
 model RequestNode {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
