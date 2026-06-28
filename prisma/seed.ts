@@ -414,6 +414,24 @@ async function main() {
 		},
 	})
 
+	const anotherUser = await prisma.user.upsert({
+		where: { username: 'another_user' },
+		update: { password: hashedPassword },
+		create: {
+			username: 'another_user',
+			email: 'another@example.com',
+			password: hashedPassword,
+			firstname: 'Another',
+			lastname: 'User',
+			isActive: true,
+			communityId: city1.id,
+			countryId: countryA.id,
+			expertise: {
+				connect: [{ id: expertiseEnvironmentEcology.id }],
+			},
+		},
+	})
+
 	console.log('Creating users...')
 
 	// --- Single request: reliable water supply for dry season ---
@@ -423,19 +441,35 @@ async function main() {
 			title: 'A reliable water supply for the dry season',
 			description:
 				'The community needs a dependable water supply that lasts through the annual dry season (roughly 4-6 months). Current sources become unreliable or dry up entirely, forcing residents to ration water. Any solution must be affordable, maintainable by the community, and provide enough clean water for drinking, cooking, and basic hygiene.',
-			measurementType: 'Volume',
+			measurementType: 'None',
+			isJoinable: true,
+			totalPriority: 7,
 			ownerId: adminUser.id,
 			communityId: city1.id,
 			countryId: countryA.id,
-		userRequests: {
-			create: {
-				userId: adminUser.id,
-				quantity: 500,
-				priority: 300.0,
-				recurrencePeriod: 365,
-				isBasicNeed: true,
+			userRequests: {
+				create: [
+					{
+						userId: adminUser.id,
+						priority: 3,
+						recurrencePeriod: 365,
+						isBasicNeed: true,
+						isJoined: true,
+					},
+					{
+						userId: regularUser.id,
+						priority: 2,
+						recurrencePeriod: 365,
+						isJoined: true,
+					},
+					{
+						userId: anotherUser.id,
+						priority: 2,
+						recurrencePeriod: 365,
+						isJoined: true,
+					},
+				],
 			},
-		},
 		},
 	})
 

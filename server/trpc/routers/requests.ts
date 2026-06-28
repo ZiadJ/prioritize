@@ -4,7 +4,6 @@ import prisma, { Prisma } from '~~/lib/prisma'
 import { MeasurementType } from '~~/prisma/generated/client/enums'
 import { createTreeNode } from '~~/lib/tree'
 import { RequestSchema } from '~~/prisma/generated/zod/schemas/models/Request.schema'
-import { UserRequestSchema } from '~~/prisma/generated/zod/schemas/models/UserRequest.schema'
 
 // Helper to update request totals from all its user requests
 async function updateRequestTotals(requestId: number) {
@@ -31,14 +30,6 @@ export const createInput = RequestSchema.pick({
 	isJoinable: true,
 }).extend({
 	tagIds: z.array(z.number()).optional().default([]),
-	userRequest: UserRequestSchema.pick({
-		quantity: true,
-		priority: true,
-		recurrencePeriod: true,
-		dueAt: true,
-		isBasicNeed: true,
-		isJoined: true,
-	}).optional(),
 })
 
 export const updateInput = createInput.extend({
@@ -201,7 +192,7 @@ export const requestsRouter = router({
 	create: protectedProcedure
 		.input(createInput)
 		.mutation(async ({ ctx, input }) => {
-	const { tagIds, parentId, userRequest, ...data } = input as z.infer<
+	const { tagIds, parentId, ...data } = input as z.infer<
 		typeof createInput
 	>
 
@@ -223,41 +214,20 @@ export const requestsRouter = router({
 					: undefined,
 			})
 
-		// Create UserRequest if userRequest data is provided and has quantity, recurrencePeriod or is a join
-		if (
-			userRequest &&
-			((userRequest.quantity !== null && userRequest.quantity !== undefined) ||
-				(userRequest.recurrencePeriod && userRequest.recurrencePeriod > 0) ||
-				userRequest.isJoined)
-		) {
-			await prisma.userRequest.create({
-				data: {
-					request: { connect: { id: node.id } },
-					user: { connect: { id: ctx.user!.id } },
-					recurrencePeriod: userRequest.recurrencePeriod || 0,
-					quantity: userRequest.isJoined ? 0 : (userRequest.quantity ?? 1),
-					isBasicNeed: userRequest.isBasicNeed ?? false,
-					isJoined: userRequest.isJoined ?? false,
-					priority: userRequest.priority ?? 0,
-					dueAt: userRequest.dueAt ? new Date(userRequest.dueAt) : null,
-				},
-			})
+			// Update denormalized totals
+			await updateRequestTotals(node.id)
+
+			return node
+		} catch (e) {
+			console.error('Prisma create error:', e)
+			throw e
 		}
-
-				// Update denormalized totals
-				await updateRequestTotals(node.id)
-
-				return node
-			} catch (e) {
-				console.error('Prisma create error:', e)
-				throw e
-			}
-		}),
+	}),
 
 	update: protectedProcedure
 		.input(updateInput)
 		.mutation(async ({ ctx, input }) => {
-	const { id, tagIds, userRequest, measurementType, ...data } = input as z.infer<
+	const { id, tagIds, measurementType, ...data } = input as z.infer<
 		typeof updateInput
 	>
 
@@ -293,74 +263,14 @@ export const requestsRouter = router({
 			}
 			}
 
-			let updatedRequest: any
-
 			if (Object.keys(updateData).length > 0) {
-				updatedRequest = await prisma.request.update({
+				return await prisma.request.update({
 					where: { id },
 					data: updateData,
 				})
-			} else {
-				updatedRequest = existingRequest
 			}
 
-	// Handle UserRequest update/creation - allowed for any user
-	if (userRequest !== undefined) {
-		const existingUserRequest = await prisma.userRequest.findFirst({
-			where: { requestId: id, userId: ctx.user!.id },
-		})
-
-		if (existingUserRequest) {
-			const userRequestUpdateData: Prisma.UserRequestUpdateInput = {}
-			if (userRequest.recurrencePeriod !== undefined) {
-				userRequestUpdateData.recurrencePeriod = userRequest.recurrencePeriod
-			}
-			if (userRequest.quantity != null) {
-				userRequestUpdateData.quantity = userRequest.quantity
-			}
-			if (userRequest.priority !== undefined) {
-				userRequestUpdateData.priority = userRequest.priority
-			}
-			if (userRequest.dueAt !== undefined) {
-				userRequestUpdateData.dueAt = userRequest.dueAt ? new Date(userRequest.dueAt) : null
-			}
-			if (userRequest.isBasicNeed !== undefined) {
-				userRequestUpdateData.isBasicNeed = userRequest.isBasicNeed
-			}
-			if (userRequest.isJoined !== undefined) {
-				userRequestUpdateData.isJoined = userRequest.isJoined
-				if (userRequest.isJoined) {
-					userRequestUpdateData.quantity = 0
-				}
-			}
-			await prisma.userRequest.update({
-				where: { id: existingUserRequest.id },
-				data: userRequestUpdateData,
-			})
-		} else if (
-			(userRequest.quantity !== null && userRequest.quantity !== undefined) ||
-			(userRequest.recurrencePeriod !== undefined && userRequest.recurrencePeriod > 0) ||
-			userRequest.isJoined
-		) {
-			await prisma.userRequest.create({
-				data: {
-					request: { connect: { id } },
-					user: { connect: { id: ctx.user!.id } },
-					recurrencePeriod: userRequest.recurrencePeriod || 0,
-					quantity: userRequest.isJoined ? 0 : (userRequest.quantity ?? 1),
-					isBasicNeed: userRequest.isBasicNeed ?? false,
-					isJoined: userRequest.isJoined ?? false,
-					priority: userRequest.priority ?? 0,
-					dueAt: userRequest.dueAt ? new Date(userRequest.dueAt) : null,
-				},
-			})
-		}
-
-		// Update denormalized totals after any user request change
-		await updateRequestTotals(id!)
-	}
-
-			return updatedRequest
+			return existingRequest
 		}),
 
 	delete: protectedProcedure
@@ -416,6 +326,79 @@ export const requestsRouter = router({
 					},
 				},
 			})
+		}),
+
+	// Create or update the current user's user request for a specific request
+	saveUserRequest: protectedProcedure
+		.input(
+			z.object({
+				requestId: z.number(),
+				quantity: z.number().nullable().optional(),
+				priority: z.number().optional(),
+				recurrencePeriod: z.number().optional(),
+				dueAt: z.coerce.date().nullable().optional(),
+				isBasicNeed: z.boolean().optional(),
+				isJoined: z.boolean().optional(),
+				comment: z.string().optional(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const { requestId, ...data } = input
+			const existingUserRequest = await prisma.userRequest.findFirst({
+				where: { requestId, userId: ctx.user!.id },
+			})
+
+			if (existingUserRequest) {
+				const updateData: Prisma.UserRequestUpdateInput = {}
+				if (data.recurrencePeriod !== undefined)
+					updateData.recurrencePeriod = data.recurrencePeriod
+				if (data.quantity != null)
+					updateData.quantity = data.isJoined ? 0 : data.quantity
+				if (data.priority !== undefined)
+					updateData.priority = data.priority
+				if (data.dueAt !== undefined)
+					updateData.dueAt = data.dueAt ? new Date(data.dueAt) : null
+				if (data.isBasicNeed !== undefined)
+					updateData.isBasicNeed = data.isBasicNeed
+				if (data.isJoined !== undefined) {
+					updateData.isJoined = data.isJoined
+					if (data.isJoined) updateData.quantity = 0
+				}
+				if (data.comment !== undefined)
+					updateData.comment = data.comment
+				await prisma.userRequest.update({
+					where: { id: existingUserRequest.id },
+					data: updateData,
+				})
+			} else {
+				await prisma.userRequest.create({
+					data: {
+						request: { connect: { id: requestId } },
+						user: { connect: { id: ctx.user!.id } },
+						recurrencePeriod: data.recurrencePeriod || 0,
+						quantity: data.isJoined ? 0 : (data.quantity ?? 1),
+						isBasicNeed: data.isBasicNeed ?? false,
+						isJoined: data.isJoined ?? false,
+						priority: data.priority ?? 0,
+						dueAt: data.dueAt ? new Date(data.dueAt) : null,
+						comment: data.comment ?? '',
+					},
+				})
+			}
+
+		await updateRequestTotals(requestId)
+		return { success: true }
+	}),
+
+	// Delete the current user's user request for a specific request
+	deleteUserRequest: protectedProcedure
+		.input(z.object({ requestId: z.number() }))
+		.mutation(async ({ ctx, input }) => {
+			await prisma.userRequest.deleteMany({
+				where: { requestId: input.requestId, userId: ctx.user!.id },
+			})
+			await updateRequestTotals(input.requestId)
+			return { success: true }
 		}),
 
 	listTags: publicProcedure.query(async () => {

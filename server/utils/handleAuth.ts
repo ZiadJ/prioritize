@@ -47,23 +47,29 @@ export const SignInRequest = async (event: H3Event) => {
  * Sign out user from request
  * @param event H3Event
  * @returns  { message: "You have successfully signed out." }
- * @throws 500 An error occurred while signing out.
+ *
+ * Sign-out is idempotent: it must succeed even when the caller is already
+ * unauthenticated (no token, expired token, or token already invalidated).
+ * Throwing here would abort nuxt-auth's client-side signOut flow, leaving the
+ * UI "doing nothing" instead of clearing the session and redirecting home.
  */
 export const signOutRequest = async (event: H3Event) => {
-	const accessToken = getTokenHeader(event)
-	const jwtTokenValidated = await verifyToken(accessToken)
-	const tokenData = await prisma.token.findFirst({
-		where: { accessToken: accessToken },
-	})
-	if (!tokenData) {
-		throw createError({
-			statusCode: 500,
-			message: 'An error occurred while signing out.',
+	const authHeader = event.node.req.headers['authorization']
+	const accessToken =
+		authHeader && authHeader.startsWith('Bearer ')
+			? authHeader.split(' ')[1]
+			: undefined
+
+	// Best-effort: invalidate the matching token row if one is present.
+	if (accessToken) {
+		const tokenData = await prisma.token.findFirst({
+			where: { accessToken },
 		})
+		if (tokenData) {
+			await prisma.token.delete({ where: { id: tokenData.id } })
+		}
 	}
-	await prisma.token.delete({
-		where: { id: tokenData.id },
-	})
+
 	return { message: 'You have successfully signed out.' }
 }
 

@@ -438,9 +438,9 @@ model Request {
   owner       User       @relation("RequestOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId     String
 
-  isApproved    Boolean       @default(false)
-  isPrivate     Boolean       @default(false)
-  isJoinable    Boolean       @default(false) // Whether other users can join this request as a shared request without specifying their own quantity
+  isApproved      Boolean         @default(false)
+  isPrivate       Boolean         @default(false)
+  isJoinable      Boolean         @default(false) // Whether other users can join this request as a shared request without specifying their own quantity
   measurementType MeasurementType
 
   requestNodes RequestNode[]
@@ -452,8 +452,8 @@ model Request {
   editors User[] @relation("requestEditors")
 
   // Denormalized aggregates
-  totalQuantity Float @default(0)
-  totalPriority Float @default(0)
+  totalQuantity    Float @default(0)
+  totalPriority    Float @default(0)
   userRequestCount Int   @default(0)
 
   @@index([path])
@@ -473,7 +473,7 @@ model UserRequest {
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
 
-  quantity    Float
+  quantity    Float @default(0) // Defaults to 0 for shared/joined requests with no measurable quantity
   priority    Float // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
   isBasicNeed Boolean @default(false)
   isJoined    Boolean @default(false) // Whether the user joined the request as a shared request rather than specifying their own quantity
@@ -483,14 +483,14 @@ model UserRequest {
   deliveredAt         DateTime? // Is reset based on the recurrence period using a cron job
   estimatedDeliveryAt DateTime?
   missedDeliveryAt    DateTime? // For tracking missed deliveries and adjusting the next delivery date accordingly
+  comment             String    @default("")
 
   @@unique([requestId, userId])
   @@index([requestId])
   @@index([userId])
 }
 
-// A request containing proposal nodes each assignable to a step. Each
-// node is weighed in terms of expert-based costs and side-effects
+// Used for calculating recyclability (and eventually determine side-effects)
 model RequestNode {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt

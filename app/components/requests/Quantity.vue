@@ -53,27 +53,27 @@ const UNITS_BY_TYPE: Record<MeasurementType, Unit[]> = {
 	],
 }
 
-const props = withDefaults(
-	defineProps<{
-		modelValue?: number | null
-		measurementType: MeasurementType
-		disabled?: boolean
-		placeholder?: string
-	}>(),
-	{
-		modelValue: null,
-		disabled: false,
-		placeholder: 'Quantity',
-	},
-)
+const {
+	modelValue = null,
+	measurementType = MeasurementType.None,
+	disabled = false,
+	readonly = false,
+	decimals = 6,
+	placeholder = 'Quantity',
+} = defineProps<{
+	modelValue?: number | null
+	measurementType: MeasurementType
+	disabled?: boolean
+	readonly?: boolean
+	decimals?: number
+	placeholder?: string
+}>()
 
 const emit = defineEmits<{
 	'update:modelValue': [value: number | undefined]
 }>()
 
-const unitOptions = computed<Unit[]>(
-	() => UNITS_BY_TYPE[props.measurementType] ?? [],
-)
+const unitOptions = computed<Unit[]>(() => UNITS_BY_TYPE[measurementType] ?? [])
 
 const selectedUnitKey = ref<string>('')
 
@@ -103,15 +103,15 @@ let internalUpdate = false
 
 // Auto-select on load and whenever the measurement type changes.
 watch(
-	() => props.measurementType,
-	() => autoSelectUnit(props.modelValue),
+	() => measurementType,
+	() => autoSelectUnit(modelValue),
 	{ immediate: true },
 )
 
 // Re-evaluate the unit when the value changes from the outside (e.g. loading
 // an existing request), but ignore updates triggered by our own input.
 watch(
-	() => props.modelValue,
+	() => modelValue,
 	val => {
 		if (internalUpdate) return
 		autoSelectUnit(val)
@@ -126,9 +126,9 @@ const currentUnit = computed<Unit | undefined>(() =>
 // base (metric) unit so the emitted v-model is always metric.
 const displayValue = computed<number | null>({
 	get() {
-		if (props.modelValue == null) return null
+		if (modelValue == null) return null
 		const factor = currentUnit.value?.factor ?? 1
-		return round(props.modelValue * factor)
+		return round(modelValue * factor)
 	},
 	set(val) {
 		internalUpdate = true
@@ -145,16 +145,29 @@ const displayValue = computed<number | null>({
 })
 
 function round(value: number): number {
-	return Math.round(value * 1_000_000) / 1_000_000
+	const factor = 10 ** decimals
+	return Math.round(value * factor) / factor
 }
+
+const formattedQuantity = computed<string>(() => {
+	if (displayValue.value == null) return ''
+	const numberStr = displayValue.value.toLocaleString(undefined, {
+		maximumFractionDigits: decimals,
+	})
+	const suffix = currentUnit.value?.label
+	return suffix ? `${numberStr} ${suffix}` : numberStr
+})
 </script>
 
 <template>
 	<div class="quantity-input">
-		<InputGroup class="w-full">
+		<InputGroup v-if="!readonly">
 			<InputNumber
 				v-model="displayValue"
 				:disabled="disabled"
+				showButtons
+				:maxFractionDigits="decimals"
+				:minFractionDigits="0"
 				:placeholder="placeholder"
 				class="flex-1 min-w-16 w-full" />
 			<Dropdown
@@ -166,12 +179,25 @@ function round(value: number): number {
 				:disabled="disabled"
 				class="unit-dropdown flex-none" />
 		</InputGroup>
+		<div v-else class="quantity-readonly">
+			{{ formattedQuantity }}
+		</div>
 	</div>
 </template>
 
 <style scoped>
 .quantity-input {
 	width: 100%;
+}
+
+.quantity-readonly {
+	width: 100%;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid var(--p-inputtext-border-color, #ced4da);
+	border-radius: 0.375rem;
+	background: var(--p-inputtext-background, #fff);
+	color: var(--p-inputtext-color, inherit);
+	text-align: right;
 }
 
 .unit-dropdown {

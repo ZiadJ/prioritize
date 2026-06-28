@@ -1,17 +1,10 @@
 <script lang="ts" setup>
-import {
-	ref,
-	onMounted,
-	computed,
-	nextTick,
-	type ComponentPublicInstance,
-} from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import type { Tag } from '~/components/Tags.vue'
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
 import Tags from '~/components/Tags.vue'
-import UserRequestsList from '~/components/requests/UserRequestsList.vue'
-import QuantityInput from '~/components/requests/QuantityInput.vue'
+import Quantity from '~/components/requests/Quantity.vue'
 import { MeasurementType } from '~~/prisma/generated/client/enums'
 import { useConfirm } from 'primevue/useconfirm'
 import type { DataTableSortEvent } from 'primevue/datatable'
@@ -36,7 +29,6 @@ const searchQuery = ref('')
 const selectedScope = ref<'community' | 'regional' | 'local' | undefined>(
 	undefined,
 )
-const selectedRequests = ref<Request[]>([])
 const sortField = ref<string>('totalPriority')
 const sortOrder = ref<number>(-1) // -1 for desc, 1 for asc
 
@@ -44,10 +36,26 @@ const dialogVisible = ref(false)
 const dialogMode = ref<'create' | 'update'>('create')
 const currentRequestId = ref<number | null>(null)
 const currentRequest = ref<Request | null>(null)
-const userRequestsDialogVisible = ref(false)
-const currentRequestUserRequests = ref<RequestUserRequest[]>([])
-const currentRequestTitle = ref('')
-const hasUserRequest = ref(false)
+
+const expandedRows = ref()
+const userRequestsCache = ref<Record<number, RequestUserRequest[]>>({})
+const savingUserRequest = ref(false)
+
+// User request add/edit modal
+const userRequestDialogVisible = ref(false)
+const editingUserRequestRequest = ref<Request | null>(null)
+const userRequestIsExisting = ref(false)
+const userRequestMeasurementType = ref<MeasurementType>(MeasurementType.None)
+const userRequestIsJoinable = ref(false)
+const userRequestForm = ref({
+	quantity: undefined as number | undefined,
+	priority: 0,
+	recurrencePeriod: 0,
+	dueAt: undefined as Date | undefined,
+	isBasicNeed: false,
+	isJoined: false,
+	comment: '',
+})
 
 const allTags = ref<Tag[]>([])
 const selectedTagIds = ref<number[]>([])
@@ -62,6 +70,16 @@ const scopeOptions = [
 	{ label: 'Community', value: 'community' },
 ]
 
+const recurrenceOptions = [
+	{ label: 'None', value: 0 },
+	{ label: 'Daily', value: 1 },
+	{ label: 'Weekly', value: 7 },
+	{ label: 'Monthly', value: 30 },
+	{ label: 'Quarterly', value: 90 },
+	{ label: 'Semi-annually', value: 180 },
+	{ label: 'Annually', value: 365 },
+]
+
 const isOwner = computed(() => {
 	if (dialogMode.value === 'create') return true
 	return (
@@ -73,32 +91,13 @@ const isOwner = computed(() => {
 	)
 })
 
-const isJoined = computed(() => !!formData.value.userRequest.isJoined)
-
-function toggleJoin() {
-	formData.value.userRequest.isJoined = !formData.value.userRequest.isJoined
-	if (formData.value.userRequest.isJoined) {
-		formData.value.userRequest.quantity = 0
-	}
-}
-
 const formData = ref({
 	title: '',
 	description: '',
 	isActive: true,
 	isJoinable: false,
-	// totalPriority: 0,
 	selectedTags: [] as Tag[],
 	measurementType: 'None' as MeasurementType,
-	userRequest: {
-		quantity: undefined as number | undefined,
-		recurrencePeriod: 0,
-		priority: 0,
-		estimatedDeliveryAt: undefined as Date | undefined,
-		dueAt: undefined as Date | undefined,
-		isBasicNeed: false,
-		isJoined: false,
-	},
 })
 
 const fetchRequests = async () => {
@@ -140,49 +139,21 @@ const openNewDialog = () => {
 		description: '',
 		isActive: true,
 		isJoinable: false,
-		// totalPriority: 0,
 		selectedTags: [],
 		measurementType: 'None' as MeasurementType,
-		userRequest: {
-			quantity: 1,
-			recurrencePeriod: 0,
-			priority: 0,
-			estimatedDeliveryAt: undefined,
-			dueAt: undefined,
-			isBasicNeed: false,
-			isJoined: false,
-		},
 	}
-	hasUserRequest.value = false
 	dialogMode.value = 'create'
 	dialogVisible.value = true
 }
 
-const editRequest = async (request: Request) => {
-	const userRequestData = await $trpcClient.requests.getUserRequest.query({
-		requestId: request.id,
-	})
-	const userRequest = userRequestData
-	hasUserRequest.value = !!userRequestData
+const editRequest = (request: Request) => {
 	formData.value = {
 		title: request.title,
 		description: request.description || '',
 		isActive: request.isActive,
 		isJoinable: request.isJoinable ?? false,
-		// totalPriority: userRequest?.priority || 0,
 		selectedTags: request.tags || [],
 		measurementType: request.measurementType as MeasurementType,
-		userRequest: {
-			quantity: userRequest?.quantity ?? undefined,
-			recurrencePeriod: userRequest?.recurrencePeriod || 0,
-			priority: userRequest?.priority ?? 0,
-			estimatedDeliveryAt: userRequest?.estimatedDeliveryAt
-				? new Date(userRequest?.estimatedDeliveryAt)
-				: undefined,
-			dueAt: userRequest?.dueAt ? new Date(userRequest.dueAt) : undefined,
-			isBasicNeed: userRequest?.isBasicNeed || false,
-			isJoined: userRequest?.isJoined || false,
-		},
 	}
 	currentRequestId.value = request.id
 	currentRequest.value = request
@@ -220,9 +191,9 @@ const saveRequest = async () => {
 		const payload = {
 			...formData.value,
 			tagIds: realTagIds,
-			// Note: userRequest is already nested in formData.value.userRequest
 		}
 
+		let createdId: number | null = null
 		if (dialogMode.value === 'create') {
 			// Ensure user has community and country assigned
 			if (!session.value?.user?.communityId) {
@@ -232,7 +203,8 @@ const saveRequest = async () => {
 				throw new Error('User must have a country assigned')
 			}
 
-			await $trpcClient.requests.create.mutate(payload)
+			const created = await $trpcClient.requests.create.mutate(payload)
+			createdId = created?.id ?? null
 			toast.add('Success', 'Request created successfully')
 		} else if (dialogMode.value === 'update' && currentRequestId.value) {
 			await $trpcClient.requests.update.mutate({
@@ -242,7 +214,30 @@ const saveRequest = async () => {
 			toast.add('Success', 'Request updated successfully')
 		}
 		dialogVisible.value = false
-		fetchRequests()
+		await fetchRequests()
+
+		// Auto-expand the newly created request and open the add modal so the
+		// user can enter their request details right away. The user request
+		// modal is deferred until the request dialog's close animation has
+		// finished, otherwise the two modal dialogs race for the shared mask
+		// layer and the second one never appears.
+		if (createdId != null) {
+			setTimeout(() => {
+				nextTick(() => {
+					if (!requests.value.some(r => r.id === createdId)) return
+					loadUserRequests(createdId)
+					expandedRows.value = {
+						...expandedRows.value,
+						[createdId]: true,
+					}
+					openUserRequestModal({
+						id: createdId,
+						measurementType: formData.value.measurementType,
+						isJoinable: formData.value.isJoinable,
+					} as Request)
+				})
+			}, 200)
+		}
 	} catch (error: any) {
 		console.error('Failed to save request:', error)
 		toast.add('Error', error.message || 'Failed to save request')
@@ -279,24 +274,151 @@ const confirmDelete = (event: MouseEvent, request: Request) => {
 	})
 }
 
-const showUserRequests = async () => {
-	if (!currentRequest.value) return
-	currentRequestTitle.value = currentRequest.value.title
-	const userRequests = await $trpcClient.requests.getUserRequests.query({
-		requestId: currentRequest.value.id,
+const confirmDeleteUserRequest = (event: MouseEvent, request: Request) => {
+	confirm.require({
+		target: event.currentTarget as HTMLElement,
+		message: 'Do you want to remove your request details?',
+		group: 'right',
+		icon: 'pi pi-info-circle',
+		rejectProps: {
+			label: 'Cancel',
+			severity: 'secondary',
+			outlined: true,
+		},
+		acceptProps: {
+			label: 'Delete',
+			severity: 'danger',
+		},
+		accept: async () => {
+			try {
+				await $trpcClient.requests.deleteUserRequest.mutate({
+					requestId: request.id,
+				})
+				toast.add('Success', 'Your request details were deleted')
+				await loadUserRequests(request.id)
+				fetchRequests()
+			} catch (error: any) {
+				console.error('Failed to delete user request:', error)
+				toast.add('Error', error.message || 'Failed to delete')
+			}
+		},
 	})
-	const allUserRequests = (userRequests || []).map(userRequest => ({
-		...userRequest,
-		measurementType: currentRequest.value!.measurementType,
-	}))
-	currentRequestUserRequests.value = allUserRequests
-	userRequestsDialogVisible.value = true
 }
 
-const closeUserRequestsDialog = () => {
-	userRequestsDialogVisible.value = false
-	currentRequestUserRequests.value = []
-	currentRequestTitle.value = ''
+const isRequestOwnerOrEditor = (data: Request) =>
+	session.value?.user?.id === data.ownerId ||
+	data.editors?.some((e: any) => e.id === session.value?.user?.id)
+
+const currentUserId = computed(() => session.value?.user?.id)
+
+// A row belongs to the current user when its user id matches theirs. The
+// unsaved "add" row is seeded with the current user's id so it is editable too.
+const isMine = (data: any) =>
+	!!currentUserId.value && data?.user?.id === currentUserId.value
+
+// Only persisted rows (those with an id) count towards the displayed total.
+const realCount = (requestId: number) =>
+	(userRequestsCache.value[requestId] || []).filter(r => r.id != null).length
+
+// Whether the current user already has a (saved) row for this request.
+const hasMyRow = (requestId: number) =>
+	(userRequestsCache.value[requestId] || []).some(
+		r => isMine(r) && r.id != null,
+	)
+
+const onRowExpand = async (event: any) => {
+	await loadUserRequests(event.data.id)
+}
+
+const onRowCollapse = () => {}
+
+const loadUserRequests = async (requestId: number) => {
+	try {
+		const result = await $trpcClient.requests.getUserRequests.query({
+			requestId,
+		})
+		const list = (result || []) as RequestUserRequest[]
+		// Current user's own row always shown first.
+		const mine = list.filter(r => isMine(r))
+		const others = list.filter(r => !isMine(r))
+		userRequestsCache.value = {
+			...userRequestsCache.value,
+			[requestId]: [...mine, ...others],
+		}
+	} catch (error: any) {
+		toast.add('Error', error.message || 'Failed to load user requests')
+	}
+}
+
+const resetUserRequestForm = () => {
+	userRequestForm.value = {
+		quantity: undefined,
+		priority: 0,
+		recurrencePeriod: 0,
+		dueAt: undefined,
+		isBasicNeed: false,
+		isJoined: false,
+		comment: '',
+	}
+}
+
+// Open the add/edit modal for the current user's own request on a given request.
+const openUserRequestModal = async (request: Request) => {
+	editingUserRequestRequest.value = request
+	userRequestMeasurementType.value = request.measurementType as MeasurementType
+	userRequestIsJoinable.value = request.isJoinable ?? false
+	resetUserRequestForm()
+	try {
+		const existing = await $trpcClient.requests.getUserRequest.query({
+			requestId: request.id,
+		})
+		userRequestIsExisting.value = !!existing
+		if (existing) {
+			userRequestForm.value = {
+				quantity: existing.quantity ?? undefined,
+				priority: existing.priority ?? 0,
+				recurrencePeriod: existing.recurrencePeriod ?? 0,
+				dueAt: existing.dueAt ? new Date(existing.dueAt) : undefined,
+				isBasicNeed: existing.isBasicNeed ?? false,
+				isJoined: existing.isJoined ?? false,
+				comment: existing.comment ?? '',
+			}
+		}
+	} catch (error: any) {
+		userRequestIsExisting.value = false
+		toast.add('Error', error.message || 'Failed to load your request')
+	}
+	userRequestDialogVisible.value = true
+}
+
+const onUserRequestJoinToggle = (val: boolean) => {
+	if (val) userRequestForm.value.quantity = 0
+}
+
+const saveUserRequestForm = async () => {
+	const request = editingUserRequestRequest.value
+	if (!request) return
+	savingUserRequest.value = true
+	try {
+		await $trpcClient.requests.saveUserRequest.mutate({
+			requestId: request.id,
+			quantity: userRequestForm.value.quantity ?? null,
+			priority: userRequestForm.value.priority,
+			recurrencePeriod: userRequestForm.value.recurrencePeriod,
+			dueAt: userRequestForm.value.dueAt ?? null,
+			isBasicNeed: userRequestForm.value.isBasicNeed,
+			isJoined: userRequestForm.value.isJoined,
+			comment: userRequestForm.value.comment,
+		})
+		toast.add('Success', 'Saved')
+		userRequestDialogVisible.value = false
+		await loadUserRequests(request.id)
+		fetchRequests()
+	} catch (error: any) {
+		toast.add('Error', error.message || 'Failed to save')
+	} finally {
+		savingUserRequest.value = false
+	}
 }
 
 const onSort = (event: DataTableSortEvent) => {
@@ -325,7 +447,6 @@ onMounted(async () => {
 </script>
 
 <template>
-	<!-- <pre>{{ selectedRequests }}</pre> -->
 	<div class="requests-page">
 		<div class="flex justify-content-between align-items-center m-6">
 			<InputGroup class="w-auto">
@@ -384,17 +505,12 @@ onMounted(async () => {
 		resizableColumns
 		:sortField="sortField"
 		:sortOrder="sortOrder"
+		v-model:expandedRows="expandedRows"
 		@sort="onSort"
+		@row-expand="onRowExpand"
+		@row-collapse="onRowCollapse"
 		stripedRows>
-		<!-- v-model:selection="selectedRequests"
-			selectionMode="multiple" -->
-		<!-- <Column selectionMode="multiple" headerStyle="width: 3rem"></Column> -->
-		<!-- <Column header="Essential">
-				<template #body="{ data }">
-					<Checkbox v-if="data.userRequests?.[0]" :modelValue="data.userRequests[0].isBasicNeed" :binary="true" disabled />
-					<span v-else>-</span>
-				</template>
-			</Column>			 -->
+		<Column expander style="width: 3rem" />
 		<Column field="title" header="Title" sortable>
 			<template #body="{ data }">
 				<NuxtLink :to="`/dash/requests/${data.id}`" class="underline">
@@ -453,6 +569,7 @@ onMounted(async () => {
 			<template #body="{ data }">
 				<div class="action-buttons">
 					<Button
+						v-if="isRequestOwnerOrEditor(data)"
 						icon="pi pi-pencil"
 						text
 						rounded
@@ -460,10 +577,7 @@ onMounted(async () => {
 						@click="editRequest(data)"
 						v-tooltip.top="'Edit'" />
 					<Button
-						v-if="
-							session?.user.id === data.ownerId ||
-							data.editors?.some((e: any) => e.id === session?.user.id)
-						"
+						v-if="isRequestOwnerOrEditor(data)"
 						icon="pi pi-trash"
 						text
 						rounded
@@ -473,6 +587,113 @@ onMounted(async () => {
 				</div>
 			</template>
 		</Column>
+
+		<template #expansion="slotProps">
+			<div class="p-3">
+				<div class="flex justify-between items-center mb-3">
+					<span
+						class="text-sm font-medium text-zinc-500"
+						style="line-height: 2rem">
+						{{ realCount(slotProps.data.id) }}
+						{{
+							realCount(slotProps.data.id) === 1
+								? 'user request'
+								: 'user requests'
+						}}
+					</span>
+					<Button
+						v-if="!hasMyRow(slotProps.data.id)"
+						label="Add My Request"
+						icon="pi pi-plus"
+						text
+						size="small"
+						@click="openUserRequestModal(slotProps.data)" />
+				</div>
+
+				<!-- Single list of all user requests, current user's row first -->
+				<DataTable
+					v-if="(userRequestsCache[slotProps.data.id] || []).length > 0"
+					:value="userRequestsCache[slotProps.data.id] || []"
+					class="p-datatable-sm"
+					dataKey="id">
+					<Column field="user.username" header="User">
+						<template #body="{ data }">
+							<NuxtLink
+								:to="`/dash/users/${data.user?.username}`"
+								class="underline hover:opacity-70">
+								{{ data.user?.username || '-' }}
+							</NuxtLink>
+							<Tag
+								v-if="isMine(data)"
+								value="you"
+								severity="info"
+								class="!ml-1 !text-xs" />
+						</template>
+					</Column>
+					<Column
+						v-if="slotProps.data.measurementType !== MeasurementType.None"
+						field="quantity"
+						header="Quantity">
+						<template #body="{ data }">
+							{{ data.quantity ?? '-' }}
+						</template>
+					</Column>
+					<Column field="priority" header="Priority">
+						<template #body="{ data }">{{ data.priority ?? '-' }}</template>
+					</Column>
+					<Column field="isBasicNeed" header="Essential">
+						<template #body="{ data }">
+							{{ data.isBasicNeed ? 'Yes' : '-' }}
+						</template>
+					</Column>
+					<!-- <Column v-if="slotProps.data.isJoinable" header="Joined">
+						<template #body="{ data }">
+							{{ data.isJoined ? 'Yes' : '-' }}
+						</template>
+					</Column> -->
+					<Column field="recurrencePeriod" header="Recurrence">
+						<template #body="{ data }">
+							{{
+								data.recurrencePeriod > 0 ? data.recurrencePeriod + 'd' : '-'
+							}}
+						</template>
+					</Column>
+					<Column field="dueAt" header="Due Date">
+						<template #body="{ data }">
+							{{ data.dueAt ? new Date(data.dueAt).toLocaleDateString() : '-' }}
+						</template>
+					</Column>
+					<Column field="comment" header="Comment" style="max-width: 300px">
+						<template #body="{ data }">
+							{{ data.comment || '-' }}
+						</template>
+					</Column>
+					<Column header="Actions" :exportable="false" class="actions-column">
+						<template #body="{ data }">
+							<div v-if="isMine(data)" class="action-buttons">
+								<Button
+									icon="pi pi-pencil"
+									text
+									rounded
+									size="small"
+									severity="success"
+									@click="openUserRequestModal(slotProps.data)"
+									v-tooltip.top="'Edit'" />
+								<Button
+									icon="pi pi-trash"
+									text
+									rounded
+									size="small"
+									severity="danger"
+									@click="confirmDeleteUserRequest($event, slotProps.data)"
+									v-tooltip.top="'Delete'" />
+							</div>
+						</template>
+					</Column>
+				</DataTable>
+			</div>
+		</template>
+
 		<template #empty>
 			<div class="flex justify-content-center align-items-center p-4">
 				<span class="text-zinc-500">No requests found.</span>
@@ -482,13 +703,7 @@ onMounted(async () => {
 
 	<Dialog
 		v-model:visible="dialogVisible"
-		:header="
-			dialogMode === 'create'
-				? 'New Request'
-				: isOwner
-					? 'Edit Request'
-					: 'Join Request'
-		"
+		:header="dialogMode === 'create' ? 'New Request' : 'Edit Request'"
 		:modal="true"
 		dismissableMask
 		:style="{ width: '500px' }"
@@ -502,7 +717,6 @@ onMounted(async () => {
 					id="title"
 					placeholder="A request, issue or decisional question"
 					v-model="formData.title"
-					:disabled="!isOwner"
 					v-bind:autofocus="dialogMode === 'create'" />
 			</div>
 			<div class="form-field">
@@ -511,187 +725,46 @@ onMounted(async () => {
 					id="description"
 					placeholder="A brief description of the matter"
 					v-model="formData.description"
-					:disabled="!isOwner"
 					rows="3" />
 			</div>
-	<div
-		v-if="!formData.title.endsWith('?')"
-	class="flex items-end gap-4">
-		<div v-if="isOwner" class="form-field">
-			<label for="measurementType">Measurement</label>
-			<Dropdown
-				id="measurementType"
-				v-model="formData.measurementType"
-				:options="
-					Object.keys(MeasurementType).map(key => ({
-						label: key,
-						value: key as MeasurementType,
-					}))
-				"
-				optionLabel="label"
-				optionValue="value"
-				:disabled="!isOwner"
-				placeholder="Select measurement"
-				class="w-48" />
-		</div>
-		<div class="flex items-center gap-2 pb-2">
-			<Checkbox
-				inputId="isJoinable"
-				v-model="formData.isJoinable"
-				:binary="true"
-				:disabled="!isOwner" />
-			<label for="isJoinable" class="cursor-pointer"
-				>Shared</label
-			>
-		</div>
-	</div>
-			<Panel header="My Request">
-			<div
-				v-if="dialogMode !== 'create'"
-				class="flex items-center gap-3 mb-3 text-sm">
-				<button
-					type="button"
-					class="text-zinc-500 hover:underline"
-					@click="showUserRequests">
-					{{ currentRequest?.userRequestCount ?? 0 }}
-					{{
-						(currentRequest?.userRequestCount ?? 0) === 1
-							? 'request'
-							: 'requests'
-					}}
-				</button>
-				<span class="text-zinc-400">·</span>
-				<span class="text-zinc-500"
-					>{{ currentRequest?.totalPriority ?? 0 }} total priority</span
-				>
-			</div>
-			<div v-if="formData.title.endsWith('?')">
-				<div class="flex gap-4">
-					<div
-						v-if="dialogMode !== 'create'"
-						key="join-button"
-						class="form-field flex-1">
-						<label for="quantity">&nbsp;</label>
-						<Button
-							:label="formData.userRequest.quantity ? 'Update' : 'Join'"
-							class="w-full"
-							@click="
-								formData.userRequest.quantity = formData.userRequest.quantity
-									? 0
-									: 1
-							" />
-					</div>
-					<div class="form-field flex-1">
-						<label for="priority">Priority</label>
-						<InputNumber
-							id="priority"
-							v-model="formData.userRequest.priority" />
-					</div>
-				</div>
-			</div>
-			<div v-if="!formData.title.endsWith('?')" class="flex gap-4">
-				<div
-					v-if="formData.isJoinable"
-					key="join-button"
-					class="form-field flex-1">
-					<label for="quantity">&nbsp;</label>
-					<Button
-						:label="isJoined ? 'Joined' : 'Join'"
-						:severity="isJoined ? 'success' : undefined"
-						class="w-full"
-						@click="toggleJoin" />
-				</div>
-				<Transition name="slide-fade" mode="out-in">
-					<div
-						v-if="
-							!formData.isJoinable &&
-							formData.measurementType !== MeasurementType.None
-						"
-						key="quantity-input"
-						class="form-field flex-1">
-						<label for="quantity">Quantity</label>
-						<QuantityInput
-							v-model="formData.userRequest.quantity"
-							:measurementType="formData.measurementType" />
-					</div>
-			</Transition>
-			<div class="form-field flex-1">
-				<label for="priority">Priority</label>
-					<InputNumber id="priority" v-model="formData.userRequest.priority" />
-				</div>
-				<div class="form-field flex-1">
-					<label for="isBasicNeed" class="cursor-pointer">Essential</label>
-					<Checkbox
-						inputId="isBasicNeed"
-						v-model="formData.userRequest.isBasicNeed"
-						:binary="true" />
-				</div>
-			</div>
-			<div v-if="!formData.title.endsWith('?')" class="flex gap-4">
-				<div class="form-field flex-1">
-					<label for="recurrence">Recurrence</label>
+			<div v-if="!formData.title.endsWith('?')" class="flex items-end gap-4">
+				<div class="form-field">
+					<label for="measurementType">Measurement Type</label>
 					<Dropdown
-						id="recurrence"
-						v-model="formData.userRequest.recurrencePeriod"
-						:options="[
-							{ label: 'None', value: 0 },
-							{ label: 'Daily', value: 1 },
-							{ label: 'Weekly', value: 7 },
-							{ label: 'Monthly', value: 30 },
-							{ label: 'Quarterly', value: 90 },
-							{ label: 'Semi-annually', value: 180 },
-							{ label: 'Annually', value: 365 },
-						]"
+						id="measurementType"
+						v-model="formData.measurementType"
+						:options="
+							Object.keys(MeasurementType).map(key => ({
+								label: key,
+								value: key as MeasurementType,
+							}))
+						"
 						optionLabel="label"
 						optionValue="value"
-						placeholder="Select recurrence" />
+						placeholder="Select measurement"
+						class="w-48" />
 				</div>
-				<div class="form-field flex-1">
-					<label for="dueAt">Due Date</label>
-					<DatePicker
-						id="dueAt"
-						v-model="formData.userRequest.dueAt"
-						dateFormat="mm/dd/yy" />
+				<div class="flex items-center gap-2 pb-2">
+					<Checkbox
+						inputId="isJoinable"
+						v-model="formData.isJoinable"
+						:binary="true" />
+					<label for="isJoinable" class="cursor-pointer">Shared</label>
 				</div>
-				<div class="form-field flex-1">
-					<label for="estimatedDeliveryAt">Est. Delivery Date</label>
-					<DatePicker
-						id="estimatedDeliveryAt"
-						v-model="formData.userRequest.estimatedDeliveryAt"
-					dateFormat="mm/dd/yy"
-					disabled />
 			</div>
-		</div>
-		</Panel>
-		<div class="form-field">
-			<label for="tags">Tags</label>
+			<div class="form-field">
+				<label for="tags">Tags</label>
 				<Tags
 					v-model="formData.selectedTags"
 					:tags="allTags"
-					:disabled="!isOwner"
 					placeholder="Search or create tags" />
 			</div>
-			<!-- <div v-if="dialogMode === 'update'" class="form-field">
-					<label for="isActive">Status</label>
-					<SelectButton id="isActive" v-model="formData.isActive" :options="[
-						{ label: 'Active', value: true },
-						{ label: 'Inactive', value: false },
-					]" optionLabel="label" optionValue="value" :disabled="!isOwner" />
-				</div> -->
 		</div>
 		<template #footer>
 			<div class="flex justify-end gap-2 w-full">
 				<Button label="Cancel" text @click="dialogVisible = false" />
-					<Button
-						:label="
-							isOwner
-								? dialogMode === 'create'
-									? 'Create'
-									: 'Update'
-								: hasUserRequest
-									? 'Update'
-									: 'Join'
-						"
+				<Button
+					:label="dialogMode === 'create' ? 'Create' : 'Update'"
 					@click="saveRequest"
 					:loading="saving" />
 			</div>
@@ -699,20 +772,88 @@ onMounted(async () => {
 	</Dialog>
 
 	<Dialog
-		v-model:visible="userRequestsDialogVisible"
-		:header="`User Requests - ${currentRequestTitle}`"
+		v-model:visible="userRequestDialogVisible"
+		:header="userRequestIsExisting ? 'Edit My Request' : 'Add My Request'"
 		:modal="true"
 		dismissableMask
-		:style="{ width: '700px' }"
+		:style="{ width: '500px' }"
 		:breakpoints="{ '960px': '90vw', '640px': '95vw' }"
 		show-effect="fadeIn"
-		hide-effect="fadeOut"
-		@update:visible="closeUserRequestsDialog">
-		<UserRequestsList
-			:userRequests="currentRequestUserRequests"
-			:measurementType="
-				currentRequest?.measurementType || MeasurementType.None
-			" />
+		hide-effect="fadeOut">
+		<div class="form-content gap-3">
+			<div v-if="userRequestIsJoinable" class="flex items-center gap-2">
+				<Checkbox
+					inputId="urIsJoined"
+					v-model="userRequestForm.isJoined"
+					:binary="true"
+					@update:model-value="onUserRequestJoinToggle" />
+				<label for="urIsJoined" class="cursor-pointer"
+					>Join as shared request (no separate quantity)</label
+				>
+			</div>
+			<div
+				v-if="
+					!userRequestForm.isJoined &&
+					userRequestMeasurementType !== MeasurementType.None
+				"
+				class="form-field">
+				<label for="urQuantity">Quantity</label>
+				<Quantity
+					v-model="userRequestForm.quantity"
+					:measurementType="userRequestMeasurementType" />
+			</div>
+			<div class="flex gap-4">
+				<div class="form-field flex-1">
+					<label for="urPriority">Priority</label>
+					<InputNumber
+						id="urPriority"
+						v-model="userRequestForm.priority"
+						showButtons />
+				</div>
+				<div class="form-field flex-1">
+					<label for="urEssential" class="cursor-pointer">Essential</label>
+					<Checkbox
+						inputId="urEssential"
+						v-model="userRequestForm.isBasicNeed"
+						:binary="true" />
+				</div>
+			</div>
+			<div class="flex gap-4">
+				<div class="form-field flex-1">
+					<label for="urRecurrence">Recurrence</label>
+					<Dropdown
+						id="urRecurrence"
+						v-model="userRequestForm.recurrencePeriod"
+						:options="recurrenceOptions"
+						optionLabel="label"
+						optionValue="value" />
+				</div>
+				<div class="form-field flex-1">
+					<label for="urDueAt">Due Date</label>
+					<DatePicker
+						id="urDueAt"
+						v-model="userRequestForm.dueAt"
+						dateFormat="mm/dd/yy" />
+				</div>
+			</div>
+			<div class="form-field">
+				<label for="urComment">Comment</label>
+				<Textarea
+					id="urComment"
+					v-model="userRequestForm.comment"
+					rows="2"
+					placeholder="Add a comment about your request" />
+			</div>
+		</div>
+		<template #footer>
+			<div class="flex justify-end gap-2 w-full">
+				<Button label="Cancel" text @click="userRequestDialogVisible = false" />
+				<Button
+					:label="userRequestIsExisting ? 'Update' : 'Add'"
+					@click="saveUserRequestForm"
+					:loading="savingUserRequest" />
+			</div>
+		</template>
 	</Dialog>
 </template>
 

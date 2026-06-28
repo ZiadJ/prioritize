@@ -62,22 +62,32 @@ const determineIconMode = computed(() => {
 const determineIconColorMode = computed(() => {
     return (colorMode.value === "dark") ? "text-xl text-white transition-transform duration-500" : "text-yellow-800 transition-transform duration-500";
 });
-const profileActions = [
-    {
+const profileActions = computed(() => {
+    const common = {
         label: 'Profile',
         icon: 'pi pi-fw pi-credit-card',
         command: () => {
             navigateTo('/dash/profile');
         }
-    },
-    {
-        label: 'Logout',
-        icon: 'pi pi-fw pi-power-off',
-        command: async () => {
-            await signOut({ callbackUrl: '/' });
-        }
-    }
-];
+    };
+    const authAction =
+        status.value === 'authenticated'
+            ? {
+                  label: 'Logout',
+                  icon: 'pi pi-fw pi-power-off',
+                  command: async () => {
+                      await signOut({ callbackUrl: '/' });
+                  }
+              }
+            : {
+                  label: 'Login',
+                  icon: 'pi pi-fw pi-sign-in',
+                  command: () => {
+                      navigateTo('/login');
+                  }
+              };
+    return [common, authAction];
+});
 const toggle = (event: any) => {
     menu.value.toggle(event);
 };
