@@ -19,7 +19,10 @@ import {
 	useProposalColumns,
 	type ProposalColumn,
 } from '~/composables/request/useProposalColumns'
-import { useRequestNodes, type TreeNodeEx } from '~/composables/request/useRequestNodes'
+import {
+	useRequestNodes,
+	type TreeNodeEx,
+} from '~/composables/request/useRequestNodes'
 
 import { json } from '@/methods/console'
 import { useRoute } from 'vue-router'
@@ -116,7 +119,7 @@ const {
 	renameProposal,
 	saveProposalEdit,
 	onColumnVisibilityToggle,
-	refreshNetValues,
+	refreshNetBenefits,
 } = useProposalColumns(Number(route.params.id), requestProposals)
 
 const isProposalOwner = computed(() => {
@@ -158,7 +161,7 @@ onMounted(async () => {
 const windowHeight = useWindowSize()
 const tableHeight = computed<string>(() => {
 	const top = (treeTable.value as any)?.$el.getBoundingClientRect().top
-	return `${ windowHeight.height.value - top - 66 }px`
+	return `${windowHeight.height.value - top - 66}px`
 })
 
 function onNodeSelect(node: TreeNodeEx) {
@@ -366,7 +369,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							:userId="session?.user.id!"
 							:max="3"
 							parentSelector="td"
-							@change="refreshNetValues" />
+							@change="refreshNetBenefits" />
 					</div>
 				</template>
 			</Column>
@@ -469,8 +472,8 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 						class="pi pi-spin pi-spinner text-xs ml-1" />
 					<span
 						class="absolute top-1 right-1 w-[1.5rem] h-[1.5rem] rounded-full bg-primary-500 text-white text-[0.7rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-						v-tooltip.left="'Net Value: ' + (col.netValue ?? 0)">
-						{{ col.netValue ?? 0 }}
+						v-tooltip.left="'Net Value: ' + (col.netBenefit ?? 0)">
+						{{ col.netBenefit ?? 0 }}
 					</span>
 				</template>
 				<template #body="{ node }">
@@ -492,7 +495,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							:max="3"
 							:expertiseNodeId="node.data.expertise?.id"
 							parentSelector="td"
-							@change="refreshNetValues" />
+							@change="refreshNetBenefits" />
 					</div>
 				</template>
 			</Column>

@@ -17,7 +17,7 @@ const PROPOSAL_DEFAULTS = {
 export interface ProposalColumn extends ColumnProps {
 	id?: number
 	description: string
-	netValue?: number
+	netBenefit?: number
 	isDirty?: boolean
 	isLoading?: boolean
 	isActive?: boolean
@@ -73,7 +73,7 @@ export function useProposalColumns(
 			columnKey: String(p.id),
 			header: p.title,
 			description: p.description,
-			netValue: p.netValue ?? 0,
+			netBenefit: p.netBenefit ?? 0,
 			isActive: p.isActive,
 			ownerId: p.ownerId,
 			ownerName: p.owner?.username ?? undefined,
@@ -225,19 +225,19 @@ export function useProposalColumns(
 		syncVisibleColumns()
 	}
 
-	async function refreshNetValues() {
+	async function refreshNetBenefits() {
 		try {
 			const updatedProposals =
-				await $trpcClient.proposals.updateNetValues.query({ requestId })
+				await $trpcClient.proposals.updateNetBenefits.query({ requestId })
 			for (const updated of updatedProposals) {
 				const col = columns.value.find(c => c.id === updated.id)
 				if (col) {
-					col.netValue = updated.netValue ?? 0
+					col.netBenefit = updated.netBenefit ?? 0
 				}
 			}
 			syncVisibleColumns()
 		} catch (e: any) {
-			// Silently fail — netValue will be stale until next refresh
+			// Silently fail — netBenefit will be stale until next refresh
 		}
 	}
 
@@ -256,7 +256,7 @@ export function useProposalColumns(
 		renameProposal,
 		saveProposalEdit,
 		onColumnVisibilityToggle,
-		refreshNetValues,
+		refreshNetBenefits,
 		init,
 	}
 }
