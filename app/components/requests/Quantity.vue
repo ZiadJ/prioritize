@@ -18,9 +18,9 @@ const UNITS_BY_TYPE: Record<MeasurementType, Unit[]> = {
 		{ key: 'pcs', label: 'pcs', name: 'Pieces', factor: 1 },
 		{ key: 'dz', label: 'dz', name: 'Dozens', factor: 1 / 12 },
 	],
-	[MeasurementType.Money]: [
-		{ key: 'dol', label: '$', name: 'Dollars', factor: 1 },
-	],
+	// [MeasurementType.Money]: [
+	// 	{ key: 'dollars', label: '$', name: 'Dollars', factor: 1 },
+	// ],
 	[MeasurementType.Time]: [
 		{ key: 'd', label: 'd', name: 'Days', factor: 1 / 24 },
 		{ key: 'h', label: 'h', name: 'Hours', factor: 1 },
@@ -61,7 +61,7 @@ const {
 	measurementType = MeasurementType.None,
 	disabled = false,
 	readonly = false,
-	decimals = 6,
+	decimals = 2,
 	placeholder = 'Quantity',
 } = defineProps<{
 	modelValue?: number | null
@@ -69,7 +69,6 @@ const {
 	disabled?: boolean
 	readonly?: boolean
 	decimals?: number
-	allowMoney?: boolean
 	placeholder?: string
 }>()
 

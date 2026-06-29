@@ -603,7 +603,7 @@ onMounted(async () => {
 					</span>
 					<Button
 						v-if="!hasMyRow(slotProps.data.id)"
-						label="Add My Request"
+						label="Join Request"
 						icon="pi pi-plus"
 						text
 						size="small"
@@ -773,7 +773,7 @@ onMounted(async () => {
 
 	<Dialog
 		v-model:visible="userRequestDialogVisible"
-		:header="userRequestIsExisting ? 'Edit My Request' : 'Add My Request'"
+		:header="userRequestIsExisting ? 'Edit My Request' : 'Join Request'"
 		:modal="true"
 		dismissableMask
 		:style="{ width: '500px' }"

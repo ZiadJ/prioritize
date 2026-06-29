@@ -401,7 +401,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			</Column>
 			<Column
 				field="title"
-				header="Request Criteria, Benefits & Side-Effects"
+				header="Request Criteria, Benefits & Proposal Side-Effects"
 				expander
 				class="min-w-[45%] z-[1]">
 				<template #body="{ node }">

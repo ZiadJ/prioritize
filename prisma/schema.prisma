@@ -156,7 +156,6 @@ enum RequestLevel {
 
 enum MeasurementType {
   None // For non-countable items such as "a better world" and "happiness"
-  Money // Used when resource is not providable by the community network
   Units // Generic unit for countable items
   Time // Seconds
   Weight // Kilograms
@@ -661,6 +660,7 @@ model StepCost {
 
   quantity       Float // A negative value denotes a production output rather than a cost
   quantityMargin Float
+  monetaryValue  Float
   consumedAt     DateTime
   // costVariationType Int // Linear, Exponential, Custom
 
