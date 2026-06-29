@@ -18,6 +18,9 @@ const UNITS_BY_TYPE: Record<MeasurementType, Unit[]> = {
 		{ key: 'pcs', label: 'pcs', name: 'Pieces', factor: 1 },
 		{ key: 'dz', label: 'dz', name: 'Dozens', factor: 1 / 12 },
 	],
+	[MeasurementType.Money]: [
+		{ key: 'dol', label: '$', name: 'Dollars', factor: 1 },
+	],
 	[MeasurementType.Time]: [
 		{ key: 'd', label: 'd', name: 'Days', factor: 1 / 24 },
 		{ key: 'h', label: 'h', name: 'Hours', factor: 1 },
@@ -66,6 +69,7 @@ const {
 	disabled?: boolean
 	readonly?: boolean
 	decimals?: number
+	allowMoney?: boolean
 	placeholder?: string
 }>()
 
@@ -169,7 +173,7 @@ const formattedQuantity = computed<string>(() => {
 				:maxFractionDigits="decimals"
 				:minFractionDigits="0"
 				:placeholder="placeholder"
-				class="flex-1 min-w-16 w-full" />
+				class="flex-1 min-w-16" />
 			<Dropdown
 				v-if="unitOptions.length > 1"
 				v-model="selectedUnitKey"

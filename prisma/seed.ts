@@ -694,6 +694,341 @@ async function main() {
 
 	console.log('Creating proposals...')
 
+	// --- Resources: the main material and human (labor) inputs used across
+	// the three proposals. Step nodes and their step costs are added in a
+	// later phase; here we just populate the resource catalog. ---
+
+	// ResourceType is stored as Int: 0 = ServiceTime, 1 = Material, 2 = Digital
+	const SERVICE_TIME = 0
+	const MATERIAL = 1
+
+	await prisma.resource.createMany({
+		data: [
+			{
+				title: 'Portland Cement',
+				description:
+					'General-purpose Portland cement used for ferro-cement cisterns, mortar and concrete works.',
+				type: MATERIAL,
+				measurementType: 'Weight',
+				quantityAvailable: 4000,
+				monthlyCapacity: 2000,
+				managedMonthlyCapacity: 2000,
+				minQuantity: 500,
+				reservedQuantity: 0,
+				monetaryValue: 0.3,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Filter Sand',
+				description:
+					'Washed graded sand for bio-sand filters, mortar mixing and concrete.',
+				type: MATERIAL,
+				measurementType: 'Volume',
+				quantityAvailable: 20,
+				monthlyCapacity: 10,
+				managedMonthlyCapacity: 10,
+				minQuantity: 2,
+				reservedQuantity: 0,
+				monetaryValue: 25,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Gravel & Crushed Stone',
+				description:
+					'Coarse aggregate for gravel pre-filters, drainage layers and concrete.',
+				type: MATERIAL,
+				measurementType: 'Volume',
+				quantityAvailable: 15,
+				monthlyCapacity: 10,
+				managedMonthlyCapacity: 10,
+				minQuantity: 2,
+				reservedQuantity: 0,
+				monetaryValue: 20,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Galvanized Wire Mesh',
+				description:
+					'Reinforcing wire mesh for ferro-cement cistern and tank construction.',
+				type: MATERIAL,
+				measurementType: 'Area',
+				quantityAvailable: 300,
+				monthlyCapacity: 100,
+				managedMonthlyCapacity: 100,
+				minQuantity: 50,
+				reservedQuantity: 0,
+				monetaryValue: 3.5,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'PVC Pipe & Fittings',
+				description:
+					'PVC pipes, joints and fittings for gravity-fed distribution lines.',
+				type: MATERIAL,
+				measurementType: 'Length',
+				quantityAvailable: 1500,
+				monthlyCapacity: 500,
+				managedMonthlyCapacity: 500,
+				minQuantity: 100,
+				reservedQuantity: 0,
+				monetaryValue: 2,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Roof Gutter & Downpipe',
+				description:
+					'Roof gutters and downpipes that channel rainfall into storage cisterns.',
+				type: MATERIAL,
+				measurementType: 'Length',
+				quantityAvailable: 400,
+				monthlyCapacity: 200,
+				managedMonthlyCapacity: 200,
+				minQuantity: 50,
+				reservedQuantity: 0,
+				monetaryValue: 4,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Storage Cistern',
+				description:
+					'Sealed ferro-cement storage cistern unit for rainwater retention.',
+				type: MATERIAL,
+				measurementType: 'Units',
+				quantityAvailable: 6,
+				monthlyCapacity: 2,
+				managedMonthlyCapacity: 2,
+				minQuantity: 1,
+				reservedQuantity: 0,
+				monetaryValue: 800,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'India Mark II Hand Pump',
+				description:
+					'Community hand pump for borehole extraction, the standard for rural water points.',
+				type: MATERIAL,
+				measurementType: 'Units',
+				quantityAvailable: 3,
+				monthlyCapacity: 1,
+				managedMonthlyCapacity: 1,
+				minQuantity: 1,
+				reservedQuantity: 0,
+				monetaryValue: 1200,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'HDPE Pond Liner',
+				description:
+					'High-density polyethylene liner that seals retention ponds against seepage.',
+				type: MATERIAL,
+				measurementType: 'Area',
+				quantityAvailable: 600,
+				monthlyCapacity: 200,
+				managedMonthlyCapacity: 200,
+				minQuantity: 100,
+				reservedQuantity: 0,
+				monetaryValue: 5,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Sodium Hypochlorite',
+				description:
+					'Chlorine solution for monthly disinfection of well and borehole water.',
+				type: MATERIAL,
+				measurementType: 'Weight',
+				quantityAvailable: 50,
+				monthlyCapacity: 20,
+				managedMonthlyCapacity: 20,
+				minQuantity: 5,
+				reservedQuantity: 0,
+				monetaryValue: 2,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Tap Stand & Fixtures',
+				description:
+					'Central tap stand with valves and fittings for community distribution points.',
+				type: MATERIAL,
+				measurementType: 'Units',
+				quantityAvailable: 10,
+				monthlyCapacity: 5,
+				managedMonthlyCapacity: 5,
+				minQuantity: 2,
+				reservedQuantity: 0,
+				monetaryValue: 90,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Diesel Fuel',
+				description:
+					'Diesel to run the borehole drilling rig and backup pumping equipment.',
+				type: MATERIAL,
+				measurementType: 'Volume',
+				quantityAvailable: 1,
+				monthlyCapacity: 0.5,
+				managedMonthlyCapacity: 0.5,
+				minQuantity: 0.1,
+				reservedQuantity: 0,
+				monetaryValue: 1200,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Excavation Labor',
+				description:
+					'Manual and assisted digging labor for swales, trenches and foundations. Measured in man-hours.',
+				type: SERVICE_TIME,
+				measurementType: 'Time',
+				quantityAvailable: 0,
+				monthlyCapacity: 800,
+				managedMonthlyCapacity: 600,
+				minQuantity: 0,
+				reservedQuantity: 0,
+				monetaryValue: 15,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Masonry & Construction Labor',
+				description:
+					'Skilled masonry labor for building cisterns, pump pads and tap stands. Measured in man-hours.',
+				type: SERVICE_TIME,
+				measurementType: 'Time',
+				quantityAvailable: 0,
+				monthlyCapacity: 400,
+				managedMonthlyCapacity: 300,
+				minQuantity: 0,
+				reservedQuantity: 0,
+				monetaryValue: 22,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Plumbing Labor',
+				description:
+					'Plumbing labor for laying pipes, fitting pumps and installing tap stands. Measured in man-hours.',
+				type: SERVICE_TIME,
+				measurementType: 'Time',
+				quantityAvailable: 0,
+				monthlyCapacity: 200,
+				managedMonthlyCapacity: 150,
+				minQuantity: 0,
+				reservedQuantity: 0,
+				monetaryValue: 25,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Borehole Drilling Service',
+				description:
+					'Drilling-rig service time to reach the water table. Measured in rig-hours.',
+				type: SERVICE_TIME,
+				measurementType: 'Time',
+				quantityAvailable: 0,
+				monthlyCapacity: 60,
+				managedMonthlyCapacity: 40,
+				minQuantity: 0,
+				reservedQuantity: 0,
+				monetaryValue: 120,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Surveying & Engineering',
+				description:
+					'Site survey, contour mapping and design work. Measured in man-hours.',
+				type: SERVICE_TIME,
+				measurementType: 'Time',
+				quantityAvailable: 0,
+				monthlyCapacity: 120,
+				managedMonthlyCapacity: 80,
+				minQuantity: 0,
+				reservedQuantity: 0,
+				monetaryValue: 40,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+			{
+				title: 'Community Training & Coordination',
+				description:
+					'Volunteer coordination, pump-repair training and committee management. Measured in man-hours.',
+				type: SERVICE_TIME,
+				measurementType: 'Time',
+				quantityAvailable: 0,
+				monthlyCapacity: 150,
+				managedMonthlyCapacity: 100,
+				minQuantity: 0,
+				reservedQuantity: 0,
+				monetaryValue: 18,
+				isActive: true,
+				ownerId: adminUser.id,
+			},
+		],
+	})
+
+	console.log('Creating resources...')
+
+	// --- Community stock: localize a few key resources to the seeded
+	// communities so the CommunityResource page has data. ---
+
+	const resourceRecords = await prisma.resource.findMany({
+		select: { id: true, title: true },
+	})
+	const resourceByTitle = Object.fromEntries(
+		resourceRecords.map(r => [r.title, r.id]),
+	)
+
+	const cr = (
+		title: string,
+		communityId: number,
+		quantity: number,
+		monthlyCapacity: number,
+		managedMonthlyCapacity: number,
+		minQuantity: number,
+		reservedQuantity: number,
+		monetaryValuePerUnit: number,
+	) => ({
+		resourceId: resourceByTitle[title],
+		communityId,
+		quantity,
+		monthlyCapacity,
+		managedMonthlyCapacity,
+		minQuantity,
+		reservedQuantity,
+		monetaryValuePerUnit,
+		isActive: true,
+	})
+
+	await prisma.communityResource.createMany({
+		data: [
+			cr('Portland Cement', city1.id, 2000, 2000, 2000, 500, 0, 0.3),
+			cr('Filter Sand', city1.id, 12, 10, 10, 2, 0, 25),
+			cr('Storage Cistern', city1.id, 4, 2, 2, 1, 1, 800),
+			cr('PVC Pipe & Fittings', city1.id, 800, 500, 500, 100, 0, 2),
+			cr('Roof Gutter & Downpipe', city1.id, 200, 200, 200, 50, 0, 4),
+			cr('HDPE Pond Liner', city1.id, 400, 200, 200, 100, 0, 5),
+			cr('Excavation Labor', city1.id, 0, 800, 600, 0, 0, 15),
+			cr('Masonry & Construction Labor', city1.id, 0, 400, 300, 0, 0, 22),
+			cr('India Mark II Hand Pump', city2.id, 2, 1, 1, 1, 0, 1200),
+			cr('Sodium Hypochlorite', city2.id, 30, 20, 20, 5, 0, 2),
+			cr('Borehole Drilling Service', city2.id, 0, 60, 40, 0, 0, 120),
+			cr('Community Training & Coordination', city2.id, 0, 150, 100, 0, 0, 18),
+		],
+	})
+
+	console.log('Creating community resources...')
+
 	// --- Seed feedback so proposals appear with ratings ---
 
 	const allRequestNodes = await prisma.requestNode.findMany({

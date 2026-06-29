@@ -4,6 +4,7 @@ import { requestsRouter } from './requests';
 import { requestNodesRouter } from './requestNodes'
 import { proposalsRouter } from './proposals'
 import { resourcesRouter } from './resources'
+import { communityResourcesRouter } from './communityResources'
 import { feedbackRouter } from './feedback'
 import { expertiseRouter } from './expertise'
 
@@ -12,6 +13,7 @@ export const appRouter = router({
 	requestNodes: requestNodesRouter,
 	proposals: proposalsRouter,
 	resourceNodes: resourcesRouter,
+	communityResources: communityResourcesRouter,
 	feedback: feedbackRouter,
 	expertise: expertiseRouter,
 })

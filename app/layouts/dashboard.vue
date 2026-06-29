@@ -27,7 +27,7 @@ class="bg-white dark:bg-zinc-900 h-full rounded-lg shadow-md pt-3 pb-4 px-0"
 			<!-- class="fixed top-14 left-0 w-[4.5rem] h-[calc(100vh-3.5rem)] z-50 bg-surface-ground transition-all duration-300 hover:w-48 hover:delay-300 group/sidebar px-2" -->
 			<div
 				class="sidebar-container fixed top-14 left-0 h-[calc(100vh-3.5rem)] z-50 bg-surface-ground transition-all duration-300 overflow-hidden px-2 group/sidebar"
-				:class="sidebarExpanded ? 'w-48' : 'w-[4.5rem]'"
+				:class="sidebarExpanded ? 'w-51' : 'w-[4.5rem]'"
 				@mousemove="handleSidebarHover"
 				@mouseout="handleSidebarHover"
 				@mouseleave="collapseSidebar"
@@ -63,7 +63,7 @@ const handleSidebarHover = utils.uiElements.delayedHover(
 )
 
 function collapseSidebar() {
-	sidebarExpanded.value = false
+	sidebarExpanded.value = !sidebarExpanded.value
 }
 
 watch(

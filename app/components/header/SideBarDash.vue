@@ -13,6 +13,17 @@ const items = ref<MenuItem[]>([
 		activeFor: ['/dash/request'],
 	},
 	{ label: 'Expertise', icon: 'pi pi-graduation-cap', to: '/dash/expertise' },
+	{
+		label: 'Resources',
+		icon: 'pi pi-box',
+		to: '/dash/resources',
+	},
+	{
+		label: 'Community Stock',
+		icon: 'pi pi-warehouse',
+		to: '/dash/community-resources',
+		activeFor: ['/dash/community-resources'],
+	},
 ])
 
 function isActive(item: MenuItem): boolean {

@@ -54,7 +54,6 @@ export const resourcesRouter = router({
 				where,
 				orderBy: { id: 'asc' },
 				include: {
-					stepCosts: true,
 					tags: true,
 					owner: true,
 					editors: true,
@@ -68,7 +67,6 @@ export const resourcesRouter = router({
 			return prisma.resource.findUnique({
 				where: { id: input.id },
 				include: {
-					stepCosts: true,
 					tags: true,
 					owner: true,
 					editors: true,
@@ -103,16 +101,15 @@ export const resourcesRouter = router({
 							}
 						: undefined,
 				},
-				include: {
-					tags: true,
-					owner: true,
-					stepCosts: true,
-					editors: true,
-				},
-			})
+			include: {
+				tags: true,
+				owner: true,
+				editors: true,
+			},
+		})
 
-			return node
-		}),
+		return node
+	}),
 
 	update: protectedProcedure
 		.input(updateInput)

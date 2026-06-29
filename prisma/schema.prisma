@@ -156,6 +156,7 @@ enum RequestLevel {
 
 enum MeasurementType {
   None // For non-countable items such as "a better world" and "happiness"
+  Money // Used when resource is not providable by the community network
   Units // Generic unit for countable items
   Time // Seconds
   Weight // Kilograms
@@ -240,7 +241,7 @@ model User {
   countryId   Int?
 
   expertise         ExpertiseNode[]
-  steps             StepNode[]      @relation("AssignedSteps")
+  assginedSteps     StepNode[]
   feedback          Feedback[]
   revisions         RevisionNode[]
   tags              Tag[]
@@ -262,6 +263,8 @@ model User {
 
   userRequests UserRequest[]
   tokens       Token[]
+
+  @@index([username])
 }
 
 model UserRelation {
@@ -461,7 +464,7 @@ model Request {
   @@index([totalPriority])
 }
 
-// Tracks the quantity of material requested by a user 
+// Tracks the quantity of a good or service requested by a user as part of a request
 model UserRequest {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
@@ -473,7 +476,7 @@ model UserRequest {
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
 
-  quantity    Float @default(0) // Defaults to 0 for shared/joined requests with no measurable quantity
+  quantity    Float   @default(0) // Defaults to 0 for shared/joined requests with no measurable quantity
   priority    Float // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
   isBasicNeed Boolean @default(false)
   isJoined    Boolean @default(false) // Whether the user joined the request as a shared request rather than specifying their own quantity
@@ -591,9 +594,7 @@ model Proposal {
   // @@index([path])
 }
 
-// An action item or task which is referenced by proposals to 
-// specific requests 
-
+// An action task which is referenced by proposals in relatio to a request
 model StepNode {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
@@ -614,19 +615,19 @@ model StepNode {
   children StepNode[] @relation("Self")
 
   // Sequential steps
-  nextId   Int?      @unique
-  next     StepNode? @relation("Sibbling", fields: [nextId], references: [id])
   previous StepNode? @relation("Sibbling")
+  next     StepNode? @relation("Sibbling", fields: [nextId], references: [id])
+  nextId   Int?      @unique
 
   duration         Int
   durationVariance Int
   riskFactor       Int
 
-  proposals  Proposal[]
-  costs      StepCost[]
-  effects    Effect[]
-  assignedTo User[]     @relation("AssignedSteps")
-  tags       Tag[]
+  proposals     Proposal[]
+  costs         StepCost[]
+  effects       Effect[]
+  AssignedUsers User[]
+  tags          Tag[]
 
   owner      User      @relation("StepNodeOwner", fields: [ownerId], references: [id])
   ownerId    String
@@ -637,8 +638,8 @@ model StepNode {
   @@index([path])
 }
 
-// Resource quantity produced or consumed by a specific proposal step
-// The specified quantity is substracted from the community stock when consumedAt is specified
+// Resource quantity produced or consumed by a step node which can have multiple costs
+// The quantity is substracted from the community stock when consumedAt is specified
 model StepCost {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
