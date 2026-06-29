@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineProps<{
 	saving?: boolean
+	deleting?: boolean
 	editMode?: boolean
 	isOwner?: boolean
 	ownerName?: string
@@ -11,6 +12,7 @@ const form = defineModel<{ title: string; description: string; isActive: boolean
 
 const emit = defineEmits<{
 	save: []
+	delete: []
 }>()
 </script>
 
@@ -54,13 +56,25 @@ const emit = defineEmits<{
 			</div>
 		</div>
 		<template #footer>
-			<div class="flex justify-end gap-2">
-				<Button label="Cancel" text @click="visible = false" />
+			<div class="flex items-center justify-between w-full">
 				<Button
-					:label="editMode ? 'Save' : 'Create'"
-					:loading="saving"
-					:disabled="!form.title.trim()"
-					@click="$emit('save')" />
+					v-if="editMode"
+					icon="pi pi-trash"
+					severity="danger"
+					text
+					rounded
+					:loading="deleting"
+					aria-label="Delete proposal"
+					v-tooltip.top="'Delete proposal'"
+					@click="$emit('delete')" />
+				<div class="flex gap-2">
+					<Button label="Cancel" text @click="visible = false" />
+					<Button
+						:label="editMode ? 'Save' : 'Create'"
+						:loading="saving"
+						:disabled="!form.title.trim()"
+						@click="$emit('save')" />
+				</div>
 			</div>
 		</template>
 	</Dialog>

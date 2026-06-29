@@ -43,6 +43,7 @@ export function useProposalColumns(
 
 	const formDialogVisible = ref(false)
 	const formSaving = ref(false)
+	const formDeleting = ref(false)
 	const formData = ref({ title: '', description: '', isActive: true })
 
 	function syncVisibleColumns() {
@@ -133,10 +134,10 @@ export function useProposalColumns(
 		}
 	}
 
-	const removeProposal = (col: ProposalColumn, event: MouseEvent) => {
+	const removeProposal = (col: ProposalColumn) => {
 		confirm.require({
+			group: 'proposalDelete',
 			header: 'Delete Proposal',
-			target: event.currentTarget as HTMLElement,
 			message: `Delete "${col.header}"? This cannot be undone.`,
 			icon: 'pi pi-info-circle',
 			acceptClass: 'p-button-danger',
@@ -146,22 +147,33 @@ export function useProposalColumns(
 					columns.value.splice(originalIdx, 1)
 					visibleKeys.value.delete(col.columnKey!)
 					syncVisibleColumns()
+					if (editingColumn.value === col) {
+						formDialogVisible.value = false
+						editingColumn.value = null
+					}
 					toast.add('Proposal removed')
 					return
 				}
 
+				formDeleting.value = true
 				columns.value.splice(originalIdx, 1)
 				visibleKeys.value.delete(col.columnKey!)
 				syncVisibleColumns()
 
 				try {
 					await $trpcClient.proposals.delete.mutate({ id: col.id })
+					if (editingColumn.value === col) {
+						formDialogVisible.value = false
+						editingColumn.value = null
+					}
 					toast.add('Proposal deleted', col.header)
 				} catch (e: any) {
 					columns.value.splice(originalIdx, 0, col)
 					visibleKeys.value.add(col.columnKey!)
 					syncVisibleColumns()
 					toast.add('Failed to delete proposal', e.message, 'error')
+				} finally {
+					formDeleting.value = false
 				}
 			},
 		})
@@ -246,6 +258,7 @@ export function useProposalColumns(
 		visibleColumns,
 		formDialogVisible,
 		formSaving,
+		formDeleting,
 		formData,
 		editingColumn,
 		isEditMode,

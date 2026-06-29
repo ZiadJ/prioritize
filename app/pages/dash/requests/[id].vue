@@ -111,12 +111,14 @@ const {
 	visibleColumns,
 	formDialogVisible: proposalFormDialogVisible,
 	formSaving: proposalFormSaving,
+	formDeleting: proposalFormDeleting,
 	formData: proposalFormData,
 	isEditMode: proposalFormEditMode,
 	editingColumn,
 	openCreateForm: openCreateProposalForm,
 	addProposal,
 	renameProposal,
+	removeProposal,
 	saveProposalEdit,
 	onColumnVisibilityToggle,
 	refreshNetBenefits,
@@ -237,7 +239,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 
 <template>
 	<div>
-		<ConfirmDialog></ConfirmDialog>
+		<ConfirmDialog group="proposalDelete"></ConfirmDialog>
 		<ConfirmDialog group="nodeDelete"></ConfirmDialog>
 		<Menu ref="nodeMenuRef" :model="nodeMenuItems" :popup="true" />
 		<Toast style="opacity: 0.9" />
@@ -245,10 +247,12 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			v-model:visible="proposalFormDialogVisible"
 			v-model:form="proposalFormData"
 			:saving="proposalFormSaving"
+			:deleting="proposalFormDeleting"
 			:editMode="proposalFormEditMode"
 			:isOwner="isProposalOwner"
 			:ownerName="editingColumn?.ownerName"
-			@save="proposalFormEditMode ? saveProposalEdit() : addProposal()" />
+			@save="proposalFormEditMode ? saveProposalEdit() : addProposal()"
+			@delete="editingColumn && removeProposal(editingColumn)" />
 		<RequestNodeFormDialog
 			v-model:visible="nodeFormDialogVisible"
 			v-model:form="nodeFormData"

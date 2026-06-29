@@ -39,6 +39,7 @@ const currentRequest = ref<Request | null>(null)
 
 const expandedRows = ref()
 const userRequestsCache = ref<Record<number, RequestUserRequest[]>>({})
+const loadingUserRequests = ref<Record<number, boolean>>({})
 const savingUserRequest = ref(false)
 
 // User request add/edit modal
@@ -333,6 +334,7 @@ const onRowExpand = async (event: any) => {
 const onRowCollapse = () => {}
 
 const loadUserRequests = async (requestId: number) => {
+	loadingUserRequests.value[requestId] = true
 	try {
 		const result = await $trpcClient.requests.getUserRequests.query({
 			requestId,
@@ -347,6 +349,8 @@ const loadUserRequests = async (requestId: number) => {
 		}
 	} catch (error: any) {
 		toast.add('Error', error.message || 'Failed to load user requests')
+	} finally {
+		loadingUserRequests.value[requestId] = false
 	}
 }
 
@@ -589,108 +593,130 @@ onMounted(async () => {
 		</Column>
 
 		<template #expansion="slotProps">
-			<div class="p-3">
-				<div class="flex justify-between items-center mb-3">
-					<span
-						class="text-sm font-medium text-zinc-500"
-						style="line-height: 2rem">
-						{{ realCount(slotProps.data.id) }}
-						{{
-							realCount(slotProps.data.id) === 1
-								? 'user request'
-								: 'user requests'
-						}}
-					</span>
-					<Button
-						v-if="!hasMyRow(slotProps.data.id)"
-						label="Join Request"
-						icon="pi pi-plus"
-						text
-						size="small"
-						@click="openUserRequestModal(slotProps.data)" />
+			<div class="px-3 pb-3 pt-1">
+				<div
+					v-if="loadingUserRequests[slotProps.data.id]"
+					class="flex justify-center items-center py-2">
+					<i class="pi pi-spin pi-spinner text-zinc-400"></i>
 				</div>
-
-				<!-- Single list of all user requests, current user's row first -->
-				<DataTable
-					v-if="(userRequestsCache[slotProps.data.id] || []).length > 0"
-					:value="userRequestsCache[slotProps.data.id] || []"
-					class="p-datatable-sm"
-					dataKey="id">
-					<Column field="user.username" header="User">
-						<template #body="{ data }">
-							<NuxtLink
-								:to="`/dash/users/${data.user?.username}`"
-								class="underline hover:opacity-70">
-								{{ data.user?.username || '-' }}
-							</NuxtLink>
-							<Tag
-								v-if="isMine(data)"
-								value="you"
-								severity="info"
-								class="!ml-1 !text-xs" />
-						</template>
-					</Column>
-					<Column
-						v-if="slotProps.data.measurementType !== MeasurementType.None"
-						field="quantity"
-						header="Quantity">
-						<template #body="{ data }">
-							{{ data.quantity ?? '-' }}
-						</template>
-					</Column>
-					<Column field="priority" header="Priority">
-						<template #body="{ data }">{{ data.priority ?? '-' }}</template>
-					</Column>
-					<Column field="isBasicNeed" header="Essential">
-						<template #body="{ data }">
-							{{ data.isBasicNeed ? 'Yes' : '-' }}
-						</template>
-					</Column>
-					<!-- <Column v-if="slotProps.data.isJoinable" header="Joined">
-						<template #body="{ data }">
-							{{ data.isJoined ? 'Yes' : '-' }}
-						</template>
-					</Column> -->
-					<Column field="recurrencePeriod" header="Recurrence">
-						<template #body="{ data }">
+				<div v-else>
+					<div class="flex justify-between items-center mb-3">
+						<span class="text-sm font-medium text-zinc-500">
+							{{ realCount(slotProps.data.id) }}
 							{{
-								data.recurrencePeriod > 0 ? data.recurrencePeriod + 'd' : '-'
+								realCount(slotProps.data.id) === 1
+									? 'user request'
+									: 'user requests'
 							}}
-						</template>
-					</Column>
-					<Column field="dueAt" header="Due Date">
-						<template #body="{ data }">
-							{{ data.dueAt ? new Date(data.dueAt).toLocaleDateString() : '-' }}
-						</template>
-					</Column>
-					<Column field="comment" header="Comment" style="max-width: 300px">
-						<template #body="{ data }">
-							{{ data.comment || '-' }}
-						</template>
-					</Column>
-					<Column header="Actions" :exportable="false" class="actions-column">
-						<template #body="{ data }">
-							<div v-if="isMine(data)" class="action-buttons">
-								<Button
-									icon="pi pi-pencil"
-									text
-									rounded
-									size="small"
-									severity="success"
-									@click="openUserRequestModal(slotProps.data)"
-									v-tooltip.top="'Edit'" />
-								<Button
-									icon="pi pi-trash"
-									text
-									rounded
-									size="small"
-									severity="danger"
-									@click="confirmDeleteUserRequest($event, slotProps.data)"
-									v-tooltip.top="'Delete'" />
-							</div>
-						</template>
-					</Column>
-				</DataTable>
+						</span>
+						<Button
+							v-if="!hasMyRow(slotProps.data.id)"
+							label="Join Request"
+							icon="pi pi-plus"
+							text
+							size="small"
+							@click="openUserRequestModal(slotProps.data)" />
+					</div>
+
+					<!-- Single list of all user requests, current user's row first -->
+					<DataTable
+						v-if="
+							(userRequestsCache[slotProps.data.id] || []).length > 0
+						"
+						:value="userRequestsCache[slotProps.data.id] || []"
+						class="p-datatable-sm"
+						dataKey="id">
+						<Column field="user.username" header="User">
+							<template #body="{ data }">
+								<NuxtLink
+									:to="`/dash/users/${data.user?.username}`"
+									class="underline hover:opacity-70">
+									{{ data.user?.username || '-' }}
+								</NuxtLink>
+								<Tag
+									v-if="isMine(data)"
+									value="you"
+									severity="info"
+									class="!ml-1 !text-xs" />
+							</template>
+						</Column>
+						<Column
+							v-if="
+								slotProps.data.measurementType !== MeasurementType.None
+							"
+							field="quantity"
+							header="Quantity">
+							<template #body="{ data }">
+								{{ data.quantity ?? '-' }}
+							</template>
+						</Column>
+						<Column field="priority" header="Priority">
+							<template #body="{ data }">
+								{{ data.priority ?? '-' }}
+							</template>
+						</Column>
+						<Column field="isBasicNeed" header="Essential">
+							<template #body="{ data }">
+								{{ data.isBasicNeed ? 'Yes' : '-' }}
+							</template>
+						</Column>
+						<!-- <Column v-if="slotProps.data.isJoinable" header="Joined">
+							<template #body="{ data }">
+								{{ data.isJoined ? 'Yes' : '-' }}
+							</template>
+						</Column> -->
+						<Column field="recurrencePeriod" header="Recurrence">
+							<template #body="{ data }">
+								{{
+									data.recurrencePeriod > 0
+										? data.recurrencePeriod + 'd'
+										: '-'
+								}}
+							</template>
+						</Column>
+						<Column field="dueAt" header="Due Date">
+							<template #body="{ data }">
+								{{
+									data.dueAt
+										? new Date(data.dueAt).toLocaleDateString()
+										: '-'
+								}}
+							</template>
+						</Column>
+						<Column field="comment" header="Comment" style="max-width: 300px">
+							<template #body="{ data }">
+								{{ data.comment || '-' }}
+							</template>
+						</Column>
+						<Column
+							header="Actions"
+							:exportable="false"
+							class="actions-column">
+							<template #body="{ data }">
+								<div v-if="isMine(data)" class="action-buttons">
+									<Button
+										icon="pi pi-pencil"
+										text
+										rounded
+										size="small"
+										severity="success"
+										@click="openUserRequestModal(slotProps.data)"
+										v-tooltip.top="'Edit'" />
+									<Button
+										icon="pi pi-trash"
+										text
+										rounded
+										size="small"
+										severity="danger"
+										@click="
+											confirmDeleteUserRequest($event, slotProps.data)
+										"
+										v-tooltip.top="'Delete'" />
+								</div>
+							</template>
+						</Column>
+					</DataTable>
+				</div>
 			</div>
 		</template>
 
