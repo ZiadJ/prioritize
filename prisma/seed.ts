@@ -664,7 +664,7 @@ async function main() {
 		data: {
 			title: 'Communal Well with Electric Pump',
 			description:
-				'Drill a borehole to the water table (~30 m) and install an India Mark II hand pump. The pump is located centrally so no household is more than 500 m away. Water is chlorinated monthly by a trained community health volunteer. Maintenance relies on a community committee trained in basic pump repair, with a spare-parts fund built from household contributions.',
+				'Drill a borehole to the water table (~30 m) and install an Seakoo Mark II hand pump. The pump is located centrally so no household is more than 500 m away. Water is chlorinated monthly by a trained community health volunteer. Maintenance relies on a community committee trained in basic pump repair, with a spare-parts fund built from household contributions.',
 			isComplete: true,
 			stepCount: 3,
 			duration: 30,
@@ -810,7 +810,7 @@ async function main() {
 				ownerId: adminUser.id,
 			},
 			{
-				title: 'India Mark II Hand Pump',
+				title: 'Seakoo Mark II Hand Pump',
 				description:
 					'Community hand pump for borehole extraction, the standard for rural water points.',
 				type: MATERIAL,
@@ -1020,7 +1020,7 @@ async function main() {
 			cr('HDPE Pond Liner', city1.id, 400, 200, 200, 100, 0, 5),
 			cr('Excavation Labor', city1.id, 0, 800, 600, 0, 0, 15),
 			cr('Masonry & Construction Labor', city1.id, 0, 400, 300, 0, 0, 22),
-			cr('India Mark II Hand Pump', city2.id, 2, 1, 1, 1, 0, 1200),
+			cr('Seakoo Mark II Hand Pump', city2.id, 2, 1, 1, 1, 0, 1200),
 			cr('Sodium Hypochlorite', city2.id, 30, 20, 20, 5, 0, 2),
 			cr('Borehole Drilling Service', city2.id, 0, 60, 40, 0, 0, 120),
 			cr('Community Training & Coordination', city2.id, 0, 150, 100, 0, 0, 18),

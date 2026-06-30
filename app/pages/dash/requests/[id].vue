@@ -251,6 +251,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			:editMode="proposalFormEditMode"
 			:isOwner="isProposalOwner"
 			:ownerName="editingColumn?.ownerName"
+			:proposalId="editingColumn?.id"
 			@save="proposalFormEditMode ? saveProposalEdit() : addProposal()"
 			@delete="editingColumn && removeProposal(editingColumn)" />
 		<RequestNodeFormDialog

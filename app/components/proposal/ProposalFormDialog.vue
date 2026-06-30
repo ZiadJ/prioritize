@@ -1,10 +1,14 @@
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue'
+import ProposalSteps from '@/components/proposal/ProposalSteps.vue'
+
+const props = defineProps<{
 	saving?: boolean
 	deleting?: boolean
 	editMode?: boolean
 	isOwner?: boolean
 	ownerName?: string
+	proposalId?: number
 }>()
 
 const visible = defineModel<boolean>('visible', { default: false })
@@ -14,6 +18,10 @@ const emit = defineEmits<{
 	save: []
 	delete: []
 }>()
+
+const dialogStyle = computed(() => ({
+	width: props.editMode ? '680px' : '450px',
+}))
 </script>
 
 <template>
@@ -22,8 +30,8 @@ const emit = defineEmits<{
 		:header="editMode ? 'Edit Proposal' : 'New Proposal'"
 		:modal="true"
 		dismissableMask
-		:style="{ width: '450px' }"
-		:breakpoints="{ '640px': '95vw' }"
+		:style="dialogStyle"
+		:breakpoints="{ '760px': '95vw' }"
 		show-effect="fadeIn"
 		hide-effect="fadeOut">
 		<div class="flex flex-col gap-3 pt-1">
@@ -44,16 +52,21 @@ const emit = defineEmits<{
 					placeholder="Describe the proposal"
 					rows="3" />
 			</div>
-			<div v-if="editMode && ownerName" class="form-field">
-				<label>Author</label>
-				<p class="mb-1 text-sm text-gray-600 dark:text-gray-400">{{ ownerName }}</p>
-			</div>
+		<div v-if="editMode && ownerName && !isOwner" class="form-field">
+			<label>Author</label>
+			<p class="mb-1 text-sm text-gray-600 dark:text-gray-400">{{ ownerName }}</p>
+		</div>
 			<div v-if="editMode && isOwner" class="form-field">
 				<div class="flex items-center gap-2">
 					<Checkbox v-model="form.isActive" :binary="true" inputId="proposal-active" />
 					<label for="proposal-active">Active</label>
 				</div>
 			</div>
+
+			<Divider v-if="editMode && proposalId" align="left">
+				Proposal Steps
+			</Divider>
+			<ProposalSteps v-if="editMode && proposalId" :proposalId="proposalId" />
 		</div>
 		<template #footer>
 			<div class="flex items-center justify-between w-full">

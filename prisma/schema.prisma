@@ -605,24 +605,14 @@ model StepNode {
   isDirty     Boolean? // Client-server-clients sync flag
   revisions   RevisionNode[]
 
-  // Parallel steps
-  path     String     @unique
-  depth    Int        @default(0)
-  numchild Int        @default(0)
-  parent   StepNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
-  parentId Int?
-  children StepNode[] @relation("Self")
+  position Int @default(0)
 
-  // Sequential steps
-  previous StepNode? @relation("Sibbling")
-  next     StepNode? @relation("Sibbling", fields: [nextId], references: [id])
-  nextId   Int?      @unique
-
-  duration         Int
-  durationVariance Int
+  duration         Float
+  durationVariance Float
   riskFactor       Int
 
-  proposals     Proposal[]
+  proposal      Proposal   @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId    Int
   costs         StepCost[]
   effects       Effect[]
   AssignedUsers User[]
@@ -634,7 +624,8 @@ model StepNode {
   resource   Resource? @relation(fields: [resourceId], references: [id])
   resourceId Int?
 
-  @@index([path])
+  @@unique([proposalId, position])
+  @@index([proposalId, position])
 }
 
 // Resource quantity produced or consumed by a step node which can have multiple costs
@@ -658,10 +649,11 @@ model StepCost {
   stepNode   StepNode? @relation(fields: [stepNodeId], references: [id])
   stepNodeId Int?
 
-  quantity       Float // A negative value denotes a production output rather than a cost
-  quantityMargin Float
-  monetaryValue  Float
-  consumedAt     DateTime
+  measurementType MeasurementType
+  quantity        Float // A negative value denotes a production output rather than a cost
+  quantityMargin  Float
+  monetaryValue   Float // Only used when the mentioned quantity is unavailable in the community stock
+  consumedAt      DateTime
   // costVariationType Int // Linear, Exponential, Custom
 
   // resourceDemand ResourceDemand[]
@@ -671,7 +663,7 @@ model StepCost {
   ownerId String
   editors User[] @relation("StepCostEditors")
 
-  @@unique([stepNodeId])
+  // @@unique([stepNodeId])
 }
 
 // Availability of a specific resource used or produced in 

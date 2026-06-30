@@ -3,15 +3,13 @@ import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
 
 const createInput = z.object({
+	isActive: z.boolean().default(true),
 	title: z.string(),
 	description: z.string(),
-	isActive: z.boolean(),
 	parentId: z.number().int().nullish(),
 })
 
-const updateInput = createInput.extend({
-	id: z.number(),
-})
+const updateInput = z.object({ ...createInput.shape, id: z.number() })
 
 export const expertiseRouter = router({
 	list: publicProcedure
