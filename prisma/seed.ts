@@ -36,72 +36,24 @@ async function main() {
 		},
 	})
 
-	const country1 = await prisma.community.create({
-		data: {
-			title: 'Valley Region',
-			description: 'Region in the northern region',
-			country: { connect: { id: countryA.id } },
-			address: 'Country A',
-			longitude: -95.7129,
-			latitude: 37.0902,
-			isActive: true,
-		},
-	})
-
-	const state1 = await prisma.community.create({
-		data: {
-			title: 'Arcadia',
-			description: 'State of Arcadia',
-			country: { connect: { id: countryA.id } },
-			address: 'Arcadia, Country A',
-			longitude: -119.4179,
-			latitude: 36.7783,
-			isActive: true,
-		},
-	})
-
-	const city1 = await prisma.community.create({
+	const community1 = await prisma.community.create({
 		data: {
 			title: 'Terravita',
 			description: 'Terravita ecovillage',
 			country: { connect: { id: countryA.id } },
-			address: 'Harbor City, Arcadia, Country A',
+			address: 'Harbor City, Country A',
 			longitude: -122.4194,
 			latitude: 37.7749,
 			isActive: true,
 		},
 	})
 
-	const country2 = await prisma.community.create({
+	const community2 = await prisma.community.create({
 		data: {
-			title: 'Mountain Region',
-			description: 'Region in the northern region',
+			title: 'Thalassia',
+			description: 'City of Thalassia',
 			country: { connect: { id: countryB.id } },
-			address: 'Country B',
-			longitude: -106.3468,
-			latitude: 56.1304,
-			isActive: true,
-		},
-	})
-
-	const state2 = await prisma.community.create({
-		data: {
-			title: 'Lake Province',
-			description: 'Province of Lake Province',
-			country: { connect: { id: countryB.id } },
-			address: 'Lake Province, Country B',
-			longitude: -79.3832,
-			latitude: 43.6532,
-			isActive: true,
-		},
-	})
-
-	const city2 = await prisma.community.create({
-		data: {
-			title: 'Central City',
-			description: 'City of Central City',
-			country: { connect: { id: countryB.id } },
-			address: 'Central City, Lake Province, Country B',
+			address: 'Thalassia, Country B',
 			longitude: -79.3832,
 			latitude: 43.6532,
 			isActive: true,
@@ -366,7 +318,9 @@ async function main() {
 	const expertiseEnvironmentEcology =
 		expertiseParentNodes['Environment & Ecology']
 	const expertiseEngineering = expertiseParentNodes['Engineering']
-	const expertiseHydraulicEngineering = await expertiseByTitle('Hydraulic Engineering')
+	const expertiseHydraulicEngineering = await expertiseByTitle(
+		'Hydraulic Engineering',
+	)
 	const expertiseWaterManagement = await expertiseByTitle('Water Management')
 
 	console.log('Creating expertise nodes...')
@@ -383,7 +337,7 @@ async function main() {
 			isActive: true,
 			isVerified: true,
 			role: 'admin',
-			communityId: city1.id,
+			communityId: community1.id,
 			countryId: countryB.id,
 			expertise: {
 				connect: [
@@ -406,7 +360,7 @@ async function main() {
 			firstname: 'Regular',
 			lastname: 'User',
 			isActive: true,
-			communityId: city2.id,
+			communityId: community2.id,
 			countryId: countryA.id,
 			expertise: {
 				connect: [{ id: expertiseHealthCare.id }],
@@ -424,7 +378,7 @@ async function main() {
 			firstname: 'Another',
 			lastname: 'User',
 			isActive: true,
-			communityId: city1.id,
+			communityId: community1.id,
 			countryId: countryA.id,
 			expertise: {
 				connect: [{ id: expertiseEnvironmentEcology.id }],
@@ -445,7 +399,7 @@ async function main() {
 			isJoinable: true,
 			totalPriority: 7,
 			ownerId: adminUser.id,
-			communityId: city1.id,
+			communityId: community1.id,
 			countryId: countryA.id,
 			userRequests: {
 				create: [
@@ -664,7 +618,7 @@ async function main() {
 		data: {
 			title: 'Communal Well with Electric Pump',
 			description:
-				'Drill a borehole to the water table (~30 m) and install an Seakoo Mark II hand pump. The pump is located centrally so no household is more than 500 m away. Water is chlorinated monthly by a trained community health volunteer. Maintenance relies on a community committee trained in basic pump repair, with a spare-parts fund built from household contributions.',
+				'Drill a borehole to the water table (~30 m) and install an Seakoo Mark II electric pump. The pump is located centrally so no household is more than 500 m away. Water is chlorinated monthly by a trained community health volunteer. Maintenance relies on a community committee trained in basic pump repair, with a spare-parts fund built from household contributions.',
 			isComplete: true,
 			stepCount: 3,
 			duration: 30,
@@ -810,9 +764,9 @@ async function main() {
 				ownerId: adminUser.id,
 			},
 			{
-				title: 'Seakoo Mark II Hand Pump',
+				title: 'Seakoo Mark II Electric Pump',
 				description:
-					'Community hand pump for borehole extraction, the standard for rural water points.',
+					'Community electric pump for borehole extraction, the standard for rural water points.',
 				type: MATERIAL,
 				measurementType: 'Units',
 				quantityAvailable: 3,
@@ -1012,18 +966,18 @@ async function main() {
 
 	await prisma.communityResource.createMany({
 		data: [
-			cr('Portland Cement', city1.id, 2000, 2000, 2000, 500, 0, 0.3),
-			cr('Filter Sand', city1.id, 12, 10, 10, 2, 0, 25),
-			cr('Storage Cistern', city1.id, 4, 2, 2, 1, 1, 800),
-			cr('PVC Pipe & Fittings', city1.id, 800, 500, 500, 100, 0, 2),
-			cr('Roof Gutter & Downpipe', city1.id, 200, 200, 200, 50, 0, 4),
-			cr('HDPE Pond Liner', city1.id, 400, 200, 200, 100, 0, 5),
-			cr('Excavation Labor', city1.id, 0, 800, 600, 0, 0, 15),
-			cr('Masonry & Construction Labor', city1.id, 0, 400, 300, 0, 0, 22),
-			cr('Seakoo Mark II Hand Pump', city2.id, 2, 1, 1, 1, 0, 1200),
-			cr('Sodium Hypochlorite', city2.id, 30, 20, 20, 5, 0, 2),
-			cr('Borehole Drilling Service', city2.id, 0, 60, 40, 0, 0, 120),
-			cr('Community Training & Coordination', city2.id, 0, 150, 100, 0, 0, 18),
+			cr('Portland Cement', community1.id, 2000, 2000, 2000, 500, 0, 0.3),
+			cr('Filter Sand', community1.id, 12, 10, 10, 2, 0, 25),
+			cr('Storage Cistern', community1.id, 4, 2, 2, 1, 1, 800),
+			cr('PVC Pipe & Fittings', community1.id, 800, 500, 500, 100, 0, 2),
+			cr('Roof Gutter & Downpipe', community1.id, 200, 200, 200, 50, 0, 4),
+			cr('HDPE Pond Liner', community1.id, 400, 200, 200, 100, 0, 5),
+			cr('Excavation Labor', community1.id, 0, 800, 600, 0, 0, 15),
+			cr('Masonry & Construction Labor', community1.id, 0, 400, 300, 0, 0, 22),
+			cr('Seakoo Mark II Electric Pump', community2.id, 2, 1, 1, 1, 0, 1200),
+			cr('Sodium Hypochlorite', community2.id, 30, 20, 20, 5, 0, 2),
+			cr('Borehole Drilling Service', community2.id, 0, 60, 40, 0, 0, 120),
+			cr('Community Training & Coordination', community2.id, 0, 150, 100, 0, 0, 18),
 		],
 	})
 

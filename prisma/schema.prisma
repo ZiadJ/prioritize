@@ -260,8 +260,9 @@ model User {
   editableResources    Resource[]    @relation("ResourceEditors")
   ownedResources       Resource[]    @relation("ResourceOwner")
 
-  userRequests UserRequest[]
-  tokens       Token[]
+  userRequests   UserRequest[]
+  tokens         Token[]
+  stockMovements StockMovement[]
 
   @@index([username])
 }
@@ -594,6 +595,7 @@ model Proposal {
 }
 
 // An action task which is referenced by proposals in relatio to a request
+// NB: The node fields are commented in this early version for the sake of simplicity
 model StepNode {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
@@ -604,6 +606,13 @@ model StepNode {
   description String
   isDirty     Boolean? // Client-server-clients sync flag
   revisions   RevisionNode[]
+
+  // path     String     @unique
+  // depth    Int        @default(0)
+  // numchild Int        @default(0)
+  // parent   StepNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  // parentId Int?
+  // children StepNode[] @relation("Self")
 
   position Int @default(0)
 
@@ -658,6 +667,7 @@ model StepCost {
 
   // resourceDemand ResourceDemand[]
   tags Tag[]
+  stockMovements StockMovement[]
 
   owner   User   @relation("StepCostOwner", fields: [ownerId], references: [id])
   ownerId String
@@ -722,7 +732,28 @@ model CommunityResource {
   monetaryValuePerUnit   Float // Per specified unit
 
   // resourceDemand          ResourceDemand[]
-  stepCosts StepCost[]
+  stepCosts      StepCost[]
+  stockMovements StockMovement[]
+}
+
+// NB: The node fields are commented in this version for the sake of simplicity
+model StockMovement {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean
+
+  user                User              @relation(fields: [userId], references: [id])
+  userId              String
+  resource            CommunityResource @relation(fields: [communityResourceId], references: [id])
+  communityResourceId Int
+  stepCost            StepCost?         @relation(fields: [stepCostId], references: [id])
+  stepCostId          Int?
+
+  quantity       Float
+  quantityBefore Float
+  quantityAfter  Float
+  reason         String?
 }
 
 // model ResourceDemand {

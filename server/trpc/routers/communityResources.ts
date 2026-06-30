@@ -7,11 +7,9 @@ const createInput = CommunityResourceSchema.pick({
 	isActive: true,
 	resourceId: true,
 	communityId: true,
-	quantity: true,
 	monthlyCapacity: true,
 	managedMonthlyCapacity: true,
 	minQuantity: true,
-	reservedQuantity: true,
 	monetaryValuePerUnit: true,
 })
 
@@ -92,7 +90,8 @@ export const communityResourcesRouter = router({
 		.mutation(async ({ input }) => {
 			const data = input as z.infer<typeof createInput>
 			return prisma.communityResource.create({
-				data,
+				// Stock levels are managed exclusively via Stock Movements
+				data: { ...data, quantity: 0, reservedQuantity: 0 },
 				include: {
 					resource: true,
 					community: true,

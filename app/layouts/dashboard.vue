@@ -63,7 +63,7 @@ const handleSidebarHover = utils.uiElements.delayedHover(
 )
 
 function collapseSidebar() {
-	sidebarExpanded.value = !sidebarExpanded.value
+	sidebarExpanded.value = false // !sidebarExpanded.value
 }
 
 watch(

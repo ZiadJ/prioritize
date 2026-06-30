@@ -24,6 +24,12 @@ const items = ref<MenuItem[]>([
 		to: '/dash/community-resources',
 		activeFor: ['/dash/community-resources'],
 	},
+	{
+		label: 'Stock Movements',
+		icon: 'pi pi-arrow-right-arrow-left',
+		to: '/dash/stock-movements',
+		activeFor: ['/dash/stock-movements'],
+	},
 ])
 
 function isActive(item: MenuItem): boolean {

@@ -8,11 +8,9 @@ const createInput = ResourceSchema.pick({
 	description: true,
 	type: true,
 	measurementType: true,
-	quantityAvailable: true,
 	monthlyCapacity: true,
 	managedMonthlyCapacity: true,
 	minQuantity: true,
-	reservedQuantity: true,
 	monetaryValue: true,
 	isDirty: true,
 	ownerId: true,
@@ -91,16 +89,19 @@ export const resourcesRouter = router({
 				typeof updateInput
 			>
 
-			const node = await prisma.resource.create({
-				data: {
-					...rest,
-					owner: { connect: { id: ctx.user!.id } },
-					tags: tagIds?.length
-						? {
-								connect: tagIds.map((id: number) => ({ id })),
-							}
-						: undefined,
-				},
+		const node = await prisma.resource.create({
+			data: {
+				...rest,
+				// Stock levels are managed exclusively via Stock Movements
+				quantityAvailable: 0,
+				reservedQuantity: 0,
+				owner: { connect: { id: ctx.user!.id } },
+				tags: tagIds?.length
+					? {
+							connect: tagIds.map((id: number) => ({ id })),
+						}
+					: undefined,
+			},
 			include: {
 				tags: true,
 				owner: true,

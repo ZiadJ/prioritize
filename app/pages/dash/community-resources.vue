@@ -331,7 +331,17 @@ onMounted(async () => {
 						id="quantity"
 						v-model="formData.quantity"
 						:minFractionDigits="0"
-						:maxFractionDigits="2" />
+						:maxFractionDigits="2"
+						disabled
+						v-tooltip.top="
+							'Stock levels are managed via the Stock Movements page'
+						" />
+					<small class="text-zinc-500">
+						Managed via
+						<NuxtLink to="/dash/stock-movements" class="underline"
+							>Stock Movements</NuxtLink
+						>
+					</small>
 				</div>
 				<div class="form-field flex-1">
 					<label for="monthlyCapacity">Monthly Capacity</label>
@@ -369,7 +379,11 @@ onMounted(async () => {
 						id="reservedQuantity"
 						v-model="formData.reservedQuantity"
 						:minFractionDigits="0"
-						:maxFractionDigits="2" />
+						:maxFractionDigits="2"
+						disabled
+						v-tooltip.top="
+							'Stock levels are managed via the Stock Movements page'
+						" />
 				</div>
 				<div class="form-field flex-1">
 					<label for="monetaryValuePerUnit">Value / Unit</label>
