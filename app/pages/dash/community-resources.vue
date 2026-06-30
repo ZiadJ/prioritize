@@ -64,7 +64,7 @@ const fetchCommunityResources = async () => {
 	try {
 		const result = await $trpcClient.communityResources.list.query({
 			search: searchQuery.value || undefined,
-			communityId: selectedCommunityId.value,
+			communityId: selectedCommunityId.value ?? undefined,
 		})
 		communityResources.value = result || []
 	} catch (error: any) {
