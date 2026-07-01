@@ -3,10 +3,10 @@ import { ref, onMounted } from 'vue'
 import type { inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
 import { useConfirm } from 'primevue/useconfirm'
+import { formatNumber } from '@/methods/utils'
 
-type CommunityResourceRouterOutput = inferRouterOutputs<
-	AppRouter
->['communityResources']
+type CommunityResourceRouterOutput =
+	inferRouterOutputs<AppRouter>['communityResources']
 type CommunityResource = CommunityResourceRouterOutput['list'][number]
 type ResourceOption = CommunityResourceRouterOutput['resources'][number]
 type CommunityOption = CommunityResourceRouterOutput['communities'][number]
@@ -37,7 +37,6 @@ const formData = ref({
 	communityId: undefined as number | undefined,
 	quantity: 0,
 	monthlyCapacity: 0,
-	managedMonthlyCapacity: 0,
 	minQuantity: 0,
 	reservedQuantity: 0,
 	monetaryValuePerUnit: 0,
@@ -50,7 +49,6 @@ const resetForm = () => {
 		communityId: undefined,
 		quantity: 0,
 		monthlyCapacity: 0,
-		managedMonthlyCapacity: 0,
 		minQuantity: 0,
 		reservedQuantity: 0,
 		monetaryValuePerUnit: 0,
@@ -95,7 +93,6 @@ const editCommunityResource = (item: CommunityResource) => {
 		communityId: item.communityId,
 		quantity: item.quantity,
 		monthlyCapacity: item.monthlyCapacity,
-		managedMonthlyCapacity: item.managedMonthlyCapacity,
 		minQuantity: item.minQuantity,
 		reservedQuantity: item.reservedQuantity,
 		monetaryValuePerUnit: item.monetaryValuePerUnit,
@@ -243,20 +240,17 @@ onMounted(async () => {
 		</Column>
 		<Column field="quantity" header="Quantity" sortable>
 			<template #body="{ data }">
-				<span>{{ data.quantity }}</span>
+				<span>{{ formatNumber(data.quantity) }}</span>
 			</template>
 		</Column>
 		<Column field="monthlyCapacity" header="Monthly Capacity" sortable>
 			<template #body="{ data }">
-				<span>{{ data.monthlyCapacity }}</span>
+				<span>{{ formatNumber(data.monthlyCapacity) }}</span>
 			</template>
 		</Column>
-		<Column
-			field="monetaryValuePerUnit"
-			header="Value / Unit"
-			sortable>
+		<Column field="monetaryValuePerUnit" header="Value / Unit" sortable>
 			<template #body="{ data }">
-				<span>{{ data.monetaryValuePerUnit }}</span>
+				<span>{{ formatNumber(data.monetaryValuePerUnit) }}</span>
 			</template>
 		</Column>
 		<Column header="Actions" :exportable="false" class="actions-column">
@@ -288,9 +282,7 @@ onMounted(async () => {
 
 	<Dialog
 		v-model:visible="dialogVisible"
-		:header="
-			dialogMode === 'create' ? 'New Stock Entry' : 'Edit Stock Entry'
-		"
+		:header="dialogMode === 'create' ? 'New Stock Entry' : 'Edit Stock Entry'"
 		:modal="true"
 		dismissableMask
 		:style="{ width: '600px' }"
@@ -354,36 +346,12 @@ onMounted(async () => {
 			</div>
 			<div class="flex gap-4">
 				<div class="form-field flex-1">
-					<label for="managedMonthlyCapacity"
-						>Managed Monthly Capacity</label
-					>
-					<InputNumber
-						id="managedMonthlyCapacity"
-						v-model="formData.managedMonthlyCapacity"
-						:minFractionDigits="0"
-						:maxFractionDigits="2" />
-				</div>
-				<div class="form-field flex-1">
 					<label for="minQuantity">Min Quantity</label>
 					<InputNumber
 						id="minQuantity"
 						v-model="formData.minQuantity"
 						:minFractionDigits="0"
 						:maxFractionDigits="2" />
-				</div>
-			</div>
-			<div class="flex gap-4">
-				<div class="form-field flex-1">
-					<label for="reservedQuantity">Reserved Quantity</label>
-					<InputNumber
-						id="reservedQuantity"
-						v-model="formData.reservedQuantity"
-						:minFractionDigits="0"
-						:maxFractionDigits="2"
-						disabled
-						v-tooltip.top="
-							'Stock levels are managed via the Stock Movements page'
-						" />
 				</div>
 				<div class="form-field flex-1">
 					<label for="monetaryValuePerUnit">Value / Unit</label>

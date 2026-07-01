@@ -6,10 +6,9 @@ import { ResourceSchema } from '~~/prisma/generated/zod/schemas/models/Resource.
 const createInput = ResourceSchema.pick({
 	title: true,
 	description: true,
-	type: true,
 	measurementType: true,
 	monthlyCapacity: true,
-	managedMonthlyCapacity: true,
+	shelfLife: true,
 	minQuantity: true,
 	monetaryValue: true,
 	isDirty: true,
@@ -25,11 +24,10 @@ const updateInput = createInput.extend({
 export const resourcesRouter = router({
 	list: publicProcedure
 		.input(
-			z
+				z
 				.object({
 					search: z.string().optional(),
 					isActive: z.boolean().optional(),
-					type: z.number().optional(),
 				})
 				.optional(),
 		)
@@ -42,11 +40,8 @@ export const resourcesRouter = router({
 				]
 			}
 			if (input?.isActive !== undefined) {
-				where.isActive = input.isActive
-			}
-			if (input?.type !== undefined) {
-				where.type = input.type
-			}
+			where.isActive = input.isActive
+		}
 
 			return prisma.resource.findMany({
 				where,

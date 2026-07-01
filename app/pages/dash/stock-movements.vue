@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import type { inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
+import { formatNumber } from '@/methods/utils'
 
 type StockMovementRouterOutput = inferRouterOutputs<
 	AppRouter
@@ -211,19 +212,19 @@ onMounted(async () => {
 		<Column field="quantity" header="Change" sortable>
 			<template #body="{ data }">
 				<Tag
-					:value="`${data.quantity > 0 ? '+' : ''}${data.quantity}`"
+					:value="`${data.quantity > 0 ? '+' : ''}${formatNumber(data.quantity)}`"
 					:severity="data.quantity >= 0 ? 'success' : 'danger'"
 					class="!text-xs" />
 			</template>
 		</Column>
 		<Column field="quantityBefore" header="Before" sortable>
 			<template #body="{ data }">
-				<span>{{ data.quantityBefore }}</span>
+				<span>{{ formatNumber(data.quantityBefore) }}</span>
 			</template>
 		</Column>
 		<Column field="quantityAfter" header="After" sortable>
 			<template #body="{ data }">
-				<span class="font-medium">{{ data.quantityAfter }}</span>
+				<span class="font-medium">{{ formatNumber(data.quantityAfter) }}</span>
 			</template>
 		</Column>
 		<Column field="stepCost.title" header="Step Cost" sortable>

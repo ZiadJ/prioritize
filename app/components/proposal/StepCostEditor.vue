@@ -2,6 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import { MeasurementType } from '~~/prisma/generated/client/enums'
 import Quantity from '~/components/requests/Quantity.vue'
+import { formatNumber } from '@/methods/utils'
 import {
 	useStepCosts,
 	type StepCostInput,
@@ -157,8 +158,8 @@ async function onSave() {
 					</div>
 					<div class="text-xs text-gray-500 dark:text-gray-400 truncate">
 						{{ cost.communityResource?.resource?.title ?? 'No resource' }}
-						<span v-if="cost.quantity">· qty {{ cost.quantity }}</span>
-						<span v-if="cost.monetaryValue">· value {{ cost.monetaryValue }}</span>
+						<span v-if="cost.quantity">· qty {{ formatNumber(cost.quantity) }}</span>
+						<span v-if="cost.monetaryValue">· value {{ formatNumber(cost.monetaryValue) }}</span>
 					</div>
 				</div>
 				<div class="flex gap-1 shrink-0">

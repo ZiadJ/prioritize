@@ -8,7 +8,6 @@ const createInput = CommunityResourceSchema.pick({
 	resourceId: true,
 	communityId: true,
 	monthlyCapacity: true,
-	managedMonthlyCapacity: true,
 	minQuantity: true,
 	monetaryValuePerUnit: true,
 })
@@ -85,42 +84,38 @@ export const communityResourcesRouter = router({
 		})
 	}),
 
-	create: protectedProcedure
-		.input(createInput)
-		.mutation(async ({ input }) => {
-			const data = input as z.infer<typeof createInput>
-			return prisma.communityResource.create({
-				// Stock levels are managed exclusively via Stock Movements
-				data: { ...data, quantity: 0, reservedQuantity: 0 },
-				include: {
-					resource: true,
-					community: true,
-				},
-			})
-		}),
+	create: protectedProcedure.input(createInput).mutation(async ({ input }) => {
+		const data = input as z.infer<typeof createInput>
+		return prisma.communityResource.create({
+			// Stock levels are managed exclusively via Stock Movements
+			data: { ...data, quantity: 0, reservedQuantity: 0 },
+			include: {
+				resource: true,
+				community: true,
+			},
+		})
+	}),
 
-	update: protectedProcedure
-		.input(updateInput)
-		.mutation(async ({ input }) => {
-			const { id, ...rest } = input as z.infer<typeof updateInput>
+	update: protectedProcedure.input(updateInput).mutation(async ({ input }) => {
+		const { id, ...rest } = input as z.infer<typeof updateInput>
 
-			const existingNode = await prisma.communityResource.findUnique({
-				where: { id },
-			})
+		const existingNode = await prisma.communityResource.findUnique({
+			where: { id },
+		})
 
-			if (!existingNode) {
-				throw new Error('Community resource not found')
-			}
+		if (!existingNode) {
+			throw new Error('Community resource not found')
+		}
 
-			return prisma.communityResource.update({
-				where: { id },
-				data: rest,
-				include: {
-					resource: true,
-					community: true,
-				},
-			})
-		}),
+		return prisma.communityResource.update({
+			where: { id },
+			data: rest,
+			include: {
+				resource: true,
+				community: true,
+			},
+		})
+	}),
 
 	delete: protectedProcedure
 		.input(z.object({ id: z.number() }))

@@ -4,6 +4,7 @@ import type { inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
 import { MeasurementType } from '~~/prisma/generated/client/enums'
 import { useConfirm } from 'primevue/useconfirm'
+import { formatNumber } from '@/methods/utils'
 
 type ResourceRouterOutput = inferRouterOutputs<AppRouter>['resourceNodes']
 type Resource = ResourceRouterOutput['list'][number]
@@ -21,35 +22,24 @@ const resources = ref<Resource[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const searchQuery = ref('')
-const selectedType = ref<number | undefined>(undefined)
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'create' | 'update'>('create')
 const currentResourceId = ref<number | null>(null)
-
-const typeOptions = [
-	{ label: 'Service Time', value: 0 },
-	{ label: 'Material', value: 1 },
-	{ label: 'Digital', value: 2 },
-]
 
 const measurementOptions = Object.keys(MeasurementType).map(key => ({
 	label: key,
 	value: key as MeasurementType,
 }))
 
-const typeLabel = (t: number) =>
-	typeOptions.find(o => o.value === t)?.label ?? '-'
-
 const formData = ref({
 	title: '',
 	description: '',
 	isActive: true,
-	type: 1,
 	measurementType: 'Units' as MeasurementType,
 	quantityAvailable: 0,
 	monthlyCapacity: 0,
-	managedMonthlyCapacity: 0,
+		shelfLife: null as number | null,
 	minQuantity: 0,
 	reservedQuantity: 0,
 	monetaryValue: 0,
@@ -60,11 +50,10 @@ const resetForm = () => {
 		title: '',
 		description: '',
 		isActive: true,
-		type: 1,
 		measurementType: 'Units' as MeasurementType,
 		quantityAvailable: 0,
 		monthlyCapacity: 0,
-		managedMonthlyCapacity: 0,
+	shelfLife: null as number | null,
 		minQuantity: 0,
 		reservedQuantity: 0,
 		monetaryValue: 0,
@@ -78,7 +67,6 @@ const fetchResources = async () => {
 	try {
 		const result = await $trpcClient.resourceNodes.list.query({
 			search: searchQuery.value || undefined,
-			type: selectedType.value,
 		})
 		resources.value = result || []
 	} catch (error: any) {
@@ -107,11 +95,10 @@ const editResource = (resource: Resource) => {
 		title: resource.title,
 		description: resource.description || '',
 		isActive: resource.isActive,
-		type: resource.type,
 		measurementType: resource.measurementType as MeasurementType,
 		quantityAvailable: resource.quantityAvailable,
 		monthlyCapacity: resource.monthlyCapacity,
-		managedMonthlyCapacity: resource.managedMonthlyCapacity,
+		shelfLife: resource.shelfLife,
 		minQuantity: resource.minQuantity,
 		reservedQuantity: resource.reservedQuantity,
 		monetaryValue: resource.monetaryValue,
@@ -205,14 +192,6 @@ onMounted(() => {
 					v-model="searchQuery"
 					placeholder="Search resources..."
 					@input="debouncedSearch" />
-				<Dropdown
-					v-model="selectedType"
-					:options="typeOptions"
-					optionLabel="label"
-					optionValue="value"
-					placeholder="All types"
-					@change="fetchResources"
-					showClear />
 			</InputGroup>
 			<Button
 				label="New Resource"
@@ -236,20 +215,6 @@ onMounted(() => {
 				<span class="font-medium">{{ data.title }}</span>
 			</template>
 		</Column>
-		<Column field="type" header="Type" sortable>
-			<template #body="{ data }">
-				<Tag
-					:value="typeLabel(data.type)"
-					:severity="
-						data.type === 0
-							? 'warn'
-							: data.type === 2
-								? 'info'
-								: 'success'
-					"
-					class="!text-xs" />
-			</template>
-		</Column>
 		<Column field="measurementType" header="Measurement" sortable>
 			<template #body="{ data }">
 				<span>{{ data.measurementType }}</span>
@@ -257,17 +222,22 @@ onMounted(() => {
 		</Column>
 		<Column field="quantityAvailable" header="Available" sortable>
 			<template #body="{ data }">
-				<span>{{ data.quantityAvailable }}</span>
+				<span>{{ formatNumber(data.quantityAvailable) }}</span>
 			</template>
 		</Column>
 		<Column field="monthlyCapacity" header="Monthly Capacity" sortable>
 			<template #body="{ data }">
-				<span>{{ data.monthlyCapacity }}</span>
+				<span>{{ formatNumber(data.monthlyCapacity) }}</span>
+			</template>
+		</Column>
+		<Column field="shelfLife" header="Shelf Life" sortable>
+			<template #body="{ data }">
+				<span>{{ formatNumber(data.shelfLife, 0) }}</span>
 			</template>
 		</Column>
 		<Column field="monetaryValue" header="Value / Unit" sortable>
 			<template #body="{ data }">
-				<span>{{ data.monetaryValue }}</span>
+				<span>{{ formatNumber(data.monetaryValue) }}</span>
 			</template>
 		</Column>
 		<Column field="description" header="Description" style="max-width: 300px">
@@ -332,17 +302,6 @@ onMounted(() => {
 			</div>
 			<div class="flex gap-4">
 				<div class="form-field flex-1">
-					<label for="type">Type *</label>
-					<Dropdown
-						id="type"
-						v-model="formData.type"
-						:options="typeOptions"
-						optionLabel="label"
-						optionValue="value"
-						placeholder="Select type"
-						class="w-full" />
-				</div>
-				<div class="form-field flex-1">
 					<label for="measurementType">Measurement Type *</label>
 					<Dropdown
 						id="measurementType"
@@ -384,14 +343,12 @@ onMounted(() => {
 			</div>
 			<div class="flex gap-4">
 				<div class="form-field flex-1">
-					<label for="managedMonthlyCapacity"
-						>Managed Monthly Capacity</label
-					>
+					<label for="shelfLife">Shelf Life</label>
 					<InputNumber
-						id="managedMonthlyCapacity"
-						v-model="formData.managedMonthlyCapacity"
+						id="shelfLife"
+						v-model="formData.shelfLife"
 						:minFractionDigits="0"
-						:maxFractionDigits="2" />
+						:maxFractionDigits="0" />
 				</div>
 				<div class="form-field flex-1">
 					<label for="minQuantity">Min Quantity</label>
@@ -428,7 +385,10 @@ onMounted(() => {
 			</div>
 			<div class="form-field">
 				<label for="isActive" class="cursor-pointer">Active</label>
-				<Checkbox inputId="isActive" v-model="formData.isActive" :binary="true" />
+				<Checkbox
+					inputId="isActive"
+					v-model="formData.isActive"
+					:binary="true" />
 			</div>
 		</div>
 		<template #footer>

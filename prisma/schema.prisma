@@ -666,7 +666,7 @@ model StepCost {
   // costVariationType Int // Linear, Exponential, Custom
 
   // resourceDemand ResourceDemand[]
-  tags Tag[]
+  tags           Tag[]
   stockMovements StockMovement[]
 
   owner   User   @relation("StepCostOwner", fields: [ownerId], references: [id])
@@ -689,14 +689,14 @@ model Resource {
   isDirty     Boolean? // Client-server-clients sync flag
   revisions   RevisionNode[]
 
-  type                   Int // ResourceType // ServiceTime, Material, Digital
-  measurementType        MeasurementType
-  quantityAvailable      Float
-  monthlyCapacity        Float // Amount that can be renewed within a month (includes volunteer time)
-  managedMonthlyCapacity Float
-  minQuantity            Float
-  reservedQuantity       Float
-  monetaryValue          Float // Per specified unit
+  measurementType   MeasurementType
+  quantityAvailable Float
+  monthlyCapacity   Float // Amount that can be renewed within a month (includes volunteer time)
+  // managedMonthlyCapacity Float
+  minQuantity       Float
+  reservedQuantity  Float
+  shelfLife         Int?  // In days
+  monetaryValue     Float // Per specified unit
 
   // components ResourceCostPerUnitNode[] // "used as ingredient in these BOMs"
 
@@ -726,7 +726,7 @@ model CommunityResource {
 
   quantity               Float
   monthlyCapacity        Float // Amount that can be renewed within a month (includes volunteer time)
-  managedMonthlyCapacity Float
+  // managedMonthlyCapacity Float
   minQuantity            Float
   reservedQuantity       Float
   monetaryValuePerUnit   Float // Per specified unit

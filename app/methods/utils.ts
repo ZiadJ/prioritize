@@ -151,6 +151,14 @@ function observeNode(
   return observer
 }
 
+export function formatNumber(
+	value: number | null | undefined,
+	maximumFractionDigits = 2,
+): string {
+	if (value == null || Number.isNaN(value)) return '-'
+	return value.toLocaleString(undefined, { maximumFractionDigits })
+}
+
 export class utils {
   static math = mathUtils
   static uiElements = uiElementUtils

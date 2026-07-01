@@ -4,6 +4,7 @@ import type { StepNode } from '~~/prisma/generated/interfaces'
 import type { StepData } from '~/composables/request/useProposalSteps'
 import { useProposalSteps } from '~/composables/request/useProposalSteps'
 import StepCostEditor from '@/components/proposal/StepCostEditor.vue'
+import { formatNumber } from '@/methods/utils'
 
 const props = defineProps<{
 	proposalId: number
@@ -134,7 +135,7 @@ function onRowReorder(event: { value: StepNode[] }) {
 				bodyClass="!text-center !align-top">
 				<template #body="{ data }">
 					<span v-if="editingId !== data.id">
-						{{ data.duration ? data.duration : '—' }}
+						{{ data.duration ? formatNumber(data.duration) : '—' }}
 					</span>
 					<InputNumber
 						v-else
