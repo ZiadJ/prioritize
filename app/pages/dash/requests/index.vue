@@ -537,7 +537,7 @@ onMounted(async () => {
 				<span
 					class="cursor-pointer underline"
 					@click="openUsersDialog(data)"
-					v-tooltip.top="'View users who joined'"
+					irv-tooltip.top="'View users who prioritize this request'"
 					>{{ data.totalPriority }}</span
 				>
 			</template>

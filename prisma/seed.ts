@@ -397,7 +397,7 @@ async function main() {
 				'The community needs a dependable water supply that lasts through the annual dry season (roughly 4-6 months). Current sources become unreliable or dry up entirely, forcing residents to ration water. Any solution must be affordable, maintainable by the community, and provide enough clean water for drinking, cooking, and basic hygiene.',
 			measurementType: 'None',
 			isJoinable: true,
-			totalPriority: 7,
+			totalPriority: 12,
 			ownerId: adminUser.id,
 			communityId: community1.id,
 			countryId: countryA.id,
@@ -405,20 +405,20 @@ async function main() {
 				create: [
 					{
 						userId: adminUser.id,
-						priority: 3,
+						priority: 5,
 						recurrencePeriod: 365,
 						isBasicNeed: true,
 						isJoined: true,
 					},
 					{
 						userId: regularUser.id,
-						priority: 2,
+						priority: 3,
 						recurrencePeriod: 365,
 						isJoined: true,
 					},
 					{
 						userId: anotherUser.id,
-						priority: 2,
+						priority: 4,
 						recurrencePeriod: 365,
 						isJoined: true,
 					},
