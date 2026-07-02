@@ -231,8 +231,8 @@ model User {
   isVerified    Boolean   @default(false)
   role          String    @default("")
 
-  pointsReceived  Float @default(0) // The total points received over time
-  pointsAvailable Float @default(0) // The available points spendable on a user request
+  pointsReceived  Int @default(0) // The total points received over time
+  pointsAvailable Int @default(0) // The available points spendable on a user request
 
   community   Community? @relation(fields: [communityId], references: [id])
   communityId Int?
@@ -477,7 +477,7 @@ model UserRequest {
   userId    String
 
   quantity    Float   @default(0) // Defaults to 0 for shared/joined requests with no measurable quantity
-  priority    Float // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
+  priority    Int // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
   isBasicNeed Boolean @default(false)
   isJoined    Boolean @default(false) // Whether the user joined the request as a shared request rather than specifying their own quantity
 
@@ -570,12 +570,11 @@ model Proposal {
   isComplete Boolean // Is true upon completion of all children if any
   stepCount  Int // Determines the amount of resources required depending on associated step
   startsAt   DateTime?
-  duration   Int // Proposal duration which can be calculated from child nodes if any
-  priority   Int // Only necessary when isSequential is true on parent node
+  duration   Decimal   @db.Decimal(4, 1) // Proposal duration in days 
+  priority   Int
   riskFactor Int
 
-  approvedAt   DateTime?
-  deliveryDays Int // Production and delivery time
+  approvedAt DateTime?
 
   netBenefit Int @default(0)
 
@@ -616,8 +615,8 @@ model StepNode {
 
   position Int @default(0)
 
-  duration         Float
-  durationVariance Float
+  duration         Decimal @db.Decimal(4, 1)
+  durationVariance Decimal @db.Decimal(4, 1)
   riskFactor       Int
 
   proposal      Proposal   @relation(fields: [proposalId], references: [id], onDelete: Cascade)
@@ -661,7 +660,7 @@ model StepCost {
   measurementType MeasurementType
   quantity        Float // A negative value denotes a production output rather than a cost
   quantityMargin  Float
-  monetaryValue   Float // Only used when the mentioned quantity is unavailable in the community stock
+  monetaryValue   Decimal         @db.Decimal(10, 2) // Only used when the mentioned quantity is unavailable in the community stock
   consumedAt      DateTime
   // costVariationType Int // Linear, Exponential, Custom
 
@@ -695,8 +694,8 @@ model Resource {
   // managedMonthlyCapacity Float
   minQuantity       Float
   reservedQuantity  Float
-  shelfLife         Int?  // In days
-  monetaryValue     Float // Per specified unit
+  shelfLife         Int? // In days
+  monetaryValue     Decimal         @db.Decimal(10, 2) // Per specified unit
 
   // components ResourceCostPerUnitNode[] // "used as ingredient in these BOMs"
 
@@ -724,12 +723,12 @@ model CommunityResource {
   community   Community @relation(fields: [communityId], references: [id])
   communityId Int
 
-  quantity               Float
-  monthlyCapacity        Float // Amount that can be renewed within a month (includes volunteer time)
+  quantity             Float
+  monthlyCapacity      Float // Amount that can be renewed within a month (includes volunteer time)
   // managedMonthlyCapacity Float
-  minQuantity            Float
-  reservedQuantity       Float
-  monetaryValuePerUnit   Float // Per specified unit
+  minQuantity          Float
+  reservedQuantity     Float
+  monetaryValuePerUnit Decimal @db.Decimal(10, 2) // Per specified unit
 
   // resourceDemand          ResourceDemand[]
   stepCosts      StepCost[]
@@ -783,8 +782,8 @@ model TravelCost {
   destinationId Int
 
   // Actual cost = max(quantity_kg * costPerKg, volume_m3 * costPerM3)
-  costPerKg Float?
-  costPerM3 Float?
+  costPerKg Decimal? @db.Decimal(10, 2)
+  costPerM3 Decimal? @db.Decimal(10, 2)
   duration  Int // Travel duration in days (required for delivery date)
 }
 

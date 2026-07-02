@@ -47,7 +47,6 @@ class="bg-white dark:bg-zinc-900 h-full rounded-lg shadow-md pt-3 pb-4 px-0"
 </template>
 
 <script setup>
-import { utils } from '@/methods/utils'
 
 const route = useRoute()
 const isNavigating = ref(false)

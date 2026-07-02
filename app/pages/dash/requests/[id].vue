@@ -24,9 +24,7 @@ import {
 	type TreeNodeEx,
 } from '~/composables/request/useRequestNodes'
 
-import { json } from '@/methods/console'
 import { useRoute } from 'vue-router'
-import { utils } from '@/methods/utils'
 import { useNuxtApp } from '#app'
 
 definePageMeta({
@@ -221,6 +219,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 						: '#00000010'
 					const styleContent = `
 						:is(td, th):has(.${proposalKeyClass}) { background: ${color}; transition: background 250ms; }
+						/* th .${proposalKeyClass} .net-benefit { opacity: 1 } */
 					`
 					useStyleTag(styleContent, { id: 'proposal-column-highlight' })
 
@@ -463,23 +462,23 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 				:rowEditor="false">
 				<template #header>
 					<div
-						class="w-full cursor-pointer"
+						class="w-full h-full cursor-pointer"
+						v-tooltip.top="'Click to edit'"
 						:class="'hover-info proposal_key_' + col.columnKey">
 						<div
 							class="!whitespace-normal py-2 px-3"
-							@click="renameProposal(col)"
-							v-tooltip.top="'Click to edit'">
+							@click="renameProposal(col)">
 							{{ col.header }}
 						</div>
+						<span
+							class="net-benefit absolute top-1 right-1 h-[1.5rem] px-[0.5rem] rounded-full bg-primary-600 text-white text-[0.7rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+							v-tooltip.left="'Net Benefit: ' + (col.netBenefit ?? 0)">
+							{{ col.netBenefit ?? 0 }}
+						</span>
 					</div>
 					<span
 						v-if="col.isLoading"
 						class="pi pi-spin pi-spinner text-xs ml-1" />
-					<span
-						class="absolute top-1 right-1 w-[1.5rem] h-[1.5rem] rounded-full bg-primary-500 text-white text-[0.7rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-						v-tooltip.left="'Net Value: ' + (col.netBenefit ?? 0)">
-						{{ col.netBenefit ?? 0 }}
-					</span>
 				</template>
 				<template #body="{ node }">
 					<div

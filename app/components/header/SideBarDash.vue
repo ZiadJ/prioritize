@@ -4,14 +4,13 @@ import type { MenuItem } from 'primevue/menuitem'
 const route = useRoute()
 const expandedKeys = ref<Record<string, boolean>>({})
 const items = ref<MenuItem[]>([
-	// { label: 'Profile', icon: 'pi pi-user', to: '/dash/profile' },
-	{ label: 'Users', icon: 'pi pi-users', to: '/dash/users' },
 	{
 		label: 'Requests',
 		icon: 'pi pi-wave-pulse',
 		to: '/dash/requests',
 		activeFor: ['/dash/request'],
 	},
+	{ label: 'Users', icon: 'pi pi-users', to: '/dash/users' },
 	{ label: 'Expertise', icon: 'pi pi-graduation-cap', to: '/dash/expertise' },
 	{
 		label: 'Resources',

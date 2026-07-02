@@ -14,7 +14,6 @@ const createInput = ProposalSchema.pick({
 	duration: true,
 	priority: true,
 	riskFactor: true,
-	deliveryDays: true,
 	isDraft: true,
 	isUnavailable: true,
 	requestId: true,

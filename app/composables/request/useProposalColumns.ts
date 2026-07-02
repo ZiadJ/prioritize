@@ -9,7 +9,6 @@ const PROPOSAL_DEFAULTS = {
 	duration: 0,
 	priority: 0,
 	riskFactor: 0,
-	deliveryDays: 0,
 	tags: [],
 	tagIds: [],
 }

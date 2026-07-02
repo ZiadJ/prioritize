@@ -2,7 +2,6 @@
 import { ref, watch, computed } from 'vue'
 import { MeasurementType } from '~~/prisma/generated/client/enums'
 import Quantity from '~/components/requests/Quantity.vue'
-import { formatNumber } from '@/methods/utils'
 import {
 	useStepCosts,
 	type StepCostInput,

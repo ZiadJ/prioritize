@@ -605,8 +605,8 @@ onMounted(async () => {
 							{{ realCount(slotProps.data.id) }}
 							{{
 								realCount(slotProps.data.id) === 1
-									? 'user request'
-									: 'user requests'
+									? 'user joined this request'
+									: 'users joined this request'
 							}}
 						</span>
 						<Button

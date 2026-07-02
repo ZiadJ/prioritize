@@ -4,7 +4,6 @@ import type {
 	TreeTableSelectionKeys,
 	TreeTableExpandedKeys,
 } from 'primevue/treetable'
-import { utils } from '@/methods/utils'
 
 export interface TreeNodeEx extends TreeNode {
 	id?: number

@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue'
 import type { inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
-import { formatNumber } from '@/methods/utils'
 
 type StockMovementRouterOutput = inferRouterOutputs<
 	AppRouter

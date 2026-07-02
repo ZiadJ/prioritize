@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import type { inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
 import { useConfirm } from 'primevue/useconfirm'
-import { formatNumber } from '@/methods/utils'
 
 type CommunityResourceRouterOutput =
 	inferRouterOutputs<AppRouter>['communityResources']

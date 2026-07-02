@@ -4,7 +4,6 @@ import type { inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
 import { MeasurementType } from '~~/prisma/generated/client/enums'
 import { useConfirm } from 'primevue/useconfirm'
-import { formatNumber } from '@/methods/utils'
 
 type ResourceRouterOutput = inferRouterOutputs<AppRouter>['resourceNodes']
 type Resource = ResourceRouterOutput['list'][number]
