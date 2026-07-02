@@ -41,6 +41,33 @@ export const stepNodesRouter = router({
 			})
 		}),
 
+	// Single round-trip preload for the proposal editor: every step, every
+	// step cost (with its community resource) and the community-resource
+	// dropdown options, so expanding a step row is instant on the client.
+	byProposalIdWithCosts: publicProcedure
+		.input(z.object({ proposalId: z.number() }))
+		.query(async ({ input }) => {
+			const [steps, costs, communityResources] = await Promise.all([
+				prisma.stepNode.findMany({
+					where: { proposalId: input.proposalId },
+					orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
+				}),
+				prisma.stepCost.findMany({
+					where: { stepNode: { proposalId: input.proposalId } },
+					include: {
+						communityResource: { include: { resource: true } },
+					},
+					orderBy: { createdAt: 'asc' },
+				}),
+				prisma.communityResource.findMany({
+					where: { isActive: true },
+					include: { resource: true },
+					orderBy: { id: 'asc' },
+				}),
+			])
+			return { steps, costs, communityResources }
+		}),
+
 	create: protectedProcedure
 		.input(createInput)
 		.mutation(async ({ ctx, input: raw }) => {

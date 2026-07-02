@@ -10,8 +10,20 @@ const props = defineProps<{
 }>()
 
 const proposalIdRef = computed(() => props.proposalId)
-const { steps, loading, saving, addStep, updateStep, removeStep, reorder } =
-	useProposalSteps(proposalIdRef)
+const {
+	steps,
+	loading,
+	saving,
+	addStep,
+	updateStep,
+	removeStep,
+	reorder,
+	costsByStepId,
+	communityResources,
+	addCost,
+	updateCost,
+	removeCost,
+} = useProposalSteps(proposalIdRef)
 
 // Rows expanded to reveal their StepCost editor.
 const expandedRows = ref<StepNode[]>([])
@@ -24,14 +36,18 @@ const positionById = computed(() => {
 	return map
 })
 
-const totalDays = computed(() =>
-	steps.value.reduce((sum, s) => sum + (s.duration || 0), 0),
-)
-
-// Inline add (always appends to the end of the series)
+// Add-step dialog
+const addDialogVisible = ref(false)
 const newTitle = ref('')
 const newDescription = ref('')
-const newDuration = ref()
+const newDuration = ref(0)
+
+function openAddDialog() {
+	newTitle.value = ''
+	newDescription.value = ''
+	newDuration.value = 0
+	addDialogVisible.value = true
+}
 
 async function onAdd() {
 	if (!newTitle.value.trim()) return
@@ -40,9 +56,7 @@ async function onAdd() {
 		description: newDescription.value,
 		duration: newDuration.value,
 	})
-	newTitle.value = ''
-	newDescription.value = ''
-	newDuration.value = 0
+	addDialogVisible.value = false
 }
 
 // Inline edit of an existing step
@@ -76,6 +90,7 @@ function onRowReorder(event: { value: StepNode[] }) {
 
 <template>
 	<ConfirmDialog group="stepDelete"></ConfirmDialog>
+	<ConfirmDialog group="stepCostDelete"></ConfirmDialog>
 
 	<div class="form-field -mt-1">
 		<DataTable
@@ -84,10 +99,11 @@ function onRowReorder(event: { value: StepNode[] }) {
 			dataKey="id"
 			:loading="loading"
 			@rowReorder="onRowReorder"
-			showGridlines
+			:showHeaders="false"
+			:showGridlines="false"
 			rowHover>
-			<Column :rowReorder="true" headerStyle="width: 2.5rem" />
-			<Column expander headerStyle="width: 2.5rem" />
+			<Column :rowReorder="true" headerClass="!p-0" bodyClass="!p-0" />
+			<Column expander headerClass="!p-0" bodyClass="!p-0" />
 
 			<Column field="title" header="Step" style="min-width: 16rem">
 				<template #body="{ data }">
@@ -195,59 +211,83 @@ function onRowReorder(event: { value: StepNode[] }) {
 				</template>
 			</Column>
 
-			<template #expansion="{ data }">
-				<div class="step-cost-panel">
-					<StepCostEditor :stepId="data.id" />
-				</div>
-			</template>
+		<template #expansion="{ data }">
+			<div class="step-cost-panel">
+				<StepCostEditor
+					:stepId="data.id"
+					:costs="costsByStepId.get(data.id) ?? []"
+					:communityResources="communityResources"
+					:saving="saving"
+					:create="(input) => addCost(data.id, input)"
+					:update="updateCost"
+					:remove="removeCost" />
+			</div>
+		</template>
 
-			<template #empty>
-				<div class="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
-					No steps yet. Add the first one below.
-				</div>
-			</template>
-		</DataTable>
+		<template #empty>
+			<div class="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
+				No steps yet.
+			</div>
+		</template>
+	</DataTable>
 
-		<div class="flex justify-end mt-1 text-sm text-gray-600 dark:text-gray-300">
-			<span
-				>Total: <strong>{{ totalDays }}</strong> day{{
-					totalDays === 1 ? '' : 's'
-				}}</span
-			>
-		</div>
+	<div class="mt-2 flex justify-end">
+		<Button
+			label="Add step"
+			icon="pi pi-plus"
+			size="small"
+			@click="openAddDialog" />
+	</div>
 
-		<div class="mt-2 p-2 border border-dashed rounded-md">
-			<div class="flex flex-col gap-2">
+	<Dialog
+		v-model:visible="addDialogVisible"
+		header="Add Step"
+		:modal="true"
+		dismissableMask
+		:style="{ width: '480px' }"
+		:breakpoints="{ '520px': '95vw' }"
+		show-effect="fadeIn"
+		hide-effect="fadeOut">
+		<div class="flex flex-col gap-2 pt-1">
+			<div class="form-field !mb-0">
+				<label class="!text-xs">Step title *</label>
 				<InputText
 					v-model="newTitle"
-					size="small"
 					placeholder="New step title"
 					@keydown.enter="onAdd" />
+			</div>
+			<div class="form-field !mb-0">
+				<label class="!text-xs">Description</label>
 				<Textarea
 					v-model="newDescription"
-					rows="1"
+					rows="2"
 					autoResize
-					size="small"
 					placeholder="Description (optional)" />
-				<div class="flex gap-2 justify-between">
-					<InputNumber
-						v-model="newDuration"
-						:min="0"
-						size="small"
-						showButtons
-						placeholder="Days"
-						class="!w-28 flex-none" />
-					<Button
-						label="Add"
-						icon="pi pi-plus"
-						size="small"
-						:loading="saving"
-						:disabled="!newTitle.trim()"
-						@click="onAdd" />
-				</div>
 			</div>
+			<!-- <div class="form-field !mb-0">
+				<label class="!text-xs">Duration (days)</label>
+				<InputNumber
+					v-model="newDuration"
+					:min="0"
+					showButtons
+					:maxFractionDigits="2" />
+			</div> -->
 		</div>
-	</div>
+
+		<template #footer>
+			<div class="flex justify-end gap-2">
+				<Button label="Cancel" text @click="addDialogVisible = false" />
+				<Button
+					label="Add"
+					icon="pi pi-plus"
+					size="small"
+					:loading="saving"
+					:disabled="!newTitle.trim()"
+					@click="onAdd" />
+			</div>
+		</template>
+	</Dialog>
+</div>
 </template>
 
 <style scoped>

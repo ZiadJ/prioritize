@@ -9,7 +9,6 @@ const createInput = ProposalSchema.pick({
 	isActive: true,
 	isDirty: true,
 	isComplete: true,
-	stepCount: true,
 	startsAt: true,
 	duration: true,
 	priority: true,

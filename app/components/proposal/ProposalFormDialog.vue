@@ -9,10 +9,20 @@ const props = defineProps<{
 	isOwner?: boolean
 	ownerName?: string
 	proposalId?: number
+	approvedAt?: string | Date | null
+	netBenefit?: number
+	netFeasability?: number
 }>()
 
 const visible = defineModel<boolean>('visible', { default: false })
-const form = defineModel<{ title: string; description: string; isActive: boolean }>('form', { default: { title: '', description: '', isActive: true } })
+const form = defineModel<{
+	title: string
+	description: string
+	isActive: boolean
+	duration: number
+}>('form', {
+	default: { title: '', description: '', isActive: true, duration: 0 },
+})
 
 const emit = defineEmits<{
 	save: []
@@ -22,6 +32,15 @@ const emit = defineEmits<{
 const dialogStyle = computed(() => ({
 	width: props.editMode ? '680px' : '450px',
 }))
+
+function formatApprovalDate(value: string | Date | null | undefined) {
+	if (!value) return ''
+	return new Date(value).toLocaleDateString(undefined, {
+		year: 'numeric',
+		month: 'short',
+		day: 'numeric',
+	})
+}
 </script>
 
 <template>
@@ -35,14 +54,26 @@ const dialogStyle = computed(() => ({
 		show-effect="fadeIn"
 		hide-effect="fadeOut">
 		<div class="flex flex-col gap-3 pt-1">
-			<div class="form-field">
-				<label for="proposal-title">Title *</label>
-				<InputText
-					id="proposal-title"
-					v-model="form.title"
-					placeholder="Proposal title"
-					autofocus
-					@keydown.enter="$emit('save')" />
+			<div class="flex gap-4 items-start">
+				<div class="form-field flex-1">
+					<label for="proposal-title">Title *</label>
+					<InputText
+						id="proposal-title"
+						v-model="form.title"
+						placeholder="Proposal title"
+						autofocus
+						@keydown.enter="$emit('save')" />
+				</div>
+				<div class="form-field">
+					<label for="proposal-duration">Duration (days)</label>
+					<InputNumber
+						id="proposal-duration"
+						v-model="form.duration"
+						:min="0"
+						:inputStyle="{ width: '6rem' }"
+						showButtons
+						:maxFractionDigits="2" />
+				</div>
 			</div>
 			<div class="form-field">
 				<label for="proposal-description">Description</label>
@@ -52,13 +83,45 @@ const dialogStyle = computed(() => ({
 					placeholder="Describe the proposal"
 					rows="3" />
 			</div>
-		<div v-if="editMode && ownerName && !isOwner" class="form-field">
-			<label>Author</label>
-			<p class="mb-1 text-sm text-gray-600 dark:text-gray-400">{{ ownerName }}</p>
-		</div>
+			<div v-if="editMode" class="form-field">
+				<div class="flex gap-4">
+					<div v-if="editMode && ownerName && !isOwner" class="flex-1">
+						<label>Author</label>
+						<p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
+							{{ ownerName }}
+						</p>
+					</div>
+					<div class="flex-1">
+						<label>Approval Date</label>
+						<p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
+							{{ !approvedAt ? '—' : formatApprovalDate(approvedAt) }}
+						</p>
+					</div>
+				</div>
+			</div>
+			<div v-if="editMode" class="form-field">
+				<div class="flex gap-4">
+					<div class="flex-1">
+						<label>Net Benefit</label>
+						<p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
+							{{ netBenefit ?? 0 }}
+						</p>
+					</div>
+					<div class="flex-1">
+						<label>Net Feasibility</label>
+						<p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
+							{{ netFeasability ?? 0 }}
+						</p>
+					</div>
+				</div>
+			</div>
+
 			<div v-if="editMode && isOwner" class="form-field">
 				<div class="flex items-center gap-2">
-					<Checkbox v-model="form.isActive" :binary="true" inputId="proposal-active" />
+					<Checkbox
+						v-model="form.isActive"
+						:binary="true"
+						inputId="proposal-active" />
 					<label for="proposal-active">Active</label>
 				</div>
 			</div>

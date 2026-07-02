@@ -1,5 +1,11 @@
 import { ref, computed, watch, shallowRef, type Ref } from 'vue'
 import type { StepNode } from '~~/prisma/generated/interfaces'
+import type {
+	StepCostRow,
+	StepCostInput,
+	StepCostPatch,
+	CommunityResourceOption,
+} from '~/composables/request/useStepCosts'
 
 /**
  * Shallow view of a step node. We deliberately avoid embedding the full
@@ -28,7 +34,13 @@ export type StepInput = {
 }
 
 /**
- * Manages the ordered, sequential steps attached to a proposal.
+ * Manages the steps (and their step costs) attached to a proposal.
+ *
+ * Steps and their costs are preloaded together in a single query so the
+ * proposal editor can expand any step row instantly. The cost list lives
+ * here as the single source of truth; adding/editing/deleting a cost mutates
+ * this shared store, so collapsing and re-expanding a row always reflects
+ * the latest data.
  *
  * The backend returns the chain already ordered by following the `next`
  * pointer, so the frontend keeps a flat list of root rows for now.
@@ -44,6 +56,8 @@ export function useProposalSteps(
 
 	// shallowRef avoids deep-unwrapping the recursive StepNode type
 	const steps = shallowRef<StepNode[]>([])
+	const allCosts = shallowRef<StepCostRow[]>([])
+	const communityResources = shallowRef<CommunityResourceOption[]>([])
 	const loading = ref(false)
 	const saving = ref(false)
 
@@ -51,13 +65,18 @@ export function useProposalSteps(
 		const id = proposalId.value
 		if (!id) {
 			steps.value = []
+			allCosts.value = []
 			return
 		}
 		loading.value = true
 		try {
-			steps.value = await $trpcClient.stepNodes.byProposalId.query({
+			const data = await $trpcClient.stepNodes.byProposalIdWithCosts.query({
 				proposalId: id,
 			})
+			steps.value = data.steps as StepNode[]
+			allCosts.value = data.costs as StepCostRow[]
+			communityResources.value =
+				data.communityResources as CommunityResourceOption[]
 		} catch (e: any) {
 			toast.add('Failed to load steps', e.message, 'error')
 		} finally {
@@ -70,6 +89,18 @@ export function useProposalSteps(
 	const treeNodes = computed(() =>
 		steps.value.map(step => buildTreeNode(step)),
 	)
+
+	// Groups every preloaded cost under its step so each StepCostEditor can
+	// read its slice synchronously (no per-row fetch on expand).
+	const costsByStepId = computed(() => {
+		const map = new Map<number, StepCostRow[]>()
+		for (const c of allCosts.value) {
+			const list = map.get(c.stepNodeId)
+			if (list) list.push(c)
+			else map.set(c.stepNodeId, [c])
+		}
+		return map
+	})
 
 	/**
 	 * Maps a step to a TreeTable node. The steps are already returned in
@@ -93,9 +124,13 @@ export function useProposalSteps(
 	async function reload() {
 		const id = proposalId.value
 		if (!id) return
-		steps.value = await $trpcClient.stepNodes.byProposalId.query({
+		const data = await $trpcClient.stepNodes.byProposalIdWithCosts.query({
 			proposalId: id,
 		})
+		steps.value = data.steps as StepNode[]
+		allCosts.value = data.costs as StepCostRow[]
+		communityResources.value =
+			data.communityResources as CommunityResourceOption[]
 	}
 
 	async function addStep(input: StepInput) {
@@ -194,15 +229,80 @@ export function useProposalSteps(
 		}
 	}
 
+	// --- Step cost mutations: operate on the shared `allCosts` store so the
+	// list stays consistent across expand/collapse of the step row. ---
+
+	async function addCost(stepNodeId: number, input: StepCostInput) {
+		saving.value = true
+		try {
+			const created = await $trpcClient.stepCosts.create.mutate({
+				stepNodeId,
+				...input,
+			})
+			allCosts.value = [...allCosts.value, created as StepCostRow]
+			toast.add('Step cost added', created?.title)
+		} catch (e: any) {
+			toast.add('Failed to add step cost', e.message, 'error')
+		} finally {
+			saving.value = false
+		}
+	}
+
+	async function updateCost(id: number, patch: StepCostPatch) {
+		saving.value = true
+		try {
+			const updated = await $trpcClient.stepCosts.update.mutate({
+				id,
+				...patch,
+			})
+			allCosts.value = allCosts.value.map(c =>
+				c.id === id ? (updated as StepCostRow) : c,
+			)
+			toast.add('Step cost updated')
+		} catch (e: any) {
+			toast.add('Failed to update step cost', e.message, 'error')
+		} finally {
+			saving.value = false
+		}
+	}
+
+	function removeCost(cost: StepCostRow) {
+		const { id, title } = cost
+		confirm.require({
+			group: 'stepCostDelete',
+			header: 'Delete Step Cost',
+			message: `Delete the cost "${title}" from this step?`,
+			icon: 'pi pi-info-circle',
+			acceptClass: 'p-button-danger',
+			accept: async () => {
+				saving.value = true
+				try {
+					await $trpcClient.stepCosts.delete.mutate({ id })
+					allCosts.value = allCosts.value.filter(c => c.id !== id)
+					toast.add('Step cost deleted', title)
+				} catch (e: any) {
+					toast.add('Failed to delete step cost', e.message, 'error')
+				} finally {
+					saving.value = false
+				}
+			},
+		})
+	}
+
 	return {
 		steps,
 		treeNodes,
 		loading,
 		saving,
+		costsByStepId,
+		communityResources,
 		addStep,
 		updateStep,
 		removeStep,
 		reorder,
+		addCost,
+		updateCost,
+		removeCost,
 		reload,
 	}
 }

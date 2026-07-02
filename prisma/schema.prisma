@@ -568,7 +568,6 @@ model Proposal {
   requestId Int
 
   isComplete Boolean // Is true upon completion of all children if any
-  stepCount  Int // Determines the amount of resources required depending on associated step
   startsAt   DateTime?
   duration   Float // Proposal duration in days 
   priority   Int
@@ -576,9 +575,10 @@ model Proposal {
 
   approvedAt DateTime?
 
-  netBenefit Int @default(0)
+  netBenefit     Float @default(0)
+  netFeasability Float @default(0)
 
-  isDraft       Boolean?
+  isDraft       Boolean? // Not quite required if step costs update netFeasibility when added
   isUnavailable Boolean?
 
   requestNodeImpact     Feedback[] // Voted feedback from experts based on the related interests
@@ -589,8 +589,6 @@ model Proposal {
   owner   User   @relation("ProposalOwner", fields: [ownerId], references: [id])
   ownerId String
   editors User[] @relation("ProposalEditors")
-
-  // @@index([path])
 }
 
 // An action task which is referenced by proposals in relatio to a request

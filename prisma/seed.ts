@@ -604,11 +604,9 @@ async function main() {
 			description:
 				'Install rooftop gutters on community buildings leading to a cluster of sealed ferro-cement cisterns (total ~50 m³). Water passes through a gravel pre-filter before storage and a bio-sand filter at the point-of-use tap. A gravity-fed pipe runs from the cisterns to a central tap stand. A water committee oversees minor repairs and collects monthly fees for replacement sand and gutter patching.',
 			isComplete: true,
-			stepCount: 4,
 			duration: 45,
 			priority: 1,
 			riskFactor: 15,
-
 			owner: { connect: { id: adminUser.id } },
 			request: { connect: { id: waterRequest.id } },
 		},
@@ -620,7 +618,6 @@ async function main() {
 			description:
 				'Drill a borehole to the water table (~30 m) and install an Seakoo Mark II electric pump. The pump is located centrally so no household is more than 500 m away. Water is chlorinated monthly by a trained community health volunteer. Maintenance relies on a community committee trained in basic pump repair, with a spare-parts fund built from household contributions.',
 			isComplete: true,
-			stepCount: 3,
 			duration: 30,
 			priority: 2,
 			riskFactor: 25,
@@ -635,7 +632,6 @@ async function main() {
 			description:
 				"Excavate contour swales across the community's slopes to slow runoff and recharge the water table. A lined retention pond (~200 m³) captures peak flow and stores it through the early dry season. Water is distributed by gravity pipe to a central tap. No mechanical parts; maintenance is mainly clearing swales of debris each season. Lowest cost but also lowest water quality—requires a separate filtration step.",
 			isComplete: true,
-			stepCount: 5,
 			duration: 60,
 			priority: 3,
 			riskFactor: 35,
@@ -956,6 +952,376 @@ async function main() {
 	})
 
 	console.log('Creating community resources...')
+
+	// --- Step nodes & step costs: give each proposal a handful of steps
+	// (which can run in parallel, so positions only need to be unique per
+	// proposal rather than representing a strict sequence) and the
+	// community resources each step consumes. ---
+
+	const communityResourceRecords = await prisma.communityResource.findMany({
+		select: { id: true, resource: { select: { title: true } } },
+	})
+	const crId = (title: string) => {
+		const cr = communityResourceRecords.find(r => r.resource.title === title)
+		if (!cr) throw new Error(`Community resource "${title}" not found`)
+		return cr.id
+	}
+
+	const consumedAt = new Date()
+
+	type StepCostSeed = {
+		title: string
+		description: string
+		resourceTitle: string
+		measurementType: string
+		quantity: number
+		quantityMargin: number
+		monetaryValue: number
+	}
+	type StepSeed = {
+		title: string
+		description: string
+		position: number
+		duration: number
+		riskFactor: number
+		costs: StepCostSeed[]
+	}
+
+	async function createSteps(
+		proposalId: number,
+		ownerId: string,
+		steps: StepSeed[],
+	) {
+		await Promise.all(
+			steps.map(step =>
+				prisma.stepNode.create({
+					data: {
+						title: step.title,
+						description: step.description,
+						position: step.position,
+						duration: step.duration,
+						durationVariance: Math.round(step.duration * 0.15),
+						riskFactor: step.riskFactor,
+						ownerId,
+						proposalId,
+						costs: {
+							create: step.costs.map(c => ({
+								title: c.title,
+								description: c.description,
+								measurementType: c.measurementType as never,
+								quantity: c.quantity,
+								quantityMargin: c.quantityMargin,
+								monetaryValue: c.monetaryValue,
+								consumedAt,
+								ownerId,
+								communityResourceId: crId(c.resourceTitle),
+							})),
+						},
+					},
+				}),
+			),
+		)
+	}
+
+	await createSteps(proposal1.id, adminUser.id, [
+		{
+			title: 'Install Rooftop Gutters',
+			description:
+				'Mount gutters and downpipes on community rooftops to channel rainfall toward the cisterns.',
+			position: 1,
+			duration: 10,
+			riskFactor: 10,
+			costs: [
+				{
+					title: 'Gutter Material Run',
+					description: 'Roof gutter and downpipe length installed.',
+					resourceTitle: 'Roof Gutter & Downpipe',
+					measurementType: 'Length',
+					quantity: 220,
+					quantityMargin: 22,
+					monetaryValue: 880,
+				},
+				{
+					title: 'Gutter Fitting Labor',
+					description: 'Labor to fit gutters and downpipes.',
+					resourceTitle: 'Masonry & Construction Labor',
+					measurementType: 'Time',
+					quantity: 90,
+					quantityMargin: 10,
+					monetaryValue: 1980,
+				},
+			],
+		},
+		{
+			title: 'Build Ferro-Cement Cisterns',
+			description:
+				'Construct sealed ferro-cement cisterns sized for dry-season storage.',
+			position: 2,
+			duration: 20,
+			riskFactor: 20,
+			costs: [
+				{
+					title: 'Cistern Cement Supply',
+					description: 'Portland cement for the cistern shells.',
+					resourceTitle: 'Portland Cement',
+					measurementType: 'Weight',
+					quantity: 3000,
+					quantityMargin: 300,
+					monetaryValue: 900,
+				},
+				{
+					title: 'Cistern Vessel Units',
+					description: 'Pre-cast storage cistern units.',
+					resourceTitle: 'Storage Cistern',
+					measurementType: 'Units',
+					quantity: 3,
+					quantityMargin: 0,
+					monetaryValue: 2400,
+				},
+				{
+					title: 'Cistern Masonry Labor',
+					description: 'Skilled masonry labor for cistern construction.',
+					resourceTitle: 'Masonry & Construction Labor',
+					measurementType: 'Time',
+					quantity: 420,
+					quantityMargin: 40,
+					monetaryValue: 9240,
+				},
+			],
+		},
+		{
+			title: 'Install Bio-Sand Filter',
+			description:
+				'Build the gravel pre-filter and bio-sand filter at the point-of-use tap.',
+			position: 3,
+			duration: 8,
+			riskFactor: 15,
+			costs: [
+				{
+					title: 'Filter Sand Charge',
+					description: 'Washed graded sand for the bio-sand filter.',
+					resourceTitle: 'Filter Sand',
+					measurementType: 'Volume',
+					quantity: 4,
+					quantityMargin: 0.5,
+					monetaryValue: 100,
+				},
+			],
+		},
+		{
+			title: 'Lay Gravity Distribution Pipe',
+			description:
+				'Run a gravity-fed pipe from the cisterns to the central tap stand.',
+			position: 4,
+			duration: 7,
+			riskFactor: 10,
+			costs: [
+				{
+					title: 'Distribution PVC Run',
+					description: 'PVC pipe and fittings for the gravity line.',
+					resourceTitle: 'PVC Pipe & Fittings',
+					measurementType: 'Length',
+					quantity: 300,
+					quantityMargin: 30,
+					monetaryValue: 600,
+				},
+				{
+					title: 'Pipe Laying Labor',
+					description: 'Labor to lay and connect the distribution pipe.',
+					resourceTitle: 'Masonry & Construction Labor',
+					measurementType: 'Time',
+					quantity: 60,
+					quantityMargin: 6,
+					monetaryValue: 1320,
+				},
+			],
+		},
+	])
+
+	await createSteps(proposal2.id, regularUser.id, [
+		{
+			title: 'Drill Borehole',
+			description:
+				'Drill a borehole down to the water table for groundwater access.',
+			position: 1,
+			duration: 12,
+			riskFactor: 25,
+			costs: [
+				{
+					title: 'Borehole Drilling Rig Time',
+					description: 'Rig-hours to reach the water table.',
+					resourceTitle: 'Borehole Drilling Service',
+					measurementType: 'Time',
+					quantity: 40,
+					quantityMargin: 4,
+					monetaryValue: 4800,
+				},
+			],
+		},
+		{
+			title: 'Install Electric Pump',
+			description:
+				'Install the Seakoo Mark II pump centrally and cast its support pad.',
+			position: 2,
+			duration: 10,
+			riskFactor: 20,
+			costs: [
+				{
+					title: 'Electric Pump Unit',
+					description: 'Community electric pump unit.',
+					resourceTitle: 'Seakoo Mark II Electric Pump',
+					measurementType: 'Units',
+					quantity: 1,
+					quantityMargin: 0,
+					monetaryValue: 1200,
+				},
+				{
+					title: 'Pump Pad Masonry Labor',
+					description: 'Masonry labor for the pump pad and housing.',
+					resourceTitle: 'Masonry & Construction Labor',
+					measurementType: 'Time',
+					quantity: 50,
+					quantityMargin: 5,
+					monetaryValue: 1100,
+				},
+			],
+		},
+		{
+			title: 'Set Up Chlorination & Committee',
+			description:
+				'Train a health volunteer in monthly chlorination and form the maintenance committee.',
+			position: 3,
+			duration: 8,
+			riskFactor: 15,
+			costs: [
+				{
+					title: 'Annual Chlorine Supply',
+					description: 'Sodium hypochlorite for monthly disinfection.',
+					resourceTitle: 'Sodium Hypochlorite',
+					measurementType: 'Weight',
+					quantity: 10,
+					quantityMargin: 1,
+					monetaryValue: 20,
+				},
+				{
+					title: 'Committee Training Hours',
+					description: 'Coordination and pump-repair training hours.',
+					resourceTitle: 'Community Training & Coordination',
+					measurementType: 'Time',
+					quantity: 60,
+					quantityMargin: 6,
+					monetaryValue: 1080,
+				},
+			],
+		},
+	])
+
+	await createSteps(proposal3.id, adminUser.id, [
+		{
+			title: 'Mark Contour Swale Lines',
+			description:
+				'Survey the slopes and mark the contour lines for the swale network.',
+			position: 1,
+			duration: 4,
+			riskFactor: 10,
+			costs: [
+				{
+					title: 'Swale Layout Coordination',
+					description: 'Volunteer coordination for contour layout.',
+					resourceTitle: 'Community Training & Coordination',
+					measurementType: 'Time',
+					quantity: 30,
+					quantityMargin: 3,
+					monetaryValue: 540,
+				},
+			],
+		},
+		{
+			title: 'Excavate Contour Swales',
+			description:
+				'Dig the contour swales by hand to slow and redirect runoff.',
+			position: 2,
+			duration: 18,
+			riskFactor: 15,
+			costs: [
+				{
+					title: 'Swale Excavation Labor',
+					description: 'Manual excavation labor for the swales.',
+					resourceTitle: 'Excavation Labor',
+					measurementType: 'Time',
+					quantity: 600,
+					quantityMargin: 60,
+					monetaryValue: 9000,
+				},
+			],
+		},
+		{
+			title: 'Excavate Retention Pond',
+			description: 'Excavate the lined retention pond to capture peak flow.',
+			position: 3,
+			duration: 16,
+			riskFactor: 20,
+			costs: [
+				{
+					title: 'Pond Excavation Labor',
+					description: 'Manual excavation labor for the pond basin.',
+					resourceTitle: 'Excavation Labor',
+					measurementType: 'Time',
+					quantity: 500,
+					quantityMargin: 50,
+					monetaryValue: 7500,
+				},
+			],
+		},
+		{
+			title: 'Line Retention Pond',
+			description: 'Seal the retention pond with an HDPE liner.',
+			position: 4,
+			duration: 8,
+			riskFactor: 15,
+			costs: [
+				{
+					title: 'Pond Liner Material',
+					description: 'HDPE liner covering the pond surface.',
+					resourceTitle: 'HDPE Pond Liner',
+					measurementType: 'Area',
+					quantity: 350,
+					quantityMargin: 35,
+					monetaryValue: 1750,
+				},
+				{
+					title: 'Liner Installation Labor',
+					description: 'Labor to lay and seam the pond liner.',
+					resourceTitle: 'Masonry & Construction Labor',
+					measurementType: 'Time',
+					quantity: 80,
+					quantityMargin: 8,
+					monetaryValue: 1760,
+				},
+			],
+		},
+		{
+			title: 'Connect Gravity Pipe to Tap',
+			description:
+				'Run a gravity pipe from the retention pond to the central tap stand.',
+			position: 5,
+			duration: 14,
+			riskFactor: 10,
+			costs: [
+				{
+					title: 'Swale Network PVC Run',
+					description: 'PVC pipe and fittings for the gravity distribution.',
+					resourceTitle: 'PVC Pipe & Fittings',
+					measurementType: 'Length',
+					quantity: 250,
+					quantityMargin: 25,
+					monetaryValue: 500,
+				},
+			],
+		},
+	])
+
+	console.log('Creating step nodes & costs...')
 
 	// --- Seed feedback so proposals appear with ratings ---
 

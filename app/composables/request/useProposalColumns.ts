@@ -5,7 +5,6 @@ import type { ColumnProps } from 'primevue/column'
 const PROPOSAL_DEFAULTS = {
 	isActive: true,
 	isComplete: false,
-	stepCount: 0,
 	duration: 0,
 	priority: 0,
 	riskFactor: 0,
@@ -16,7 +15,10 @@ const PROPOSAL_DEFAULTS = {
 export interface ProposalColumn extends ColumnProps {
 	id?: number
 	description: string
+	duration?: number
 	netBenefit?: number
+	netFeasability?: number
+	approvedAt?: string | Date | null
 	isDirty?: boolean
 	isLoading?: boolean
 	isActive?: boolean
@@ -43,7 +45,12 @@ export function useProposalColumns(
 	const formDialogVisible = ref(false)
 	const formSaving = ref(false)
 	const formDeleting = ref(false)
-	const formData = ref({ title: '', description: '', isActive: true })
+	const formData = ref({
+		title: '',
+		description: '',
+		isActive: true,
+		duration: 0,
+	})
 
 	function syncVisibleColumns() {
 		visibleColumns.value = columns.value.filter(c =>
@@ -73,7 +80,10 @@ export function useProposalColumns(
 			columnKey: String(p.id),
 			header: p.title,
 			description: p.description,
+			duration: p.duration,
 			netBenefit: p.netBenefit ?? 0,
+			netFeasability: p.netFeasability ?? 0,
+			approvedAt: p.approvedAt ?? null,
 			isActive: p.isActive,
 			ownerId: p.ownerId,
 			ownerName: p.owner?.username ?? undefined,
@@ -82,12 +92,12 @@ export function useProposalColumns(
 
 	function openCreateForm() {
 		editingColumn.value = null
-		formData.value = { title: '', description: '', isActive: true }
+		formData.value = { title: '', description: '', isActive: true, duration: 0 }
 		formDialogVisible.value = true
 	}
 
 	const addProposal = async () => {
-		const { title, description } = formData.value
+		const { title, description, duration } = formData.value
 		if (!title.trim()) return
 
 		formSaving.value = true
@@ -114,6 +124,7 @@ export function useProposalColumns(
 				description,
 				requestId,
 				...PROPOSAL_DEFAULTS,
+				duration: duration ?? 0,
 			})) as any
 
 			const col = mapProposalToColumn(result as Proposal)
@@ -180,11 +191,17 @@ export function useProposalColumns(
 
 	const updateProposal = async (
 		col: ProposalColumn,
-		updates: Partial<Pick<ProposalColumn, 'header' | 'description'>>,
+		updates: Partial<
+			Pick<ProposalColumn, 'header' | 'description' | 'duration'>
+		>,
 	) => {
 		if (!col.id) return
 
-		const previous = { header: col.header, description: col.description }
+		const previous = {
+			header: col.header,
+			description: col.description,
+			duration: col.duration,
+		}
 		Object.assign(col, updates)
 
 		try {
@@ -194,6 +211,7 @@ export function useProposalColumns(
 				title: updates.header ?? col.header ?? '',
 				description: updates.description ?? col.description ?? '',
 				isActive: col.isActive ?? true,
+				duration: updates.duration ?? col.duration ?? 0,
 				requestId,
 			})
 			toast.add('Proposal updated', col.header)
@@ -209,6 +227,7 @@ export function useProposalColumns(
 			title: col.header || '',
 			description: col.description || '',
 			isActive: col.isActive ?? true,
+			duration: col.duration ?? 0,
 		}
 		formDialogVisible.value = true
 	}
@@ -217,13 +236,13 @@ export function useProposalColumns(
 		const col = editingColumn.value
 		if (!col) return
 
-		const { title, description, isActive } = formData.value
+		const { title, description, isActive, duration } = formData.value
 		if (!title.trim()) return
 
 		formSaving.value = true
 		try {
 			col.isActive = isActive
-			await updateProposal(col, { header: title, description })
+			await updateProposal(col, { header: title, description, duration })
 			editingColumn.value = null
 			formDialogVisible.value = false
 		} finally {

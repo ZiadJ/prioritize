@@ -2,26 +2,28 @@
 import { ref, watch, computed } from 'vue'
 import { MeasurementType } from '~~/prisma/generated/client/enums'
 import Quantity from '~/components/requests/Quantity.vue'
-import {
-	useStepCosts,
-	type StepCostInput,
-	type StepCostRow,
+import type {
+	StepCostInput,
+	StepCostPatch,
+	StepCostRow,
+	CommunityResourceOption,
 } from '~/composables/request/useStepCosts'
 
+/**
+ * Stateless view over a step's costs. The cost list and all mutations are
+ * owned by the proposal-level composable (`useProposalSteps`) and passed
+ * down, so the list is already available the instant this row is expanded
+ * (no per-row network fetch).
+ */
 const props = defineProps<{
 	stepId: number
+	costs: StepCostRow[]
+	communityResources: CommunityResourceOption[]
+	saving?: boolean
+	create: (input: StepCostInput) => Promise<void>
+	update: (id: number, patch: StepCostPatch) => Promise<void>
+	remove: (cost: StepCostRow) => void
 }>()
-
-const stepIdRef = computed(() => props.stepId)
-const {
-	costs,
-	communityResources,
-	loading,
-	saving,
-	create,
-	update,
-	remove,
-} = useStepCosts(stepIdRef)
 
 const measurementTypeOptions = Object.keys(MeasurementType).map(key => ({
 	label: key,
@@ -56,10 +58,13 @@ const editingId = ref<number | null>(null)
 
 // Reset the form whenever the step changes so a stale draft from a
 // previously expanded step never leaks into a new one.
-watch(stepIdRef, () => {
-	visible.value = false
-	resetForm()
-})
+watch(
+	() => props.stepId,
+	() => {
+		visible.value = false
+		resetForm()
+	},
+)
 
 function resetForm() {
 	form.value = emptyForm()
@@ -93,7 +98,7 @@ const canSave = computed(
 // Default the cost's measurement type to that of the selected resource so
 // the Quantity unit dropdown reflects how that resource is measured.
 function onCommunityResourceChange() {
-	const cr = communityResources.value.find(
+	const cr = props.communityResources.find(
 		c => c.id === form.value.communityResourceId,
 	)
 	if (cr?.resource?.measurementType) {
@@ -113,9 +118,9 @@ async function onSave() {
 		monetaryValue: form.value.monetaryValue ?? 0,
 	}
 	if (isEditing.value) {
-		await update(editingId.value!, payload)
+		await props.update(editingId.value!, payload)
 	} else {
-		await create(payload)
+		await props.create(payload)
 	}
 	visible.value = false
 	resetForm()
@@ -123,11 +128,7 @@ async function onSave() {
 </script>
 
 <template>
-	<ConfirmDialog group="stepCostDelete"></ConfirmDialog>
-
-	<div v-if="loading" class="text-sm text-gray-400 py-2">Loading costs…</div>
-
-	<div v-else class="step-cost-editor">
+	<div class="step-cost-editor">
 		<div class="flex items-center justify-between mb-2">
 			<span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 				Step Costs
@@ -147,7 +148,7 @@ async function onSave() {
 			<div
 				v-for="cost in costs"
 				:key="cost.id"
-				class="flex items-center gap-2 px-2 py-1 rounded border border-gray-200 dark:border-gray-700 text-sm">
+				class="flex items-center gap-2 px-2 py-1 rounded text-sm">
 				<div class="min-w-0 flex-1">
 					<div class="font-medium leading-tight truncate">
 						{{ cost.title }}
@@ -242,7 +243,7 @@ async function onSave() {
 				<InputNumber
 					v-model="form.quantityMargin"
 					:min="0"
-					:maxFractionDigits="2" 
+					:maxFractionDigits="2"
 					showButtons />
 			</div>
 
