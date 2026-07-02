@@ -92,9 +92,9 @@ function onRowReorder(event: { value: StepNode[] }) {
 			<Column field="title" header="Step" style="min-width: 16rem">
 				<template #body="{ data }">
 					<div class="flex items-start gap-2 w-full">
-						<span class="step-badge shrink-0">
+						<!-- <span class="step-badge shrink-0">
 							{{ positionById.get(data.id) }}
-						</span>
+						</span> -->
 						<template v-if="editingId === data.id">
 							<div class="flex flex-col gap-1 w-full">
 								<InputText
@@ -127,7 +127,7 @@ function onRowReorder(event: { value: StepNode[] }) {
 				</template>
 			</Column>
 
-			<Column
+			<!-- <Column
 				field="duration"
 				header="Days"
 				class="!w-24 text-center"
@@ -146,7 +146,7 @@ function onRowReorder(event: { value: StepNode[] }) {
 						:minFractionDigits="0"
 						:maxFractionDigits="2" />
 				</template>
-			</Column>
+			</Column> -->
 
 			<Column header="" class="!w-28" bodyClass="!text-center !align-top">
 				<template #body="{ data }">
