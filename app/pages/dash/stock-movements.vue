@@ -29,11 +29,13 @@ const searchQuery = ref('')
 const selectedCommunityId = ref<number | undefined>(undefined)
 
 const dialogVisible = ref(false)
-const direction = ref<'add' | 'remove'>('add')
+const direction = ref<'add' | 'remove' | 'transfer'>('add')
 const selectedResource = ref<CommunityResourceOption | null>(null)
 const amount = ref(0)
 const reason = ref('')
 const selectedStepCostId = ref<number | null>(null)
+const destinationCommunityId = ref<number | undefined>(undefined)
+const stockCommunityId = ref<number | undefined>(undefined)
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
@@ -60,6 +62,15 @@ const debouncedSearch = () => {
 	}, 300)
 }
 
+const fetchResources = async () => {
+	try {
+		allResources.value =
+			(await $trpcClient.stockMovements.communityResources.query()) || []
+	} catch (error: any) {
+		console.error('Failed to fetch community resources:', error)
+	}
+}
+
 const currentQuantity = computed(() => selectedResource.value?.quantity ?? 0)
 const signedQuantity = computed(() =>
 	direction.value === 'remove' ? -Math.abs(amount.value) : Math.abs(amount.value),
@@ -68,11 +79,59 @@ const previewAfter = computed(
 	() => currentQuantity.value + signedQuantity.value,
 )
 
+// Transfer-specific preview helpers
+const destinationCommunityOptions = computed(() =>
+	allCommunities.value.filter(
+		c => c.id !== selectedResource.value?.community?.id,
+	),
+)
+const destinationCommunityTitle = computed(
+	() =>
+		allCommunities.value.find(
+			c => c.id === destinationCommunityId.value,
+		)?.title ?? '—',
+)
+// Same resource already present in the destination community, if any
+const destinationResource = computed(() => {
+	if (
+		direction.value !== 'transfer' ||
+		!selectedResource.value ||
+		!destinationCommunityId.value
+	)
+		return null
+	return (
+		allResources.value.find(
+			r =>
+				r.resource?.id === selectedResource.value!.resource?.id &&
+				r.community?.id === destinationCommunityId.value,
+		) ?? null
+	)
+})
+const destinationBefore = computed(
+	() => destinationResource.value?.quantity ?? 0,
+)
+const destinationAfter = computed(
+	() => destinationBefore.value + Math.abs(amount.value),
+)
+const sourceAfter = computed(
+	() => currentQuantity.value - Math.abs(amount.value),
+)
+
 // Step costs tied to the selected community resource (approved proposals only)
 const stepCostOptions = computed(() =>
 	allStepCosts.value.filter(
 		sc => sc.communityResourceId === selectedResource.value?.id,
 	),
+)
+
+// Stock entries scoped to the (optional) community filter, to avoid duplicates
+// when the same resource exists across multiple communities
+const stockEntryOptions = computed(() =>
+	stockCommunityId.value
+		? allResources.value.filter(
+				r => r.community?.id === stockCommunityId.value,
+			)
+		: allResources.value,
 )
 
 const stepCostLabel = (sc: StepCostOption) =>
@@ -84,6 +143,8 @@ const openNewDialog = () => {
 	amount.value = 0
 	reason.value = ''
 	selectedStepCostId.value = null
+	destinationCommunityId.value = undefined
+	stockCommunityId.value = undefined
 	dialogVisible.value = true
 }
 
@@ -94,6 +155,47 @@ const saveMovement = async () => {
 	}
 	if (!amount.value || amount.value <= 0) {
 		toast.add('Warning', 'Amount must be greater than zero')
+		return
+	}
+
+	if (direction.value === 'transfer') {
+		if (!destinationCommunityId.value) {
+			toast.add('Warning', 'A destination community is required')
+			return
+		}
+		if (destinationCommunityId.value === selectedResource.value.community?.id) {
+			toast.add(
+				'Warning',
+				'Destination community must differ from the source',
+			)
+			return
+		}
+
+		saving.value = true
+		try {
+			const result = await $trpcClient.stockMovements.transfer.mutate({
+				sourceCommunityResourceId: selectedResource.value.id,
+				destinationCommunityId: destinationCommunityId.value,
+				quantity: Math.abs(amount.value),
+				reason: reason.value || undefined,
+				stepCostId: selectedStepCostId.value,
+			})
+			toast.add(
+				'Success',
+				`Moved ${Math.abs(amount.value)} to ${destinationCommunityTitle.value}`,
+			)
+			dialogVisible.value = false
+			fetchMovements()
+			fetchResources()
+			if (selectedResource.value) {
+				selectedResource.value.quantity = result.sourceMovement.quantityAfter
+			}
+		} catch (error: any) {
+			console.error('Failed to transfer stock:', error)
+			toast.add('Error', error.message || 'Failed to transfer stock')
+		} finally {
+			saving.value = false
+		}
 		return
 	}
 
@@ -125,12 +227,7 @@ const saveMovement = async () => {
 
 onMounted(async () => {
 	fetchMovements()
-	try {
-		allResources.value =
-			(await $trpcClient.stockMovements.communityResources.query()) || []
-	} catch (error: any) {
-		console.error('Failed to fetch community resources:', error)
-	}
+	fetchResources()
 	try {
 		allStepCosts.value =
 			(await $trpcClient.stockMovements.stepCosts.query()) || []
@@ -254,41 +351,60 @@ onMounted(async () => {
 		hide-effect="fadeOut">
 		<div class="form-content gap-3">
 			<div class="form-field">
+				<label for="stockCommunity">Community</label>
+				<Dropdown
+					id="stockCommunity"
+					v-model="stockCommunityId"
+					:options="allCommunities"
+					optionLabel="title"
+					optionValue="id"
+					placeholder="All communities"
+					class="w-full"
+					showClear
+					filter
+					@change="selectedResource = null" />
+				<small class="text-zinc-500">
+					Filter the stock entries below by community to avoid duplicates.
+				</small>
+			</div>
+
+			<div class="form-field">
 				<label for="resource">Stock Entry *</label>
 				<Dropdown
 					id="resource"
 					v-model="selectedResource"
-					:options="allResources"
+					:options="stockEntryOptions"
 					placeholder="Select a stock entry"
 					class="w-full"
 					filter>
-					<template #value="{ value }">
-						<span v-if="value">
-							{{ value.resource?.title }} — {{ value.community?.title }}
-							(stock: {{ value.quantity }})
-						</span>
-					</template>
-					<template #option="{ option }">
-						<span>
-							{{ option.resource?.title }} — {{ option.community?.title }}
-							(stock: {{ option.quantity }})
-						</span>
-					</template>
+				<template #value="{ value }">
+					<span v-if="value">
+						{{ value.resource?.title }}
+						(stock: {{ value.quantity }})
+					</span>
+				</template>
+				<template #option="{ option }">
+					<span>
+						{{ option.resource?.title }}
+						(stock: {{ option.quantity }})
+					</span>
+				</template>
 				</Dropdown>
 			</div>
 
 			<div class="flex gap-4">
 				<div class="form-field flex-1">
 					<label for="direction">Direction *</label>
-					<SelectButton
-						id="direction"
-						v-model="direction"
-						:options="[
-							{ label: 'Add', value: 'add' },
-							{ label: 'Remove', value: 'remove' },
-						]"
-						optionLabel="label"
-						optionValue="value" />
+				<SelectButton
+					id="direction"
+					v-model="direction"
+					:options="[
+						{ label: 'Add', value: 'add' },
+						{ label: 'Remove', value: 'remove' },
+						{ label: 'Move', value: 'transfer' },
+					]"
+					optionLabel="label"
+					optionValue="value" />
 				</div>
 				<div class="form-field flex-1">
 					<label for="amount">Amount *</label>
@@ -303,7 +419,27 @@ onMounted(async () => {
 			</div>
 
 			<div
-				v-if="selectedResource"
+				v-if="direction === 'transfer'"
+				class="form-field">
+				<label for="destinationCommunity">Destination Community *</label>
+				<Dropdown
+					id="destinationCommunity"
+					v-model="destinationCommunityId"
+					:options="destinationCommunityOptions"
+					optionLabel="title"
+					optionValue="id"
+					placeholder="Select a destination community"
+					class="w-full"
+					showClear
+					filter />
+				<small class="text-zinc-500">
+					Stock of the same resource will be added to (or created in)
+					this community.
+				</small>
+			</div>
+
+			<div
+				v-if="selectedResource && direction !== 'transfer'"
 				class="form-field bg-surface-100 dark:bg-surface-800 rounded-md p-3">
 				<label>Resulting stock</label>
 				<div class="flex align-items-center gap-2">
@@ -320,12 +456,46 @@ onMounted(async () => {
 				</div>
 			</div>
 
+			<div
+				v-if="selectedResource && direction === 'transfer'"
+				class="form-field bg-surface-100 dark:bg-surface-800 rounded-md p-3">
+				<label>Resulting stock</label>
+				<div class="flex flex-col gap-2">
+					<div class="flex align-items-center gap-2">
+						<Tag value="From" severity="warn" class="!text-xs" />
+						<span class="text-zinc-500">{{
+							selectedResource.community?.title
+						}}</span>
+						<span>{{ currentQuantity }}</span>
+						<i
+							class="pi pi-arrow-right text-zinc-400 text-sm translate-y-[1px]" />
+						<span
+							:class="[
+								'font-medium',
+								sourceAfter < 0 ? 'text-red-500' : 'text-green-600',
+							]">
+							{{ sourceAfter }}
+						</span>
+					</div>
+					<div class="flex align-items-center gap-2">
+						<Tag value="To" severity="info" class="!text-xs" />
+						<span class="text-zinc-500">{{ destinationCommunityTitle }}</span>
+						<span>{{ destinationBefore }}</span>
+						<i
+							class="pi pi-arrow-right text-zinc-400 text-sm translate-y-[1px]" />
+						<span class="font-medium text-green-600">
+							{{ destinationAfter }}
+						</span>
+					</div>
+				</div>
+			</div>
+
 			<div class="form-field">
-				<label for="reason">Reasona</label>
+				<label for="reason">Reason</label>
 				<Textarea
 					id="reason"
 					v-model="reason"
-					placeholder="Why is this stock being adjusted?"
+					placeholder="Why is this stock being moved or adjusted?"
 					rows="2" />
 			</div>
 

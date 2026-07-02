@@ -78,7 +78,7 @@ const emit = defineEmits<{
 
 const unitOptions = computed<Unit[]>(() => UNITS_BY_TYPE[measurementType] ?? [])
 
-const selectedUnitKey = ref<string>('')
+const selectedUnitKey = ref('')
 
 // Pick the unit whose converted display value falls in a readable range
 // ([1, 1000)) for the given base value. Units are tried from largest to
@@ -183,7 +183,7 @@ const formattedQuantity = computed<string>(() => {
 				class="unit-dropdown flex-none" />
 		</InputGroup>
 		<div v-else class="quantity-readonly">
-			{{ formattedQuantity }}
+			{{ formattedQuantity }}{{ currentUnit?.label }}
 		</div>
 	</div>
 </template>

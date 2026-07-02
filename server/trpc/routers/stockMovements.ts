@@ -10,6 +10,15 @@ const moveInput = z.object({
 	isActive: z.boolean().default(true),
 })
 
+const transferInput = z.object({
+	sourceCommunityResourceId: z.number(),
+	destinationCommunityId: z.number(), // Target community for the same resource
+	quantity: z.number().positive(), // Always positive; removed from source, added to destination
+	reason: z.string().optional(),
+	stepCostId: z.number().nullable().optional(),
+	isActive: z.boolean().default(true),
+})
+
 const movementInclude = {
 	user: { select: { id: true, username: true } },
 	resource: {
@@ -152,4 +161,119 @@ export const stockMovementsRouter = router({
 			})
 		})
 	}),
+
+	// Moves stock of a resource from one community to another. Decrements the
+	// source community resource, finds or creates the destination community
+	// resource (same resource, target community), and logs a movement on each
+	// side so the audit trail stays intact.
+	transfer: protectedProcedure
+		.input(transferInput)
+		.mutation(async ({ ctx, input }) => {
+			return prisma.$transaction(async (tx) => {
+				const source = await tx.communityResource.findUnique({
+					where: { id: input.sourceCommunityResourceId },
+					include: { community: { select: { title: true } } },
+				})
+				if (!source) {
+					throw new Error('Source community resource not found')
+				}
+				if (input.destinationCommunityId === source.communityId) {
+					throw new Error(
+						'Destination community must differ from the source',
+					)
+				}
+				if (input.quantity > source.quantity) {
+					throw new Error('Cannot move more stock than is available')
+				}
+
+				const destinationCommunity = await tx.community.findUnique({
+					where: { id: input.destinationCommunityId },
+					select: { title: true },
+				})
+				if (!destinationCommunity) {
+					throw new Error('Destination community not found')
+				}
+
+				if (input.stepCostId) {
+					const stepCost = await tx.stepCost.findUnique({
+						where: { id: input.stepCostId },
+						select: { communityResourceId: true },
+					})
+					if (!stepCost || stepCost.communityResourceId !== source.id) {
+						throw new Error(
+							'Selected step cost does not belong to this stock entry',
+						)
+					}
+				}
+
+				const sourceBefore = source.quantity
+				const sourceAfter = sourceBefore - input.quantity
+
+				await tx.communityResource.update({
+					where: { id: source.id },
+					data: { quantity: sourceAfter },
+				})
+
+				// Same resource in the destination community — create it if missing
+				let destination = await tx.communityResource.findFirst({
+					where: {
+						resourceId: source.resourceId,
+						communityId: input.destinationCommunityId,
+					},
+				})
+				if (!destination) {
+					destination = await tx.communityResource.create({
+						data: {
+							resourceId: source.resourceId,
+							communityId: input.destinationCommunityId,
+							quantity: input.quantity,
+							monthlyCapacity: source.monthlyCapacity,
+							minQuantity: source.minQuantity,
+							reservedQuantity: source.reservedQuantity,
+							monetaryValuePerUnit: source.monetaryValuePerUnit,
+							isActive: true,
+						},
+					})
+				} else {
+					await tx.communityResource.update({
+						where: { id: destination.id },
+						data: { quantity: destination.quantity + input.quantity },
+					})
+				}
+
+				const destinationBefore = destination.quantity
+				const destinationAfter = destinationBefore + input.quantity
+				const reasonSuffix = input.reason ? ` — ${input.reason}` : ''
+
+				const sourceMovement = await tx.stockMovement.create({
+					data: {
+						userId: ctx.user!.id,
+						communityResourceId: source.id,
+						stepCostId: input.stepCostId ?? null,
+						quantity: -input.quantity,
+						quantityBefore: sourceBefore,
+						quantityAfter: sourceAfter,
+						reason: `Transfer to ${destinationCommunity.title}${reasonSuffix}`,
+						isActive: input.isActive,
+					},
+					include: movementInclude,
+				})
+
+				const destinationMovement = await tx.stockMovement.create({
+					data: {
+						userId: ctx.user!.id,
+						communityResourceId: destination.id,
+						stepCostId: null,
+						quantity: input.quantity,
+						quantityBefore: destinationBefore,
+						quantityAfter: destinationAfter,
+						reason: `Transfer from ${source.community.title}${reasonSuffix}`,
+						isActive: input.isActive,
+					},
+					include: movementInclude,
+				})
+
+				return { sourceMovement, destinationMovement }
+			})
+		}),
 })
