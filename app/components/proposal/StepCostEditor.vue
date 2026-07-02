@@ -92,7 +92,9 @@ function startEdit(cost: StepCostRow) {
 
 const isEditing = computed(() => editingId.value != null)
 const canSave = computed(
-	() => form.value.title.trim().length > 0 && form.value.communityResourceId != null,
+	() =>
+		form.value.title.trim().length > 0 &&
+		form.value.communityResourceId != null,
 )
 
 // Default the cost's measurement type to that of the selected resource so
@@ -130,9 +132,12 @@ async function onSave() {
 <template>
 	<div class="step-cost-editor">
 		<div class="flex items-center justify-between mb-2">
-			<span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+			<span
+				class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 				Step Costs
-				<span v-if="costs.length" class="font-normal">({{ costs.length }})</span>
+				<span v-if="costs.length" class="font-normal"
+					>({{ costs.length }})</span
+				>
 			</span>
 			<Button
 				label="Add cost"
@@ -152,14 +157,21 @@ async function onSave() {
 				<div class="min-w-0 flex-1">
 					<div class="font-medium leading-tight truncate">
 						{{ cost.title }}
-						<span
-							v-if="!cost.isActive"
-							class="text-xs text-gray-400">(inactive)</span>
+						<span v-if="!cost.isActive" class="text-xs text-gray-400"
+							>(inactive)</span
+						>
 					</div>
 					<div class="text-xs text-gray-500 dark:text-gray-400 truncate">
 						{{ cost.communityResource?.resource?.title ?? 'No resource' }}
-						<span v-if="cost.quantity">· qty {{ formatNumber(cost.quantity) }}</span>
-						<span v-if="cost.monetaryValue">· value {{ formatNumber(cost.monetaryValue) }}</span>
+						·
+						<Quantity
+							v-if="cost.quantity"
+							:modelValue="cost.quantity"
+							:measurementType="cost.measurementType"
+							readonly />
+						<span v-if="cost.monetaryValue">
+							· ${{ formatNumber(cost.monetaryValue) }}</span
+						>
 					</div>
 				</div>
 				<div class="flex gap-1 shrink-0">
@@ -203,9 +215,7 @@ async function onSave() {
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
 			<div class="form-field !mb-0 md:col-span-2">
 				<label class="!text-xs">Cost title *</label>
-				<InputText
-					v-model="form.title"
-					placeholder="e.g. Volunteer hours" />
+				<InputText v-model="form.title" placeholder="e.g. Volunteer hours" />
 			</div>
 
 			<div class="form-field !mb-0 md:col-span-2">

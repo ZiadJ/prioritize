@@ -158,12 +158,12 @@ const formattedQuantity = computed<string>(() => {
 		maximumFractionDigits: decimals,
 	})
 	const suffix = currentUnit.value?.label
-	return suffix ? `${numberStr} ${suffix}` : numberStr
+	return suffix ? `${numberStr}${suffix}` : numberStr
 })
 </script>
 
 <template>
-	<div class="quantity-input">
+	<div class="quantity-input" :class="{ 'quantity-input--inline': readonly }">
 		<InputGroup v-if="!readonly">
 			<InputNumber
 				v-model="displayValue"
@@ -183,7 +183,7 @@ const formattedQuantity = computed<string>(() => {
 				class="unit-dropdown flex-none" />
 		</InputGroup>
 		<div v-else class="quantity-readonly">
-			{{ formattedQuantity }}{{ currentUnit?.label }}
+			{{ formattedQuantity }}
 		</div>
 	</div>
 </template>
@@ -193,14 +193,14 @@ const formattedQuantity = computed<string>(() => {
 	width: 100%;
 }
 
+/* Inline (readonly) variant: flow as plain text instead of a full-width box. */
+.quantity-input--inline {
+	display: inline;
+	width: auto;
+}
+
 .quantity-readonly {
-	width: 100%;
-	padding: 0.5rem 0.75rem;
-	border: 1px solid var(--p-inputtext-border-color, #ced4da);
-	border-radius: 0.375rem;
-	background: var(--p-inputtext-background, #fff);
-	color: var(--p-inputtext-color, inherit);
-	text-align: right;
+	display: inline;
 }
 
 .unit-dropdown {
