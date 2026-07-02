@@ -83,40 +83,37 @@ function formatApprovalDate(value: string | Date | null | undefined) {
 					placeholder="Describe the proposal"
 					rows="3" />
 			</div>
-			<div v-if="editMode" class="form-field">
-				<div class="flex gap-4">
-					<div v-if="editMode && ownerName && !isOwner" class="flex-1">
-						<label>Author</label>
-						<p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
+			<div v-if="editMode" class="form-field items-center mt-2">
+			<div class="grid grid-cols-2 gap-x-8 gap-y-2">
+				<div class="flex flex-col gap-0.5">
+					<label>Author</label>
+					<p class="text-gray-600 dark:text-gray-400">
+						<NuxtLink :to="`/dash/users/${ownerName}`" class="underline hover:opacity-70">
 							{{ ownerName }}
-						</p>
-					</div>
-					<div class="flex-1">
-						<label>Approval Date</label>
-						<p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
-							{{ !approvedAt ? '—' : formatApprovalDate(approvedAt) }}
-						</p>
-					</div>
+						</NuxtLink>
+					</p>
+				</div>
+				<div class="flex flex-col gap-0.5">
+					<label>{{ !approvedAt ? 'Approval' : 'Approval Date' }} </label>
+					<p class="text-gray-600 dark:text-gray-400">
+						{{ !approvedAt ? 'Pending' : formatApprovalDate(approvedAt) }}
+					</p>
+				</div>
+				<div class="flex flex-col gap-0.5">
+					<label>Net Benefit</label>
+					<p class="text-gray-600 dark:text-gray-400">
+						{{ netBenefit ?? 0 }}
+					</p>
+				</div>
+				<div class="flex flex-col gap-0.5">
+					<label>Net Feasibility</label>
+					<p class="text-gray-600 dark:text-gray-400">
+						{{ netFeasability ?? 0 }}
+					</p>
 				</div>
 			</div>
-			<div v-if="editMode" class="form-field">
-				<div class="flex gap-4">
-					<div class="flex-1">
-						<label>Net Benefit</label>
-						<p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
-							{{ netBenefit ?? 0 }}
-						</p>
-					</div>
-					<div class="flex-1">
-						<label>Net Feasibility</label>
-						<p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
-							{{ netFeasability ?? 0 }}
-						</p>
-					</div>
-				</div>
 			</div>
-
-			<div v-if="editMode && isOwner" class="form-field">
+			<!--<div v-if="editMode && isOwner" class="form-field">
 				<div class="flex items-center gap-2">
 					<Checkbox
 						v-model="form.isActive"
@@ -124,13 +121,14 @@ function formatApprovalDate(value: string | Date | null | undefined) {
 						inputId="proposal-active" />
 					<label for="proposal-active">Active</label>
 				</div>
-			</div>
+			</div>-->
 
-			<Divider v-if="editMode && proposalId" align="left">
+			<Divider v-if="editMode && proposalId" align="left" class="-m-1">
 				Proposal Steps
 			</Divider>
 			<ProposalSteps v-if="editMode && proposalId" :proposalId="proposalId" />
 		</div>
+
 		<template #footer>
 			<div class="flex items-center justify-between w-full">
 				<Button

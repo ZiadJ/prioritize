@@ -102,8 +102,8 @@ function onRowReorder(event: { value: StepNode[] }) {
 			:showHeaders="false"
 			:showGridlines="false"
 			rowHover>
-			<Column :rowReorder="true" headerClass="!p-0" bodyClass="!p-0" />
-			<Column expander headerClass="!p-0" bodyClass="!p-0" />
+			<Column :rowReorder="true" headerClass="!p-0" bodyClass="!p-0 !pt-[3px]" />
+			<Column expander headerClass="!p-0" bodyClass="!p-0 !pl-[1rem]" />
 
 			<Column field="title" header="Step" style="min-width: 16rem">
 				<template #body="{ data }">
