@@ -768,11 +768,7 @@ onMounted(async () => {
 
 	<Dialog
 		v-model:visible="usersDialogVisible"
-		:header="
-			viewingUsersRequest
-				? `Users — ${viewingUsersRequest.title}`
-				: 'Users'
-		"
+		:header="viewingUsersRequest?.title"
 		:modal="true"
 		dismissableMask
 		:style="{ width: '900px' }"
