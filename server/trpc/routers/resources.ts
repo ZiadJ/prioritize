@@ -10,7 +10,7 @@ const createInput = ResourceSchema.pick({
 	monthlyCapacity: true,
 	shelfLife: true,
 	minQuantity: true,
-	monetaryValue: true,
+	monetaryValuePerUnit: true,
 	isDirty: true,
 	ownerId: true,
 }).extend({

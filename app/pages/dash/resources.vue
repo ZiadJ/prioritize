@@ -38,10 +38,10 @@ const formData = ref({
 	measurementType: 'Units' as MeasurementType,
 	quantityAvailable: 0,
 	monthlyCapacity: 0,
-		shelfLife: null as number | null,
+	shelfLife: null as number | null,
 	minQuantity: 0,
 	reservedQuantity: 0,
-	monetaryValue: 0,
+	monetaryValuePerUnit: 0,
 })
 
 const resetForm = () => {
@@ -52,10 +52,10 @@ const resetForm = () => {
 		measurementType: 'Units' as MeasurementType,
 		quantityAvailable: 0,
 		monthlyCapacity: 0,
-	shelfLife: null as number | null,
+		shelfLife: null as number | null,
 		minQuantity: 0,
 		reservedQuantity: 0,
-		monetaryValue: 0,
+		monetaryValuePerUnit: 0,
 	}
 }
 
@@ -100,7 +100,7 @@ const editResource = (resource: Resource) => {
 		shelfLife: resource.shelfLife,
 		minQuantity: resource.minQuantity,
 		reservedQuantity: resource.reservedQuantity,
-		monetaryValue: resource.monetaryValue,
+		monetaryValuePerUnit: resource.monetaryValuePerUnit,
 	}
 	currentResourceId.value = resource.id
 	dialogMode.value = 'update'
@@ -234,9 +234,9 @@ onMounted(() => {
 				<span>{{ formatNumber(data.shelfLife, 0) }}</span>
 			</template>
 		</Column>
-		<Column field="monetaryValue" header="Value / Unit" sortable>
+		<Column field="monetaryValuePerUnit" header="Value / Unit" sortable>
 			<template #body="{ data }">
-				<span>{{ formatNumber(data.monetaryValue) }}</span>
+				<span>{{ formatNumber(data.monetaryValuePerUnit) }}</span>
 			</template>
 		</Column>
 		<Column field="description" header="Description" style="max-width: 300px">
@@ -372,10 +372,10 @@ onMounted(() => {
 						" />
 				</div>
 				<div class="form-field flex-1">
-					<label for="monetaryValue">Monetary Value / Unit</label>
+					<label for="monetaryValuePerUnit">Monetary Value / Unit</label>
 					<InputNumber
-						id="monetaryValue"
-						v-model="formData.monetaryValue"
+						id="monetaryValuePerUnit"
+						v-model="formData.monetaryValuePerUnit"
 						:minFractionDigits="0"
 						:maxFractionDigits="2"
 						mode="currency"

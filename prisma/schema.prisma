@@ -570,7 +570,7 @@ model Proposal {
   isComplete Boolean // Is true upon completion of all children if any
   stepCount  Int // Determines the amount of resources required depending on associated step
   startsAt   DateTime?
-  duration   Decimal   @db.Decimal(4, 1) // Proposal duration in days 
+  duration   Float // Proposal duration in days 
   priority   Int
   riskFactor Int
 
@@ -615,8 +615,8 @@ model StepNode {
 
   position Int @default(0)
 
-  duration         Decimal @db.Decimal(4, 1)
-  durationVariance Decimal @db.Decimal(4, 1)
+  duration         Float
+  durationVariance Float
   riskFactor       Int
 
   proposal      Proposal   @relation(fields: [proposalId], references: [id], onDelete: Cascade)
@@ -660,7 +660,7 @@ model StepCost {
   measurementType MeasurementType
   quantity        Float // A negative value denotes a production output rather than a cost
   quantityMargin  Float
-  monetaryValue   Decimal         @db.Decimal(10, 2) // Only used when the mentioned quantity is unavailable in the community stock
+  monetaryValue   Float // Only used when the mentioned quantity is unavailable in the community stock
   consumedAt      DateTime
   // costVariationType Int // Linear, Exponential, Custom
 
@@ -688,14 +688,14 @@ model Resource {
   isDirty     Boolean? // Client-server-clients sync flag
   revisions   RevisionNode[]
 
-  measurementType   MeasurementType
-  quantityAvailable Float
-  monthlyCapacity   Float // Amount that can be renewed within a month (includes volunteer time)
+  measurementType      MeasurementType
+  quantityAvailable    Float
+  monthlyCapacity      Float // Amount that can be renewed within a month (includes volunteer time)
   // managedMonthlyCapacity Float
-  minQuantity       Float
-  reservedQuantity  Float
-  shelfLife         Int? // In days
-  monetaryValue     Decimal         @db.Decimal(10, 2) // Per specified unit
+  minQuantity          Float
+  reservedQuantity     Float
+  shelfLife            Int? // In days
+  monetaryValuePerUnit Float // Per specified unit
 
   // components ResourceCostPerUnitNode[] // "used as ingredient in these BOMs"
 
@@ -728,7 +728,7 @@ model CommunityResource {
   // managedMonthlyCapacity Float
   minQuantity          Float
   reservedQuantity     Float
-  monetaryValuePerUnit Decimal @db.Decimal(10, 2) // Per specified unit
+  monetaryValuePerUnit Float // Per specified unit
 
   // resourceDemand          ResourceDemand[]
   stepCosts      StepCost[]
@@ -782,8 +782,8 @@ model TravelCost {
   destinationId Int
 
   // Actual cost = max(quantity_kg * costPerKg, volume_m3 * costPerM3)
-  costPerKg Decimal? @db.Decimal(10, 2)
-  costPerM3 Decimal? @db.Decimal(10, 2)
+  costPerKg Float?
+  costPerM3 Float?
   duration  Int // Travel duration in days (required for delivery date)
 }
 
