@@ -37,7 +37,8 @@ const dialogMode = ref<'create' | 'update'>('create')
 const currentRequestId = ref<number | null>(null)
 const currentRequest = ref<Request | null>(null)
 
-const expandedRows = ref()
+const usersDialogVisible = ref(false)
+const viewingUsersRequest = ref<Request | null>(null)
 const userRequestsCache = ref<Record<number, RequestUserRequest[]>>({})
 const loadingUserRequests = ref<Record<number, boolean>>({})
 const savingUserRequest = ref(false)
@@ -217,20 +218,14 @@ const saveRequest = async () => {
 		dialogVisible.value = false
 		await fetchRequests()
 
-		// Auto-expand the newly created request and open the add modal so the
-		// user can enter their request details right away. The user request
-		// modal is deferred until the request dialog's close animation has
-		// finished, otherwise the two modal dialogs race for the shared mask
-		// layer and the second one never appears.
+		// Auto-open the add modal so the user can enter their request details
+		// right away. The user request modal is deferred until the request
+		// dialog's close animation has finished, otherwise the two modal dialogs
+		// race for the shared mask layer and the second one never appears.
 		if (createdId != null) {
 			setTimeout(() => {
 				nextTick(() => {
 					if (!requests.value.some(r => r.id === createdId)) return
-					loadUserRequests(createdId)
-					expandedRows.value = {
-						...expandedRows.value,
-						[createdId]: true,
-					}
 					openUserRequestModal({
 						id: createdId,
 						measurementType: formData.value.measurementType,
@@ -327,11 +322,11 @@ const hasMyRow = (requestId: number) =>
 		r => isMine(r) && r.id != null,
 	)
 
-const onRowExpand = async (event: any) => {
-	await loadUserRequests(event.data.id)
+const openUsersDialog = async (request: Request) => {
+	viewingUsersRequest.value = request
+	await loadUserRequests(request.id)
+	usersDialogVisible.value = true
 }
-
-const onRowCollapse = () => {}
 
 const loadUserRequests = async (requestId: number) => {
 	loadingUserRequests.value[requestId] = true
@@ -342,7 +337,9 @@ const loadUserRequests = async (requestId: number) => {
 		const list = (result || []) as RequestUserRequest[]
 		// Current user's own row always shown first.
 		const mine = list.filter(r => isMine(r))
-		const others = list.filter(r => !isMine(r))
+		const others = list
+			.filter(r => !isMine(r))
+			.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
 		userRequestsCache.value = {
 			...userRequestsCache.value,
 			[requestId]: [...mine, ...others],
@@ -393,6 +390,20 @@ const openUserRequestModal = async (request: Request) => {
 		toast.add('Error', error.message || 'Failed to load your request')
 	}
 	userRequestDialogVisible.value = true
+}
+
+// Wrappers used from the users dialog template. Passing the deep `Request`
+// type (derived from the tRPC router output) into a `Request`-typed handler
+// forces full type instantiation and trips TS2589, so we cast to `any` here to
+// skip the assignability check (the value is a valid `Request` by construction).
+const openViewingUserRequest = () => {
+	if (viewingUsersRequest.value)
+		openUserRequestModal(viewingUsersRequest.value as any)
+}
+
+const deleteViewingUserRequest = (event: MouseEvent) => {
+	if (viewingUsersRequest.value)
+		confirmDeleteUserRequest(event, viewingUsersRequest.value as any)
 }
 
 const onUserRequestJoinToggle = (val: boolean) => {
@@ -509,12 +520,8 @@ onMounted(async () => {
 		resizableColumns
 		:sortField="sortField"
 		:sortOrder="sortOrder"
-		v-model:expandedRows="expandedRows"
 		@sort="onSort"
-		@row-expand="onRowExpand"
-		@row-collapse="onRowCollapse"
 		stripedRows>
-		<Column expander style="width: 3rem" />
 		<Column field="title" header="Title" sortable>
 			<template #body="{ data }">
 				<NuxtLink :to="`/dash/requests/${data.id}`" class="underline">
@@ -527,7 +534,12 @@ onMounted(async () => {
 		</Column>
 		<Column field="totalPriority" header="Priority" sortable>
 			<template #body="{ data }">
-				<span class="">{{ data.totalPriority }}</span>
+				<span
+					class="cursor-pointer underline"
+					@click="openUsersDialog(data)"
+					v-tooltip.top="'View users who joined'"
+					>{{ data.totalPriority }}</span
+				>
 			</template>
 		</Column>
 		<Column field="community.title" header="Community" sortable>
@@ -591,134 +603,6 @@ onMounted(async () => {
 				</div>
 			</template>
 		</Column>
-
-		<template #expansion="slotProps">
-			<div class="px-3 pb-3 pt-1">
-				<div
-					v-if="loadingUserRequests[slotProps.data.id]"
-					class="flex justify-center items-center py-2">
-					<i class="pi pi-spin pi-spinner text-zinc-400"></i>
-				</div>
-				<div v-else>
-					<div class="flex justify-between items-center mb-3">
-						<span class="text-sm font-medium text-zinc-500">
-							{{ realCount(slotProps.data.id) }}
-							{{
-								realCount(slotProps.data.id) === 1
-									? 'user joined this request'
-									: 'users joined this request'
-							}}
-						</span>
-						<Button
-							v-if="!hasMyRow(slotProps.data.id)"
-							label="Join Request"
-							icon="pi pi-plus"
-							text
-							size="small"
-							@click="openUserRequestModal(slotProps.data)" />
-					</div>
-
-					<!-- Single list of all user requests, current user's row first -->
-					<DataTable
-						v-if="
-							(userRequestsCache[slotProps.data.id] || []).length > 0
-						"
-						:value="userRequestsCache[slotProps.data.id] || []"
-						class="p-datatable-sm"
-						dataKey="id">
-						<Column field="user.username" header="User">
-							<template #body="{ data }">
-								<NuxtLink
-									:to="`/dash/users/${data.user?.username}`"
-									class="underline hover:opacity-70">
-									{{ data.user?.username || '-' }}
-								</NuxtLink>
-								<Tag
-									v-if="isMine(data)"
-									value="you"
-									severity="info"
-									class="!ml-1 !text-xs" />
-							</template>
-						</Column>
-						<Column
-							v-if="
-								slotProps.data.measurementType !== MeasurementType.None
-							"
-							field="quantity"
-							header="Quantity">
-							<template #body="{ data }">
-								{{ data.quantity ?? '-' }}
-							</template>
-						</Column>
-						<Column field="priority" header="Priority">
-							<template #body="{ data }">
-								{{ data.priority ?? '-' }}
-							</template>
-						</Column>
-						<Column field="isBasicNeed" header="Essential">
-							<template #body="{ data }">
-								{{ data.isBasicNeed ? 'Yes' : '-' }}
-							</template>
-						</Column>
-						<!-- <Column v-if="slotProps.data.isJoinable" header="Joined">
-							<template #body="{ data }">
-								{{ data.isJoined ? 'Yes' : '-' }}
-							</template>
-						</Column> -->
-						<Column field="recurrencePeriod" header="Recurrence">
-							<template #body="{ data }">
-								{{
-									data.recurrencePeriod > 0
-										? data.recurrencePeriod + 'd'
-										: '-'
-								}}
-							</template>
-						</Column>
-						<Column field="dueAt" header="Due Date">
-							<template #body="{ data }">
-								{{
-									data.dueAt
-										? new Date(data.dueAt).toLocaleDateString()
-										: '-'
-								}}
-							</template>
-						</Column>
-						<Column field="comment" header="Comment" style="max-width: 300px">
-							<template #body="{ data }">
-								{{ data.comment || '-' }}
-							</template>
-						</Column>
-						<Column
-							header="Actions"
-							:exportable="false"
-							class="actions-column">
-							<template #body="{ data }">
-								<div v-if="isMine(data)" class="action-buttons">
-									<Button
-										icon="pi pi-pencil"
-										text
-										rounded
-										size="small"
-										severity="success"
-										@click="openUserRequestModal(slotProps.data)"
-										v-tooltip.top="'Edit'" />
-									<Button
-										icon="pi pi-trash"
-										text
-										rounded
-										size="small"
-										severity="danger"
-										@click="
-											confirmDeleteUserRequest($event, slotProps.data)
-										"
-										v-tooltip.top="'Delete'" />
-								</div>
-							</template>
-						</Column>
-					</DataTable>
-				</div>
-			</div>
-		</template>
 
 		<template #empty>
 			<div class="flex justify-content-center align-items-center p-4">
@@ -880,6 +764,142 @@ onMounted(async () => {
 					:loading="savingUserRequest" />
 			</div>
 		</template>
+	</Dialog>
+
+	<Dialog
+		v-model:visible="usersDialogVisible"
+		:header="
+			viewingUsersRequest
+				? `Users — ${viewingUsersRequest.title}`
+				: 'Users'
+		"
+		:modal="true"
+		dismissableMask
+		:style="{ width: '900px' }"
+		:breakpoints="{ '960px': '90vw', '640px': '95vw' }"
+		show-effect="fadeIn"
+		hide-effect="fadeOut">
+		<div v-if="viewingUsersRequest" class="py-1">
+			<div
+				v-if="loadingUserRequests[viewingUsersRequest.id]"
+				class="flex justify-center items-center py-2">
+				<i class="pi pi-spin pi-spinner text-zinc-400"></i>
+			</div>
+			<div v-else>
+				<div class="flex justify-between items-center mb-3">
+					<span class="text-sm font-medium text-zinc-500">
+						{{ realCount(viewingUsersRequest.id) }}
+						{{
+							realCount(viewingUsersRequest.id) === 1
+								? 'user joined this request'
+								: 'users joined this request'
+						}}
+					</span>
+					<Button
+						v-if="!hasMyRow(viewingUsersRequest.id)"
+						label="Join Request"
+						icon="pi pi-plus"
+						text
+						size="small"
+						@click="openViewingUserRequest" />
+				</div>
+
+				<DataTable
+					v-if="
+						(userRequestsCache[viewingUsersRequest.id] || []).length > 0
+					"
+					:value="userRequestsCache[viewingUsersRequest.id] || []"
+					class="p-datatable-sm"
+					dataKey="id">
+					<Column field="user" header="User">
+						<template #body="{ data }">
+							<NuxtLink
+								:to="`/dash/users/${data.user?.username}`"
+								class="underline hover:opacity-70">
+								{{
+									[data.user?.firstname, data.user?.lastname]
+										.filter(Boolean)
+										.join(' ') || data.user?.username || '-'
+								}}
+							</NuxtLink>
+							<Tag
+								v-if="isMine(data)"
+								value="you"
+								severity="info"
+								class="!ml-1 !text-xs" />
+						</template>
+					</Column>
+					<Column
+						v-if="
+							viewingUsersRequest!.measurementType !== MeasurementType.None
+						"
+						field="quantity"
+						header="Quantity">
+						<template #body="{ data }">
+							{{ data.quantity ?? '-' }}
+						</template>
+					</Column>
+					<Column field="priority" header="Priority">
+						<template #body="{ data }">
+							{{ data.priority ?? '-' }}
+						</template>
+					</Column>
+					<Column field="isBasicNeed" header="Essential">
+						<template #body="{ data }">
+							{{ data.isBasicNeed ? 'Yes' : '-' }}
+						</template>
+					</Column>
+					<Column field="recurrencePeriod" header="Recurrence">
+						<template #body="{ data }">
+							{{
+								data.recurrencePeriod > 0
+									? data.recurrencePeriod + 'd'
+									: '-'
+							}}
+						</template>
+					</Column>
+					<Column field="dueAt" header="Due Date">
+						<template #body="{ data }">
+							{{
+								data.dueAt
+									? new Date(data.dueAt).toLocaleDateString()
+									: '-'
+							}}
+						</template>
+					</Column>
+					<Column field="comment" header="Comment" style="max-width: 300px">
+						<template #body="{ data }">
+							{{ data.comment || '-' }}
+						</template>
+					</Column>
+					<Column
+						header="Actions"
+						:exportable="false"
+						class="actions-column">
+						<template #body="{ data }">
+							<div v-if="isMine(data)" class="action-buttons">
+								<Button
+									icon="pi pi-pencil"
+									text
+									rounded
+									size="small"
+									severity="success"
+									@click="openViewingUserRequest"
+									v-tooltip.top="'Edit'" />
+								<Button
+									icon="pi pi-trash"
+									text
+									rounded
+									size="small"
+									severity="danger"
+									@click="deleteViewingUserRequest($event)"
+									v-tooltip.top="'Delete'" />
+							</div>
+						</template>
+					</Column>
+				</DataTable>
+			</div>
+		</div>
 	</Dialog>
 </template>
 

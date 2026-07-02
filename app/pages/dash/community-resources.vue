@@ -17,6 +17,7 @@ definePageMeta({
 const { $trpcClient } = useNuxtApp()
 const toast = usePausableToast()
 const confirm = useConfirm()
+const { setRef, checkOverflow, isOverflow } = useTextOverflow()
 
 const communityResources = ref<CommunityResource[]>([])
 const allResources = ref<ResourceOption[]>([])
@@ -252,6 +253,22 @@ onMounted(async () => {
 				<span>{{ formatNumber(data.monetaryValuePerUnit) }}</span>
 			</template>
 		</Column>
+		<Column field="resource.description" header="Description" style="max-width: 400px">
+			<template #body="{ data }">
+				<span
+					:ref="el => setRef(data.id, el as HTMLElement)"
+					v-tooltip.top="{
+						value: data.resource?.description,
+						disabled: !isOverflow(data.id),
+						showDelay: 100,
+						pt: { root: { style: { maxWidth: '450px' } } },
+					}"
+					class="auto-ellipsis"
+					@mouseenter="checkOverflow(data.id)"
+					>{{ data.resource?.description }}</span
+				>
+			</template>
+		</Column>
 		<Column header="Actions" :exportable="false" class="actions-column">
 			<template #body="{ data }">
 				<div class="action-buttons">
@@ -382,6 +399,13 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.auto-ellipsis {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .action-buttons {
 	display: flex;
 }

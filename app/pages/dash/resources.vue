@@ -16,6 +16,7 @@ const { $trpcClient } = useNuxtApp()
 const toast = usePausableToast()
 const confirm = useConfirm()
 const { data: session } = useAuth()
+const { setRef, checkOverflow, isOverflow } = useTextOverflow()
 
 const resources = ref<Resource[]>([])
 const loading = ref(true)
@@ -241,7 +242,18 @@ onMounted(() => {
 		</Column>
 		<Column field="description" header="Description" style="max-width: 300px">
 			<template #body="{ data }">
-				<span class="auto-ellipsis">{{ data.description }}</span>
+				<span
+					:ref="el => setRef(data.id, el as HTMLElement)"
+					v-tooltip.top="{
+						value: data.description,
+						disabled: !isOverflow(data.id),
+						showDelay: 100,
+						pt: { root: { style: { maxWidth: '450px' } } },
+					}"
+					class="auto-ellipsis"
+					@mouseenter="checkOverflow(data.id)"
+					>{{ data.description }}</span
+				>
 			</template>
 		</Column>
 		<Column header="Actions" :exportable="false" class="actions-column">
