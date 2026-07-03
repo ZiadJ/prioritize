@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
+import Quantity from '~/components/requests/Quantity.vue'
 import type { inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
 import { MeasurementType } from '~~/prisma/generated/client/enums'
@@ -202,6 +203,7 @@ onMounted(() => {
 	</div>
 
 	<DataTable
+		class="resources-table"
 		:value="resources"
 		:loading="loading"
 		:paginator="true"
@@ -209,6 +211,7 @@ onMounted(() => {
 		dataKey="id"
 		:rowHover="true"
 		resizableColumns
+		columnResizeMode="fit"
 		stripedRows>
 		<Column field="title" header="Title" sortable>
 			<template #body="{ data }">
@@ -222,37 +225,38 @@ onMounted(() => {
 		</Column>
 		<Column field="quantityAvailable" header="Available" sortable>
 			<template #body="{ data }">
-				<span>{{ formatNumber(data.quantityAvailable) }}</span>
+				<Quantity
+					:modelValue="data.quantityAvailable"
+					:measurementType="data.measurementType ?? MeasurementType.None"
+					readonly />
 			</template>
 		</Column>
 		<Column field="monthlyCapacity" header="Monthly Capacity" sortable>
 			<template #body="{ data }">
-				<span>{{ formatNumber(data.monthlyCapacity) }}</span>
+				<Quantity
+					:modelValue="data.monthlyCapacity"
+					:measurementType="data.measurementType ?? MeasurementType.None"
+					readonly />
 			</template>
 		</Column>
 		<Column field="shelfLife" header="Shelf Life" sortable>
 			<template #body="{ data }">
-				<span>{{ formatNumber(data.shelfLife, 0) }}</span>
+				<span>{{ formatNumber(data.shelfLife, 0, 'd') }}</span>
 			</template>
 		</Column>
-		<Column field="monetaryValuePerUnit" header="Value / Unit" sortable>
-			<template #body="{ data }">
-				<span>{{ formatNumber(data.monetaryValuePerUnit) }}</span>
-			</template>
-		</Column>
-		<Column field="description" header="Description" style="max-width: 300px">
+		<Column field="description" header="Description">
 			<template #body="{ data }">
 				<span
 					:ref="el => setRef(data.id, el as HTMLElement)"
 					v-tooltip.top="{
-						value: data.description,
+						value: data.resource?.description,
 						disabled: !isOverflow(data.id),
 						showDelay: 100,
 						pt: { root: { style: { maxWidth: '450px' } } },
 					}"
 					class="auto-ellipsis"
 					@mouseenter="checkOverflow(data.id)"
-					>{{ data.description }}</span
+					>{{ data?.description }}</span
 				>
 			</template>
 		</Column>
@@ -413,6 +417,14 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.resources-table :deep(.p-datatable-table) {
+	table-layout: fixed;
+}
+
+.resources-table :deep(.p-datatable-thead th),
+.resources-table :deep(.p-datatable-tbody td) {
+	white-space: normal;
+}
 .auto-ellipsis {
 	display: block;
 	overflow: hidden;

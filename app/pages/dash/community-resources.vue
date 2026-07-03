@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
+import Quantity from '~/components/requests/Quantity.vue'
 import type { inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
+import { MeasurementType } from '~~/prisma/generated/client/enums'
 import { useConfirm } from 'primevue/useconfirm'
 
 type CommunityResourceRouterOutput =
@@ -103,23 +105,33 @@ const editCommunityResource = (item: CommunityResource) => {
 }
 
 const saveCommunityResource = async () => {
-	if (!formData.value.resourceId) {
+	const resourceId = formData.value.resourceId
+	const communityId = formData.value.communityId
+	if (!resourceId) {
 		toast.add('Warning', 'A resource is required')
 		return
 	}
-	if (!formData.value.communityId) {
+	if (!communityId) {
 		toast.add('Warning', 'A community is required')
 		return
 	}
 
 	saving.value = true
 	try {
+		const payload = {
+			isActive: formData.value.isActive,
+			resourceId,
+			communityId,
+			monthlyCapacity: formData.value.monthlyCapacity,
+			minQuantity: formData.value.minQuantity,
+			monetaryValuePerUnit: formData.value.monetaryValuePerUnit,
+		}
 		if (dialogMode.value === 'create') {
-			await $trpcClient.communityResources.create.mutate(formData.value)
+			await $trpcClient.communityResources.create.mutate(payload)
 			toast.add('Success', 'Community resource created successfully')
 		} else if (dialogMode.value === 'update' && currentId.value) {
 			await $trpcClient.communityResources.update.mutate({
-				...formData.value,
+				...payload,
 				id: currentId.value,
 			})
 			toast.add('Success', 'Community resource updated successfully')
@@ -215,6 +227,7 @@ onMounted(async () => {
 	</div>
 
 	<DataTable
+		class="cr-table"
 		:value="communityResources"
 		:loading="loading"
 		:paginator="true"
@@ -222,17 +235,18 @@ onMounted(async () => {
 		dataKey="id"
 		:rowHover="true"
 		resizableColumns
+		columnResizeMode="fit"
 		stripedRows>
 		<Column field="resource.title" header="Resource" sortable>
 			<template #body="{ data }">
 				<span class="font-medium">{{ data.resource?.title || '-' }}</span>
 			</template>
 		</Column>
-		<Column field="resource.measurementType" header="Measurement">
+		<!-- <Column field="resource.measurementType" header="Measurement">
 			<template #body="{ data }">
 				<span>{{ measurementLabel(data.resourceId) }}</span>
 			</template>
-		</Column>
+		</Column> -->
 		<Column field="community.title" header="Community" sortable>
 			<template #body="{ data }">
 				<span>{{ data.community?.title || '-' }}</span>
@@ -240,20 +254,30 @@ onMounted(async () => {
 		</Column>
 		<Column field="quantity" header="Quantity" sortable>
 			<template #body="{ data }">
-				<span>{{ formatNumber(data.quantity) }}</span>
+				<Quantity
+					:modelValue="data.quantity"
+					:measurementType="
+						data.resource?.measurementType ?? MeasurementType.None
+					"
+					readonly />
 			</template>
 		</Column>
 		<Column field="monthlyCapacity" header="Monthly Capacity" sortable>
 			<template #body="{ data }">
-				<span>{{ formatNumber(data.monthlyCapacity) }}</span>
+				<Quantity
+					:modelValue="data.monthlyCapacity"
+					:measurementType="
+						data.resource?.measurementType ?? MeasurementType.None
+					"
+					readonly />
 			</template>
 		</Column>
-		<Column field="monetaryValuePerUnit" header="Value / Unit" sortable>
+		<Column field="monetaryValuePerUnit" header="Value/Unit" sortable>
 			<template #body="{ data }">
-				<span>{{ formatNumber(data.monetaryValuePerUnit) }}</span>
+				<span>{{ formatCurrency(data.monetaryValuePerUnit) }}</span>
 			</template>
 		</Column>
-		<Column field="resource.description" header="Description" >
+		<Column field="resource.description" header="Description">
 			<template #body="{ data }">
 				<span
 					:ref="el => setRef(data.id, el as HTMLElement)"
@@ -269,7 +293,11 @@ onMounted(async () => {
 				>
 			</template>
 		</Column>
-		<Column header="Actions" :exportable="false" class="actions-column">
+		<Column
+			header="Actions"
+			:exportable="false"
+			class="actions-column"
+			style="width: 6rem">
 			<template #body="{ data }">
 				<div class="action-buttons">
 					<Button
@@ -399,6 +427,15 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.cr-table :deep(.p-datatable-table) {
+	table-layout: fixed;
+}
+
+.cr-table :deep(.p-datatable-thead th),
+.cr-table :deep(.p-datatable-tbody td) {
+	white-space: normal;
+}
+
 .auto-ellipsis {
 	display: block;
 	overflow: hidden;

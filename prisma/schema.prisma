@@ -693,7 +693,7 @@ model Resource {
   minQuantity          Float
   reservedQuantity     Float
   shelfLife            Int? // In days
-  monetaryValuePerUnit Float // Per specified unit
+  // monetaryValuePerUnit Float // Per specified unit
 
   // components ResourceCostPerUnitNode[] // "used as ingredient in these BOMs"
 

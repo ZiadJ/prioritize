@@ -1,28 +1,28 @@
 import treeUtils from './treeutils'
 
 export class mathUtils {
-  static getRandomValues(arrayLength: number, maxValue: number): Array<number> {
-    return new Array(arrayLength)
-      .fill(0)
-      .map(() => Math.round(Math.random() * maxValue))
-  }
+	static getRandomValues(arrayLength: number, maxValue: number): Array<number> {
+		return new Array(arrayLength)
+			.fill(0)
+			.map(() => Math.round(Math.random() * maxValue))
+	}
 
-  static getAverage(numArray: number[]) {
-    const sum = numArray.reduce((prev, curr) => {
-      return prev + +curr // the newly pushed numbers are handled like strings, need to cast curr
-    }, 0)
+	static getAverage(numArray: number[]) {
+		const sum = numArray.reduce((prev, curr) => {
+			return prev + +curr // the newly pushed numbers are handled like strings, need to cast curr
+		}, 0)
 
-    return Math.round((sum / numArray.length) * 100) / 100
-  }
+		return Math.round((sum / numArray.length) * 100) / 100
+	}
 
-  static hex2rgb = (c: string) =>
-    `rgb(${c.match(/\w\w/g)?.map((x) => +`0x${x}`)})`
-  // static rgb2hex = (c: string) =>
-  //   '#' +
-  //   c
-  //     .match(/\d+/g)
-  //     ?.map((x) => (+x).toString(16).padStart(2, 0))
-  //     .join(``)
+	static hex2rgb = (c: string) =>
+		`rgb(${c.match(/\w\w/g)?.map(x => +`0x${x}`)})`
+	// static rgb2hex = (c: string) =>
+	//   '#' +
+	//   c
+	//     .match(/\d+/g)
+	//     ?.map((x) => (+x).toString(16).padStart(2, 0))
+	//     .join(``)
 }
 
 export class uiElementUtils {
@@ -110,57 +110,71 @@ export class uiElementUtils {
 }
 
 function getSelectedWord() {
-  const sel = window.getSelection()
-  const str = sel?.anchorNode?.nodeValue
-  if (str) {
-    const len = str.length
-    let a = sel.anchorOffset
-    let b = a
+	const sel = window.getSelection()
+	const str = sel?.anchorNode?.nodeValue
+	if (str) {
+		const len = str.length
+		let a = sel.anchorOffset
+		let b = a
 
-    if (a) {
-      while (str[a] != ' ' && a--) {}
+		if (a) {
+			while (str[a] != ' ' && a--) {}
 
-      if (str[a] == ' ') a++ // start of word
+			if (str[a] == ' ') a++ // start of word
 
-      while (str[b] != ' ' && b++ < len) {} // end of word+1
-    }
+			while (str[b] != ' ' && b++ < len) {} // end of word+1
+		}
 
-    console.log(str.substring(a, b))
-  }
+		console.log(str.substring(a, b))
+	}
 }
 
 // Callback function to execute when mutations are observed
 function observeNode(
-  mutationType: string = '',
-  callback: (mt: MutationRecord, nd: Node) => boolean | undefined,
-  config: MutationObserverInit
+	mutationType: string = '',
+	callback: (mt: MutationRecord, nd: Node) => boolean | undefined,
+	config: MutationObserverInit,
 ): MutationObserver {
-  const observer = new MutationObserver((list) => {
-    observer.observe(document.head, config)
+	const observer = new MutationObserver(list => {
+		observer.observe(document.head, config)
 
-    for (const mutation of list) {
-      if (mutationType === '' || mutation.type === mutationType) {
-        for (let i = 0; i < mutation.addedNodes.length; i++) {
-          if (callback(mutation, mutation.addedNodes[i]!)) {
-            break
-          }
-        }
-      }
-    }
-  })
-  return observer
+		for (const mutation of list) {
+			if (mutationType === '' || mutation.type === mutationType) {
+				for (let i = 0; i < mutation.addedNodes.length; i++) {
+					if (callback(mutation, mutation.addedNodes[i]!)) {
+						break
+					}
+				}
+			}
+		}
+	})
+	return observer
 }
 
 export function formatNumber(
 	value: number | null | undefined,
 	maximumFractionDigits = 2,
+	suffix = '',
 ): string {
 	if (value == null || Number.isNaN(value)) return '-'
-	return value.toLocaleString(undefined, { maximumFractionDigits })
+	return value.toLocaleString(undefined, { maximumFractionDigits }) + suffix
+}
+
+export function formatCurrency(
+	value: number | null | undefined,
+	maximumFractionDigits = 0,
+): string {
+	if (value == null || Number.isNaN(value)) return '-'
+	return value.toLocaleString(undefined, {
+		style: 'currency',
+		currency: 'USD',
+		currencyDisplay: 'narrowSymbol',
+		maximumFractionDigits,
+	})
 }
 
 export class utils {
-  static math = mathUtils
-  static uiElements = uiElementUtils
-  static tree = treeUtils
+	static math = mathUtils
+	static uiElements = uiElementUtils
+	static tree = treeUtils
 }
