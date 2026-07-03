@@ -11,7 +11,7 @@ const props = defineProps<{
 	proposalId?: number
 	approvedAt?: string | Date | null
 	netBenefit?: number
-	netFeasability?: number
+	netFeasibility?: number
 }>()
 
 const visible = defineModel<boolean>('visible', { default: false })
@@ -108,7 +108,7 @@ function formatApprovalDate(value: string | Date | null | undefined) {
 				<div class="flex flex-col gap-0.5">
 					<label>Net Feasibility</label>
 					<p class="text-gray-600 dark:text-gray-400">
-						{{ netFeasability ?? 0 }}
+						{{ netFeasibility ?? 0 }}
 					</p>
 				</div>
 			</div>

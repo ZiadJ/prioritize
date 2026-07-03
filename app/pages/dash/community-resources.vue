@@ -253,7 +253,7 @@ onMounted(async () => {
 				<span>{{ formatNumber(data.monetaryValuePerUnit) }}</span>
 			</template>
 		</Column>
-		<Column field="resource.description" header="Description" style="max-width: 400px">
+		<Column field="resource.description" header="Description" >
 			<template #body="{ data }">
 				<span
 					:ref="el => setRef(data.id, el as HTMLElement)"

@@ -17,7 +17,7 @@ export interface ProposalColumn extends ColumnProps {
 	description: string
 	duration?: number
 	netBenefit?: number
-	netFeasability?: number
+	netFeasibility?: number
 	approvedAt?: string | Date | null
 	isDirty?: boolean
 	isLoading?: boolean
@@ -82,7 +82,7 @@ export function useProposalColumns(
 			description: p.description,
 			duration: p.duration,
 			netBenefit: p.netBenefit ?? 0,
-			netFeasability: p.netFeasability ?? 0,
+			netFeasibility: p.netFeasibility ?? 0,
 			approvedAt: p.approvedAt ?? null,
 			isActive: p.isActive,
 			ownerId: p.ownerId,

@@ -363,9 +363,6 @@ onMounted(async () => {
 					showClear
 					filter
 					@change="selectedResource = null" />
-				<small class="text-zinc-500">
-					Filter the stock entries below by community to avoid duplicates.
-				</small>
 			</div>
 
 			<div class="form-field">

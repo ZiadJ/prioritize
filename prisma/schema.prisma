@@ -576,7 +576,7 @@ model Proposal {
   approvedAt DateTime?
 
   netBenefit     Float @default(0)
-  netFeasability Float @default(0)
+  netFeasibility Float @default(0)
 
   isDraft       Boolean? // Not quite required if step costs update netFeasibility when added
   isUnavailable Boolean?

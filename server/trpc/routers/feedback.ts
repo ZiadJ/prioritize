@@ -60,6 +60,48 @@ async function updateProposalNetBenefit(
 	})
 }
 
+/**
+ * Recalculates and persists the netFeasibility for a single proposal.
+ *
+ * Iterates over every StepCost across the proposal's step nodes and computes
+ * the ratio of the step cost quantity to the available quantity of the
+ * community resource it draws from (stepCost.quantity / communityResource.quantity).
+ * The proposal's netFeasibility is the sum of all those ratios.
+ */
+async function updateProposalNetFeasibility(proposalId: number) {
+	const proposal = await prisma.proposal.findUnique({
+		where: { id: proposalId },
+		include: {
+			stepNodes: {
+				include: {
+					costs: {
+						include: { communityResource: true },
+					},
+				},
+			},
+		},
+	})
+
+	let netFeasibility = 0
+
+	if (proposal) {
+		for (const stepNode of proposal.stepNodes) {
+			for (const stepCost of stepNode.costs) {
+				const availability = stepCost.communityResource.quantity
+				if (availability > 0) {
+					// Available Qty = Stock Qty +Renewal RateTime
+					netFeasibility += availability / (availability + stepCost.quantity)
+				}
+			}
+		}
+	}
+
+	await prisma.proposal.update({
+		where: { id: proposalId },
+		data: { netFeasibility: Math.round(netFeasibility) },
+	})
+}
+
 export const feedbackRouter = router({
 	names: publicProcedure
 		.input(z.object({ userIds: z.array(z.string()) }))
@@ -68,9 +110,7 @@ export const feedbackRouter = router({
 				where: { id: { in: input.userIds } },
 				select: { id: true, firstname: true, lastname: true, username: true },
 			})
-			return Object.fromEntries(
-				users.map(u => [u.id, u]),
-			) as Record<
+			return Object.fromEntries(users.map(u => [u.id, u])) as Record<
 				string,
 				{ firstname: string; lastname: string; username: string }
 			>
@@ -130,6 +170,7 @@ export const feedbackRouter = router({
 			// Recalculate netBenefit for the affected proposal(s)
 			if (proposalId) {
 				await updateProposalNetBenefit(proposalId, requestNodes)
+				await updateProposalNetFeasibility(proposalId)
 			} else {
 				// Feedback without the proposal Id is a value feedback which affects all proposals
 				const proposals = await prisma.proposal.findMany({
@@ -139,6 +180,7 @@ export const feedbackRouter = router({
 
 				for (const p of proposals) {
 					await updateProposalNetBenefit(p.id, requestNodes)
+					await updateProposalNetFeasibility(p.id)
 				}
 			}
 
