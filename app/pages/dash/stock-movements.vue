@@ -18,6 +18,7 @@ definePageMeta({
 
 const { $trpcClient } = useNuxtApp()
 const toast = usePausableToast()
+const { setRef, checkOverflow, isOverflow } = useTextOverflow()
 
 const movements = ref<StockMovement[]>([])
 const allResources = ref<CommunityResourceOption[]>([])
@@ -306,7 +307,7 @@ onMounted(async () => {
 				<span>{{ data.user?.username || '-' }}</span>
 			</template>
 		</Column>
-		<Column field="quantity" header="Change" sortable bodyClass="!text-right" style="width: 6rem">
+		<Column field="quantity" header="Change" sortable bodyClass="!text-right" style="width: 6.1rem">
 			<template #body="{ data }">
 				<Tag
 					:value="`${data.quantity > 0 ? '+' : ''}${formatNumber(data.quantity)}`"
@@ -314,24 +315,35 @@ onMounted(async () => {
 					class="!text-xs" />
 			</template>
 		</Column>
-		<Column field="quantityBefore" header="Before" sortable bodyClass="!text-right" style="width: 6rem">
+		<Column field="quantityBefore" header="Before" sortable bodyClass="!text-right" style="width: 5.5rem">
 			<template #body="{ data }">
 				<span>{{ formatNumber(data.quantityBefore) }}</span>
 			</template>
 		</Column>
-		<Column field="quantityAfter" header="After" sortable bodyClass="!text-right" style="width: 6rem">
+		<Column field="quantityAfter" header="After" sortable bodyClass="!text-right" style="width: 5rem">
 			<template #body="{ data }">
 				<span class="font-medium">{{ formatNumber(data.quantityAfter) }}</span>
 			</template>
 		</Column>
-		<Column field="stepCost.title" header="Step Cost" sortable style="width: 12rem">
+		<Column field="stepCost.title" header="Step Cost" sortable style="width: 15rem">
 			<template #body="{ data }">
 				<span>{{ data.stepCost?.title || '-' }}</span>
 			</template>
 		</Column>
 		<Column field="reason" header="Reason">
 			<template #body="{ data }">
-				<span class="auto-ellipsis">{{ data.reason || '-' }}</span>
+				<span
+					:ref="el => setRef(data.id, el as HTMLElement)"
+					v-tooltip.top="{
+						value: data.reason,
+						disabled: !isOverflow(data.id),
+						showDelay: 100,
+						pt: { root: { style: { maxWidth: '450px' } } },
+					}"
+					class="auto-ellipsis"
+					@mouseenter="checkOverflow(data.id)">
+					{{ data.reason || '-' }}
+				</span>
 			</template>
 		</Column>
 		<template #empty>
