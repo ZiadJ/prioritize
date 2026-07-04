@@ -54,9 +54,14 @@ export function useProposalColumns(
 	})
 
 	function syncVisibleColumns() {
-		visibleColumns.value = columns.value.filter(c =>
-			visibleKeys.value.has(c.columnKey!),
-		)
+		visibleColumns.value = columns.value
+			.filter(c => visibleKeys.value.has(c.columnKey!))
+			.slice()
+			.sort(
+				(a, b) =>
+					new Date(a.createdAt ?? 0).getTime() -
+					new Date(b.createdAt ?? 0).getTime(),
+			)
 	}
 
 	function init(proposals: ProposalWithOwner[]) {
@@ -84,8 +89,9 @@ export function useProposalColumns(
 			duration: p.duration,
 			netBenefit: p.netBenefit ?? 0,
 			netFeasibility: p.netFeasibility ?? 0,
-			approvedAt: p.approvedAt ?? null,
-			isActive: p.isActive,
+		approvedAt: p.approvedAt ?? null,
+		createdAt: p.createdAt ?? null,
+		isActive: p.isActive,
 			ownerId: p.ownerId,
 			ownerName: p.owner?.username ?? undefined,
 		}
