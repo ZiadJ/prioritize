@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue'
+import Quantity from '~/components/requests/Quantity.vue'
+import { MeasurementType } from '~~/prisma/generated/client/enums'
 import type { inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
 
@@ -73,6 +75,10 @@ const fetchResources = async () => {
 }
 
 const currentQuantity = computed(() => selectedResource.value?.quantity ?? 0)
+const measurementType = computed<MeasurementType>(
+	() =>
+		selectedResource.value?.resource?.measurementType ?? MeasurementType.None,
+)
 const signedQuantity = computed(() =>
 	direction.value === 'remove' ? -Math.abs(amount.value) : Math.abs(amount.value),
 )
@@ -307,22 +313,38 @@ onMounted(async () => {
 				<span>{{ data.user?.username || '-' }}</span>
 			</template>
 		</Column>
-		<Column field="quantity" header="Change" sortable bodyClass="!text-right" style="width: 6.1rem">
+		<Column field="quantity" header="Change" sortable bodyClass="!text-right !p-0" style="width: 6.1rem">
 			<template #body="{ data }">
 				<Tag
-					:value="`${data.quantity > 0 ? '+' : ''}${formatNumber(data.quantity)}`"
 					:severity="data.quantity >= 0 ? 'success' : 'danger'"
-					class="!text-xs" />
+					>{{ data.quantity > 0 ? '+' : ''
+					}}<Quantity
+						:modelValue="Math.abs(data.quantity)"
+						:measurementType="
+							data.resource?.resource?.measurementType ?? MeasurementType.None
+						"
+						readonly />
+				</Tag>
 			</template>
 		</Column>
 		<Column field="quantityBefore" header="Before" sortable bodyClass="!text-right" style="width: 5.5rem">
 			<template #body="{ data }">
-				<span>{{ formatNumber(data.quantityBefore) }}</span>
+				<Quantity
+					:modelValue="data.quantityBefore"
+					:measurementType="
+						data.resource?.resource?.measurementType ?? MeasurementType.None
+					"
+					readonly />
 			</template>
 		</Column>
 		<Column field="quantityAfter" header="After" sortable bodyClass="!text-right" style="width: 5rem">
 			<template #body="{ data }">
-				<span class="font-medium">{{ formatNumber(data.quantityAfter) }}</span>
+				<Quantity
+					:modelValue="data.quantityAfter"
+					:measurementType="
+						data.resource?.resource?.measurementType ?? MeasurementType.None
+					"
+					readonly />
 			</template>
 		</Column>
 		<Column field="stepCost.title" header="Step Cost" sortable style="width: 15rem">
