@@ -24,6 +24,49 @@ const createInput = StepCostSchema.pick({
 
 const updateInput = createInput.partial().extend({ id: z.number() })
 
+/**
+ * Recalculates and persists the netFeasibility for a single proposal.
+ *
+ * Iterates over every StepCost across the proposal's step nodes and computes
+ * the ratio of the step cost quantity to the available quantity of the
+ * community resource it draws from (stepCost.quantity / communityResource.quantity).
+ * The proposal's netFeasibility is the sum of all those ratios.
+ */
+async function updateProposalNetFeasibility(proposalId: number) {
+	const proposal = await prisma.proposal.findUnique({
+		where: { id: proposalId },
+		include: {
+			stepNodes: {
+				include: {
+					costs: {
+						include: { communityResource: true },
+					},
+				},
+			},
+		},
+	})
+
+	let netFeasibility = 1
+
+	if (proposal) {
+		for (const stepNode of proposal.stepNodes) {
+			for (const stepCost of stepNode.costs) {
+				const availability = stepCost.communityResource.quantity
+				if (availability > 0) {
+					// Available Qty = Stock Qty +Renewal RateTime
+					const feasibility = availability / (availability + stepCost.quantity)
+					netFeasibility *= feasibility
+				}
+			}
+		}
+	}
+
+	await prisma.proposal.update({
+		where: { id: proposalId },
+		data: { netFeasibility: netFeasibility },
+	})
+}
+
 export const stepCostsRouter = router({
 	byStepNodeId: publicProcedure
 		.input(z.object({ stepNodeId: z.number() }))
@@ -46,7 +89,7 @@ export const stepCostsRouter = router({
 			if (!step) throw new Error('Step not found')
 			await assertCanEditProposal(ctx.user!.id, ctx.user!.role, step.proposalId)
 
-			return prisma.stepCost.create({
+			const created = await prisma.stepCost.create({
 				data: {
 					title: input.title,
 					description: input.description,
@@ -61,6 +104,9 @@ export const stepCostsRouter = router({
 				},
 				include: COST_INCLUDE,
 			})
+
+			await updateProposalNetFeasibility(step.proposalId)
+			return created
 		}),
 
 	update: protectedProcedure
@@ -93,11 +139,14 @@ export const stepCostsRouter = router({
 				data.communityResource = { connect: { id: patch.communityResourceId } }
 			}
 
-			return prisma.stepCost.update({
+			const updated = await prisma.stepCost.update({
 				where: { id },
 				data,
 				include: COST_INCLUDE,
 			})
+
+			await updateProposalNetFeasibility(proposalId)
+			return updated
 		}),
 
 	delete: protectedProcedure
@@ -113,6 +162,8 @@ export const stepCostsRouter = router({
 			if (!proposalId) throw new Error('Associated step not found')
 			await assertCanEditProposal(ctx.user!.id, ctx.user!.role, proposalId)
 
-			return prisma.stepCost.delete({ where: { id: input.id } })
+			await prisma.stepCost.delete({ where: { id: input.id } })
+			await updateProposalNetFeasibility(proposalId)
+			return { id: input.id }
 		}),
 })

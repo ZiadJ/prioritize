@@ -84,34 +84,36 @@ function formatApprovalDate(value: string | Date | null | undefined) {
 					rows="3" />
 			</div>
 			<div v-if="editMode" class="form-field items-center mt-2">
-			<div class="grid grid-cols-2 gap-x-8 gap-y-2">
-				<div class="flex flex-col gap-0.5">
-					<label>Author</label>
-					<p class="text-gray-600 dark:text-gray-400">
-						<NuxtLink :to="`/dash/users/${ownerName}`" class="underline hover:opacity-70">
-							{{ ownerName }}
-						</NuxtLink>
-					</p>
+				<div class="grid grid-cols-2 gap-x-8 gap-y-2">
+					<div class="flex flex-col gap-0.5">
+						<label>Author</label>
+						<p class="text-gray-600 dark:text-gray-400">
+							<NuxtLink
+								:to="`/dash/users/${ownerName}`"
+								class="underline hover:opacity-70">
+								{{ ownerName }}
+							</NuxtLink>
+						</p>
+					</div>
+					<div class="flex flex-col gap-0.5">
+						<label>{{ !approvedAt ? 'Approval' : 'Approval Date' }} </label>
+						<p class="text-gray-600 dark:text-gray-400">
+							{{ !approvedAt ? 'Pending' : formatApprovalDate(approvedAt) }}
+						</p>
+					</div>
+					<div class="flex flex-col gap-0.5">
+						<label>Net Benefit</label>
+						<p class="text-gray-600 dark:text-gray-400">
+							{{ netBenefit ?? 0 }}
+						</p>
+					</div>
+					<div class="flex flex-col gap-0.5">
+						<label>Net Feasibility</label>
+						<p class="text-gray-600 dark:text-gray-400">
+							{{ formatNumber((netFeasibility ?? 0) * 100, 0) }}%
+						</p>
+					</div>
 				</div>
-				<div class="flex flex-col gap-0.5">
-					<label>{{ !approvedAt ? 'Approval' : 'Approval Date' }} </label>
-					<p class="text-gray-600 dark:text-gray-400">
-						{{ !approvedAt ? 'Pending' : formatApprovalDate(approvedAt) }}
-					</p>
-				</div>
-				<div class="flex flex-col gap-0.5">
-					<label>Net Benefit</label>
-					<p class="text-gray-600 dark:text-gray-400">
-						{{ netBenefit ?? 0 }}
-					</p>
-				</div>
-				<div class="flex flex-col gap-0.5">
-					<label>Net Feasibility</label>
-					<p class="text-gray-600 dark:text-gray-400">
-						{{ netFeasibility ?? 0 }}
-					</p>
-				</div>
-			</div>
 			</div>
 			<!--<div v-if="editMode && isOwner" class="form-field">
 				<div class="flex items-center gap-2">

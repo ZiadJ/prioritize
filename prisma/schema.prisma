@@ -155,9 +155,9 @@ enum RequestLevel {
 }
 
 enum MeasurementType {
-  None // For non-countable items such as "a better world" and "happiness"
+  None // For non-countable items
   Units // Generic unit for countable items
-  Time // Seconds
+  Time // Hours per month
   Weight // Kilograms
   Volume // Cubic Metres
   Area // Square Metres
@@ -693,7 +693,9 @@ model Resource {
   minQuantity          Float
   reservedQuantity     Float
   shelfLife            Int? // In days
-  monetaryValuePerUnit Float // Per specified unit
+
+  transportWeightPerUnit Float?
+  transportVolumePerUnit Float?
 
   // components ResourceCostPerUnitNode[] // "used as ingredient in these BOMs"
 

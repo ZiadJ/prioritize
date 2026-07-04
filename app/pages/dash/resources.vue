@@ -43,7 +43,6 @@ const formData = ref({
 	shelfLife: null as number | null,
 	minQuantity: 0,
 	reservedQuantity: 0,
-	monetaryValuePerUnit: 0,
 })
 
 const resetForm = () => {
@@ -57,7 +56,6 @@ const resetForm = () => {
 		shelfLife: null as number | null,
 		minQuantity: 0,
 		reservedQuantity: 0,
-		monetaryValuePerUnit: 0,
 	}
 }
 
@@ -102,7 +100,6 @@ const editResource = (resource: Resource) => {
 		shelfLife: resource.shelfLife,
 		minQuantity: resource.minQuantity,
 		reservedQuantity: resource.reservedQuantity,
-		monetaryValuePerUnit: resource.monetaryValuePerUnit,
 	}
 	currentResourceId.value = resource.id
 	dialogMode.value = 'update'
@@ -218,11 +215,11 @@ onMounted(() => {
 				<span class="font-medium">{{ data.title }}</span>
 			</template>
 		</Column>
-		<Column field="measurementType" header="Measurement" sortable>
+		<!-- <Column field="measurementType" header="Measurement" sortable>
 			<template #body="{ data }">
 				<span>{{ data.measurementType }}</span>
 			</template>
-		</Column>
+		</Column> -->
 		<Column field="quantityAvailable" header="Available" sortable>
 			<template #body="{ data }">
 				<Quantity
@@ -241,7 +238,15 @@ onMounted(() => {
 		</Column>
 		<Column field="shelfLife" header="Shelf Life" sortable>
 			<template #body="{ data }">
-				<span>{{ formatNumber(data.shelfLife, 0, 'd') }}</span>
+				<span
+					>{{
+						!data.shelfLife
+							? '-'
+							: data.shelfLife >= 365
+								? formatNumber(data.shelfLife / 365, 0, 'y')
+								: data.shelfLife + 'd'
+					}}</span
+				>
 			</template>
 		</Column>
 		<Column field="description" header="Description">
@@ -249,15 +254,15 @@ onMounted(() => {
 				<span
 					:ref="el => setRef(data.id, el as HTMLElement)"
 					v-tooltip.top="{
-						value: data.resource?.description,
+						value: data.description,
 						disabled: !isOverflow(data.id),
 						showDelay: 100,
 						pt: { root: { style: { maxWidth: '450px' } } },
 					}"
 					class="auto-ellipsis"
-					@mouseenter="checkOverflow(data.id)"
-					>{{ data?.description }}</span
-				>
+					@mouseenter="checkOverflow(data.id)">
+					{{ data.description }}
+				</span>
 			</template>
 		</Column>
 		<Column header="Actions" :exportable="false" class="actions-column">
@@ -386,16 +391,6 @@ onMounted(() => {
 						v-tooltip.top="
 							'Stock levels are managed via the Stock Movements page'
 						" />
-				</div>
-				<div class="form-field flex-1">
-					<label for="monetaryValuePerUnit">Monetary Value / Unit</label>
-					<InputNumber
-						id="monetaryValuePerUnit"
-						v-model="formData.monetaryValuePerUnit"
-						:minFractionDigits="0"
-						:maxFractionDigits="2"
-						mode="currency"
-						currency="USD" />
 				</div>
 			</div>
 			<div class="form-field">

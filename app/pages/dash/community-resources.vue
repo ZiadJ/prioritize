@@ -252,7 +252,7 @@ onMounted(async () => {
 				<span>{{ data.community?.title || '-' }}</span>
 			</template>
 		</Column>
-		<Column field="quantity" header="Quantity" sortable>
+		<Column field="quantity" header="Available" sortable>
 			<template #body="{ data }">
 				<Quantity
 					:modelValue="data.quantity"

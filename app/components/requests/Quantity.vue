@@ -22,7 +22,8 @@ const UNITS_BY_TYPE: Record<MeasurementType, Unit[]> = {
 	// 	{ key: 'dollars', label: '$', name: 'Dollars', factor: 1 },
 	// ],
 	[MeasurementType.Time]: [
-		{ key: 'd', label: 'd', name: 'Days', factor: 1 / 24 },
+		// { key: 'y', label: 'y', name: 'Years', factor: 1 / 8760 },
+		// { key: 'd', label: 'd', name: 'Days', factor: 1 / 24 },
 		{ key: 'h', label: 'h', name: 'Hours', factor: 1 },
 		{ key: 'min', label: 'min', name: 'Minutes', factor: 60 },
 		{ key: 's', label: 's', name: 'Seconds', factor: 3600 },
