@@ -180,7 +180,7 @@ onMounted(() => {
 </script>
 
 <template>
-	<DashDataTablePage>
+	<FillHeightLayout>
 		<template #toolbar>
 			<div class="flex justify-content-between align-items-center px-6 pt-6 pb-3">
 				<InputGroup class="w-auto">
@@ -295,7 +295,7 @@ onMounted(() => {
 			</div>
 		</template>
 	</DataTable>
-	</DashDataTablePage>
+	</FillHeightLayout>
 
 	<Dialog
 		v-model:visible="dialogVisible"

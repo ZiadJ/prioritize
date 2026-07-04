@@ -257,7 +257,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			:saving="nodeFormSaving"
 			:editMode="nodeFormEditMode"
 			@save="saveNodeForm" />
-		<DashDataTablePage>
+		<FillHeightLayout>
 			<template #toolbar>
 				<Panel class="rounded-b-none" :header="request?.title" toggleable collapsed>
 					{{ request?.description }}
@@ -514,7 +514,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			</Column>
 			<Column> </Column>
 		</TreeTable>
-		</DashDataTablePage>
+		</FillHeightLayout>
 	</div>
 </template>
 

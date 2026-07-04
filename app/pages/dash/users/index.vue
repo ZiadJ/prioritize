@@ -49,7 +49,7 @@ onMounted(async () => {
 </script>
 
 <template>
-	<DashDataTablePage>
+	<FillHeightLayout>
 		<template #toolbar>
 			<div class="flex items-center gap-4 px-6 pt-6 pb-3">
 				<InputGroup class="w-auto">
@@ -125,5 +125,5 @@ onMounted(async () => {
 				</template>
 			</Column>
 		</DataTable>
-	</DashDataTablePage>
+	</FillHeightLayout>
 </template>
