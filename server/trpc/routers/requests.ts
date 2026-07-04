@@ -425,6 +425,88 @@ export const requestsRouter = router({
 			})
 		}),
 
+	// List requests associated with a specific user (as owner, editor, or
+	// via a user request indicating demand/priority contribution)
+	listByUser: publicProcedure
+		.input(z.object({ userId: z.string() }))
+		.query(async ({ input }) => {
+		const [owned, edited, requested] = await Promise.all([
+			prisma.request.findMany({
+				where: { ownerId: input.userId },
+				include: { tags: true, community: true, editors: true },
+			}),
+			prisma.request.findMany({
+				where: { editors: { some: { id: input.userId } } },
+				include: { tags: true, community: true, editors: true },
+			}),
+			prisma.userRequest.findMany({
+				where: { userId: input.userId },
+				select: {
+					quantity: true,
+					priority: true,
+					isJoined: true,
+					isActive: true,
+					dueAt: true,
+					recurrencePeriod: true,
+					request: {
+						include: {
+							tags: true,
+							community: true,
+							editors: true,
+						},
+					},
+				},
+			}),
+		])
+
+		type RequestWithIncludes = (typeof owned)[number]
+		const byId = new Map<
+			number,
+			{
+				request: RequestWithIncludes
+				role: 'Owner' | 'Editor' | 'Requester'
+				priority: number
+				quantity: number
+			}
+		>()
+
+		for (const r of owned) {
+			byId.set(r.id, { request: r, role: 'Owner', priority: 0, quantity: 0 })
+		}
+		for (const r of edited) {
+			if (!byId.has(r.id)) {
+				byId.set(r.id, {
+					request: r,
+					role: 'Editor',
+					priority: 0,
+					quantity: 0,
+				})
+			}
+		}
+		for (const ur of requested) {
+			const existing = byId.get(ur.request.id)
+			if (existing) {
+				if (existing.role === 'Owner' || existing.role === 'Editor') {
+					existing.priority = ur.priority
+					existing.quantity = ur.quantity
+				}
+			} else {
+				byId.set(ur.request.id, {
+					request: ur.request as unknown as RequestWithIncludes,
+					role: 'Requester',
+					priority: ur.priority,
+					quantity: ur.quantity,
+				})
+			}
+		}
+
+		return Array.from(byId.values()).sort(
+			(a, b) =>
+				new Date(b.request.createdAt).getTime() -
+				new Date(a.request.createdAt).getTime(),
+		)
+	}),
+
 	// Community procedures
 	listCommunities: publicProcedure.query(async () => {
 		return prisma.community.findMany({

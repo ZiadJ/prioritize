@@ -253,8 +253,8 @@ model User {
   ownedRequestNodes    RequestNode[] @relation("RequestNodeOwner")
   editableProposals    Proposal[]    @relation("ProposalEditors")
   ownedProposals       Proposal[]    @relation("ProposalOwner")
-  editableSteps    Step[]    @relation("StepEditors")
-  ownedSteps       Step[]    @relation("StepOwner")
+  editableSteps        Step[]        @relation("StepEditors")
+  ownedSteps           Step[]        @relation("StepOwner")
   editableStepCosts    StepCost[]    @relation("StepCostEditors")
   ownedStepCosts       StepCost[]    @relation("StepCostOwner")
   editableResources    Resource[]    @relation("ResourceEditors")
@@ -320,7 +320,7 @@ model RevisionNode {
   requestNodeId   Int?
   proposal        Proposal?      @relation(fields: [proposalId], references: [id], onDelete: Cascade)
   proposalId      Int?
-  Step            Step?      @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  Step            Step?          @relation(fields: [stepId], references: [id], onDelete: Cascade)
   stepId          Int?
   stepCost        StepCost?      @relation(fields: [stepCostId], references: [id], onDelete: Cascade)
   stepCostId      Int?
@@ -479,6 +479,7 @@ model UserRequest {
   quantity    Float   @default(0) // Defaults to 0 for shared/joined requests with no measurable quantity
   priority    Int // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
   isBasicNeed Boolean @default(false)
+  isPrivate   Boolean @default(false)
   isJoined    Boolean @default(false) // Whether the user joined the request as a shared request rather than specifying their own quantity
 
   recurrencePeriod    Int // In days even thoughDaily, Weekly, Monthly, Quaterly, Semi-anually, Anually
@@ -583,7 +584,7 @@ model Proposal {
 
   requestNodeImpact     Feedback[] // Voted feedback from experts based on the related interests
   tags                  Tag[]
-  steps             Step[]
+  steps                 Step[]
   assignedCognitiveBias AssignedCognitiveBias[]
 
   owner   User   @relation("ProposalOwner", fields: [ownerId], references: [id])
@@ -686,13 +687,13 @@ model Resource {
   isDirty     Boolean? // Client-server-clients sync flag
   revisions   RevisionNode[]
 
-  measurementType      MeasurementType
-  quantityAvailable    Float
-  monthlyCapacity      Float // Amount that can be renewed within a month (includes volunteer time)
+  measurementType   MeasurementType
+  quantityAvailable Float
+  monthlyCapacity   Float // Amount that can be renewed within a month (includes volunteer time)
   // managedMonthlyCapacity Float
-  minQuantity          Float
-  reservedQuantity     Float
-  shelfLife            Int? // In days
+  minQuantity       Float
+  reservedQuantity  Float
+  shelfLife         Int? // In days
 
   transportWeightPerUnit Float?
   transportVolumePerUnit Float?
@@ -704,10 +705,10 @@ model Resource {
   localResources CommunityResource[]
 
   // tags  Tag[]
-  owner     User       @relation("ResourceOwner", fields: [ownerId], references: [id])
-  ownerId   String
-  editors   User[]     @relation("ResourceEditors")
-  steps Step[]
+  owner   User   @relation("ResourceOwner", fields: [ownerId], references: [id])
+  ownerId String
+  editors User[] @relation("ResourceEditors")
+  steps   Step[]
 
   resourceCostPerUnitNodes ResourceCostPerUnitNode[]
 }

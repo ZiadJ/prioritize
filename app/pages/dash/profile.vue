@@ -84,27 +84,37 @@
 					class="w-full" />
 			</div>
 
-			<div class="flex justify-end mt-4">
-				<Button
-					type="submit"
-					label="Save Profile"
-					:loading="saving"
-					icon="pi pi-check" />
-			</div>
+		<div class="flex justify-end mt-4">
+			<Button
+				type="submit"
+				label="Save Profile"
+				:loading="saving"
+				icon="pi pi-check" />
+		</div>
 		</form>
+
+		<section v-if="!pageLoading" class="mt-8">
+			<h2 class="text-lg font-semibold mb-2">My Requests</h2>
+			<UserRequestsTable :entries="requests" :loading="loadingRequests" />
+		</section>
 	</div>
 </template>
 
 <script lang="ts" setup>
+import UserRequestsTable from '~/components/requests/UserRequestsTable.vue'
+
 definePageMeta({
 	layout: 'dashboard',
 })
 
 const { data: session } = useAuth()
 const toast = usePausableToast()
+const { $trpcClient } = useNuxtApp()
 
 const pageLoading = ref(true)
 const saving = ref(false)
+const requests = ref<any[]>([])
+const loadingRequests = ref(false)
 const expertiseOptions = ref<{ id: number; title: string }[]>([])
 const countries = ref<{ id: number; name: string }[]>([])
 
@@ -146,12 +156,28 @@ onMounted(async () => {
 			countries: [],
 		}))
 		countries.value = (countriesRes as any).countries ?? []
+
+		await fetchRequests()
 	} catch (error: any) {
 		toast.add('Error', 'Failed to load profile.')
 	} finally {
 		pageLoading.value = false
 	}
 })
+
+const fetchRequests = async () => {
+	const userId = session.value?.user?.id
+	if (!userId) return
+	loadingRequests.value = true
+	try {
+		const result = await $trpcClient?.requests.listByUser?.query({ userId })
+		requests.value = result ?? []
+	} catch (error: any) {
+		console.error('Failed to fetch requests:', error)
+	} finally {
+		loadingRequests.value = false
+	}
+}
 
 const save = async () => {
 	saving.value = true

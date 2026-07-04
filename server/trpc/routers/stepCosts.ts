@@ -8,6 +8,31 @@ const COST_INCLUDE = {
 	communityResource: { include: { resource: true } },
 } satisfies Prisma.StepCostInclude
 
+// Richer include for the listing/detail page: surfaces the owning step,
+// its proposal and the community resource (with resource + community)
+// so the table can render everything in a single round-trip.
+const LIST_INCLUDE = {
+	step: {
+		select: {
+			id: true,
+			title: true,
+			proposal: {
+				select: { id: true, title: true, approvedAt: true, requestId: true },
+			},
+		},
+	},
+	communityResource: {
+		select: {
+			id: true,
+			quantity: true,
+			resource: {
+				select: { id: true, title: true, measurementType: true },
+			},
+			community: { select: { id: true, title: true } },
+		},
+	},
+} satisfies Prisma.StepCostInclude
+
 const createInput = StepCostSchema.pick({
 	isActive: true,
 	title: true,
@@ -68,6 +93,80 @@ async function updateProposalNetFeasibility(proposalId: number) {
 }
 
 export const stepCostsRouter = router({
+	list: publicProcedure
+		.input(
+			z
+				.object({
+					search: z.string().optional(),
+					id: z.number().optional(),
+					stepId: z.number().optional(),
+					communityResourceId: z.number().optional(),
+					communityId: z.number().optional(),
+					isActive: z.boolean().optional(),
+					approvedOnly: z.boolean().optional(),
+				})
+				.optional(),
+		)
+		.query(async ({ input }) => {
+			const where: Prisma.StepCostWhereInput = {}
+			if (input?.id !== undefined) {
+				where.id = input.id
+			}
+			if (input?.stepId !== undefined) {
+				where.stepId = input.stepId
+			}
+			if (input?.communityResourceId !== undefined) {
+				where.communityResourceId = input.communityResourceId
+			}
+			if (input?.communityId !== undefined) {
+				where.communityResource = { communityId: input.communityId }
+			}
+			if (input?.isActive !== undefined) {
+				where.isActive = input.isActive
+			}
+			if (input?.approvedOnly) {
+				// Only step costs whose step belongs to an approved proposal
+				where.step = { proposal: { approvedAt: { not: null } } }
+			}
+			if (input?.search) {
+				where.OR = [
+					{ title: { contains: input.search, mode: 'insensitive' } },
+					{ description: { contains: input.search, mode: 'insensitive' } },
+					{
+						communityResource: {
+							resource: {
+								title: { contains: input.search, mode: 'insensitive' },
+							},
+						},
+					},
+				]
+			}
+
+			return prisma.stepCost.findMany({
+				where,
+				orderBy: { createdAt: 'desc' },
+				include: LIST_INCLUDE,
+			})
+		}),
+
+	byId: publicProcedure
+		.input(z.object({ id: z.number() }))
+		.query(async ({ input }) => {
+			return prisma.stepCost.findUnique({
+				where: { id: input.id },
+				include: LIST_INCLUDE,
+			})
+		}),
+
+	// Active communities, for the toolbar community dropdown
+	communities: publicProcedure.query(async () => {
+		return prisma.community.findMany({
+			where: { isActive: true },
+			select: { id: true, title: true },
+			orderBy: { title: 'asc' },
+		})
+	}),
+
 	byStepId: publicProcedure
 		.input(z.object({ stepId: z.number() }))
 		.query(async ({ input }) => {

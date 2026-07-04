@@ -26,11 +26,18 @@ const items = ref<MenuItem[]>([
     to: '/dash/community-resources',
     activeFor: ['/dash/community-resources'],
   },
+  { separator: true },
   {
     label: 'Stock Movements',
     icon: 'pi pi-arrow-right-arrow-left',
     to: '/dash/stock-movements',
     activeFor: ['/dash/stock-movements'],
+  },
+  {
+    label: 'Step Costs',
+    icon: 'pi pi-calculator',
+    to: '/dash/step-costs',
+    activeFor: ['/dash/step-costs'],
   },
 ])
 

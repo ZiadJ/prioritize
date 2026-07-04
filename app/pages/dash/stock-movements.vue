@@ -379,7 +379,13 @@ onMounted(async () => {
 			sortable
 			style="width: 15rem">
 			<template #body="{ data }">
-				<span>{{ data.stepCost?.title || '-' }}</span>
+				<NuxtLink
+					v-if="data.stepCost"
+					:to="`/dash/step-costs?id=${data.stepCost.id}`"
+					class="underline">
+					{{ data.stepCost.title }}
+				</NuxtLink>
+				<span v-else>-</span>
 			</template>
 		</Column>
 		<Column field="reason" header="Reason">
