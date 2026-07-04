@@ -12,6 +12,7 @@ const props = defineProps<{
 	approvedAt?: string | Date | null
 	netBenefit?: number
 	netFeasibility?: number
+	onCostsChanged?: () => void | Promise<void>
 }>()
 
 const visible = defineModel<boolean>('visible', { default: false })
@@ -128,7 +129,10 @@ function formatApprovalDate(value: string | Date | null | undefined) {
 			<Divider v-if="editMode && proposalId" align="left" class="-m-1">
 				Proposal Steps
 			</Divider>
-			<ProposalSteps v-if="editMode && proposalId" :proposalId="proposalId" />
+			<ProposalSteps
+				v-if="editMode && proposalId"
+				:proposalId="proposalId"
+				:onCostsChanged="onCostsChanged" />
 		</div>
 
 		<template #footer>

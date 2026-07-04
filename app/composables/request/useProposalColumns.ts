@@ -19,6 +19,7 @@ export interface ProposalColumn extends ColumnProps {
 	netBenefit?: number
 	netFeasibility?: number
 	approvedAt?: string | Date | null
+	createdAt?: string | Date | null
 	isDirty?: boolean
 	isLoading?: boolean
 	isActive?: boolean
@@ -221,7 +222,7 @@ export function useProposalColumns(
 		}
 	}
 
-	const renameProposal = (col: ProposalColumn) => {
+	const editProposal = (col: ProposalColumn) => {
 		editingColumn.value = col
 		formData.value = {
 			title: col.header || '',
@@ -263,6 +264,7 @@ export function useProposalColumns(
 				const col = columns.value.find(c => c.id === updated.id)
 				if (col) {
 					col.netBenefit = updated.netBenefit ?? 0
+					col.netFeasibility = updated.netFeasibility ?? 0
 				}
 			}
 			syncVisibleColumns()
@@ -284,7 +286,7 @@ export function useProposalColumns(
 		addProposal,
 		removeProposal,
 		updateProposal,
-		renameProposal,
+		editProposal,
 		saveProposalEdit,
 		onColumnVisibilityToggle,
 		refreshNetBenefits,

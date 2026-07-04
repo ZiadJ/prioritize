@@ -131,7 +131,7 @@ async function onSave() {
 
 <template>
 	<div class="step-cost-editor">
-		<div class="flex items-center justify-between mb-2">
+		<div class="flex items-center justify-between px-2">
 			<span
 				class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
 				Step Costs

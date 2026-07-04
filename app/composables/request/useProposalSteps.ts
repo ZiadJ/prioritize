@@ -49,6 +49,7 @@ export type StepInput = {
  */
 export function useProposalSteps(
 	proposalId: Ref<number | null | undefined>,
+	onCostsChanged?: () => void | Promise<void>,
 ) {
 	const { $trpcClient } = useNuxtApp()
 	const toast = usePausableToast()
@@ -240,6 +241,7 @@ export function useProposalSteps(
 				...input,
 			})
 			allCosts.value = [...allCosts.value, created as StepCostRow]
+			await onCostsChanged?.()
 			toast.add('Step cost added', created?.title)
 		} catch (e: any) {
 			toast.add('Failed to add step cost', e.message, 'error')
@@ -258,6 +260,7 @@ export function useProposalSteps(
 			allCosts.value = allCosts.value.map(c =>
 				c.id === id ? (updated as StepCostRow) : c,
 			)
+			await onCostsChanged?.()
 			toast.add('Step cost updated')
 		} catch (e: any) {
 			toast.add('Failed to update step cost', e.message, 'error')
@@ -279,6 +282,7 @@ export function useProposalSteps(
 				try {
 					await $trpcClient.stepCosts.delete.mutate({ id })
 					allCosts.value = allCosts.value.filter(c => c.id !== id)
+					await onCostsChanged?.()
 					toast.add('Step cost deleted', title)
 				} catch (e: any) {
 					toast.add('Failed to delete step cost', e.message, 'error')

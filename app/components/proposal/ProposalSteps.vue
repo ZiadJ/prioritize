@@ -7,6 +7,7 @@ import StepCostEditor from '@/components/proposal/StepCostEditor.vue'
 
 const props = defineProps<{
 	proposalId: number
+	onCostsChanged?: () => void | Promise<void>
 }>()
 
 const proposalIdRef = computed(() => props.proposalId)
@@ -23,10 +24,10 @@ const {
 	addCost,
 	updateCost,
 	removeCost,
-} = useProposalSteps(proposalIdRef)
+} = useProposalSteps(proposalIdRef, props.onCostsChanged)
 
 // Rows expanded to reveal their StepCost editor.
-const expandedRows = ref<StepNode[]>([])
+const expandedRows = ref<Record<string, boolean>>({})
 
 // The execution-order badge is derived from the current display order so it
 // tracks drag-and-drop reordering immediately.
@@ -82,6 +83,15 @@ async function saveEdit() {
 	editingId.value = null
 }
 
+function toggleExpand(row: StepNode) {
+	if (editingId.value === row.id) return
+	if (expandedRows.value[row.id]) {
+		delete expandedRows.value[row.id]
+	} else {
+		expandedRows.value[row.id] = true
+	}
+}
+
 // DataTable row reorder: persist the new execution order.
 function onRowReorder(event: { value: StepNode[] }) {
 	reorder(event.value.map(s => s.id))
@@ -102,12 +112,17 @@ function onRowReorder(event: { value: StepNode[] }) {
 			:showHeaders="false"
 			:showGridlines="false"
 			rowHover>
-			<Column :rowReorder="true" headerClass="!p-0" bodyClass="!p-0 !pt-[3px]" />
+			<Column
+				:rowReorder="true"
+				headerClass="!p-0"
+				bodyClass="!p-0 !pt-[3px]" />
 			<Column expander headerClass="!p-0" bodyClass="!p-0 !pl-[1rem]" />
 
 			<Column field="title" header="Step" style="min-width: 16rem">
 				<template #body="{ data }">
-					<div class="flex items-start gap-2 w-full">
+					<div
+						class="flex items-start gap-2 w-full cursor-pointer select-none"
+						@click="toggleExpand(data)">
 						<!-- <span class="step-badge shrink-0">
 							{{ positionById.get(data.id) }}
 						</span> -->
@@ -211,60 +226,60 @@ function onRowReorder(event: { value: StepNode[] }) {
 				</template>
 			</Column>
 
-		<template #expansion="{ data }">
-			<div class="step-cost-panel">
-				<StepCostEditor
-					:stepId="data.id"
-					:costs="costsByStepId.get(data.id) ?? []"
-					:communityResources="communityResources"
-					:saving="saving"
-					:create="(input) => addCost(data.id, input)"
-					:update="updateCost"
-					:remove="removeCost" />
-			</div>
-		</template>
+			<template #expansion="{ data }">
+				<div class="-mt-2 ml-6">
+					<StepCostEditor
+						:stepId="data.id"
+						:costs="costsByStepId.get(data.id) ?? []"
+						:communityResources="communityResources"
+						:saving="saving"
+						:create="input => addCost(data.id, input)"
+						:update="updateCost"
+						:remove="removeCost" />
+				</div>
+			</template>
 
-		<template #empty>
-			<div class="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
-				No steps yet.
-			</div>
-		</template>
-	</DataTable>
+			<template #empty>
+				<div class="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
+					No steps yet.
+				</div>
+			</template>
+		</DataTable>
 
-	<div class="mt-2 flex justify-end">
-		<Button
-			label="Add step"
-			icon="pi pi-plus"
-			size="small"
-			@click="openAddDialog" />
-	</div>
+		<div class="mt-2 flex justify-end">
+			<Button
+				label="Add step"
+				icon="pi pi-plus"
+				size="small"
+				@click="openAddDialog" />
+		</div>
 
-	<Dialog
-		v-model:visible="addDialogVisible"
-		header="Add Step"
-		:modal="true"
-		dismissableMask
-		:style="{ width: '480px' }"
-		:breakpoints="{ '520px': '95vw' }"
-		show-effect="fadeIn"
-		hide-effect="fadeOut">
-		<div class="flex flex-col gap-2 pt-1">
-			<div class="form-field !mb-0">
-				<label class="!text-xs">Step title *</label>
-				<InputText
-					v-model="newTitle"
-					placeholder="New step title"
-					@keydown.enter="onAdd" />
-			</div>
-			<div class="form-field !mb-0">
-				<label class="!text-xs">Description</label>
-				<Textarea
-					v-model="newDescription"
-					rows="2"
-					autoResize
-					placeholder="Description (optional)" />
-			</div>
-			<!-- <div class="form-field !mb-0">
+		<Dialog
+			v-model:visible="addDialogVisible"
+			header="Add Step"
+			:modal="true"
+			dismissableMask
+			:style="{ width: '480px' }"
+			:breakpoints="{ '520px': '95vw' }"
+			show-effect="fadeIn"
+			hide-effect="fadeOut">
+			<div class="flex flex-col gap-2 pt-1">
+				<div class="form-field !mb-0">
+					<label class="!text-xs">Step title *</label>
+					<InputText
+						v-model="newTitle"
+						placeholder="New step title"
+						@keydown.enter="onAdd" />
+				</div>
+				<div class="form-field !mb-0">
+					<label class="!text-xs">Description</label>
+					<Textarea
+						v-model="newDescription"
+						rows="2"
+						autoResize
+						placeholder="Description (optional)" />
+				</div>
+				<!-- <div class="form-field !mb-0">
 				<label class="!text-xs">Duration (days)</label>
 				<InputNumber
 					v-model="newDuration"
@@ -272,22 +287,22 @@ function onRowReorder(event: { value: StepNode[] }) {
 					showButtons
 					:maxFractionDigits="2" />
 			</div> -->
-		</div>
-
-		<template #footer>
-			<div class="flex justify-end gap-2">
-				<Button label="Cancel" text @click="addDialogVisible = false" />
-				<Button
-					label="Add"
-					icon="pi pi-plus"
-					size="small"
-					:loading="saving"
-					:disabled="!newTitle.trim()"
-					@click="onAdd" />
 			</div>
-		</template>
-	</Dialog>
-</div>
+
+			<template #footer>
+				<div class="flex justify-end gap-2">
+					<Button label="Cancel" text @click="addDialogVisible = false" />
+					<Button
+						label="Add"
+						icon="pi pi-plus"
+						size="small"
+						:loading="saving"
+						:disabled="!newTitle.trim()"
+						@click="onAdd" />
+				</div>
+			</template>
+		</Dialog>
+	</div>
 </template>
 
 <style scoped>
@@ -307,9 +322,5 @@ function onRowReorder(event: { value: StepNode[] }) {
 
 .steps-table :deep(.p-datatable-tbody > tr > td) {
 	vertical-align: top;
-}
-
-.step-cost-panel {
-	padding: 0.5rem 0.25rem;
 }
 </style>

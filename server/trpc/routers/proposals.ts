@@ -179,7 +179,7 @@ export const proposalsRouter = router({
 		.query(async ({ input }) => {
 			return prisma.proposal.findMany({
 				where: { requestId: input.requestId },
-				select: { id: true, netBenefit: true },
+				select: { id: true, netBenefit: true, netFeasibility: true },
 			})
 		}),
 

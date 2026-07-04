@@ -9,7 +9,7 @@ import type {
 	TreeTableExpandedKeys,
 } from 'primevue/treetable'
 import { ref, reactive, onMounted, computed, type Ref } from 'vue'
-import { useWindowSize, useStyleTag } from '@vueuse/core'
+import { useWindowSize, useStyleTag, useLocalStorage } from '@vueuse/core'
 
 import Feedback from '@/components/proposal/Feedback.vue'
 import ProposalFormDialog from '@/components/proposal/ProposalFormDialog.vue'
@@ -36,6 +36,8 @@ const route = useRoute()
 
 const searchFilters = ref({ global: '' })
 const selectedExpertiseFilter = ref<number | null>(null)
+
+const hasOnceEditedProposal = useLocalStorage('hasOnceEditedProposal', false)
 
 const treeTable = useTemplateRef('treeTable')
 
@@ -115,7 +117,7 @@ const {
 	editingColumn,
 	openCreateForm: openCreateProposalForm,
 	addProposal,
-	renameProposal,
+	editProposal,
 	removeProposal,
 	saveProposalEdit,
 	onColumnVisibilityToggle,
@@ -219,6 +221,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 						: '#00000010'
 					const styleContent = `
 						:is(td, th):has(.${proposalKeyClass}) { background: ${color}; transition: background 250ms; }
+						th .${proposalKeyClass} > div { text-decoration: underline }
 						/* th .${proposalKeyClass} .net-benefit { opacity: 1 } */
 					`
 					useStyleTag(styleContent, { id: 'proposal-column-highlight' })
@@ -254,6 +257,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			:approvedAt="editingColumn?.approvedAt"
 			:netBenefit="editingColumn?.netBenefit"
 			:netFeasibility="editingColumn?.netFeasibility"
+			:onCostsChanged="refreshNetBenefits"
 			@save="proposalFormEditMode ? saveProposalEdit() : addProposal()"
 			@delete="editingColumn && removeProposal(editingColumn)" />
 		<RequestNodeFormDialog
@@ -466,17 +470,26 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 				<template #header>
 					<div
 						class="w-full h-full cursor-pointer"
-						v-tooltip.top="'Click to edit'"
+						v-tooltip.top="hasOnceEditedProposal ? undefined : 'Click to edit'"
 						:class="'hover-info proposal_key_' + col.columnKey">
 						<div
 							class="!whitespace-normal py-2 px-3"
-							@click="renameProposal(col)">
+							@click="editProposal(col); hasOnceEditedProposal = true">
 							{{ col.header }}
 						</div>
 						<span
-							class="net-benefit absolute top-1 right-1 h-[1.5rem] px-[0.5rem] rounded-full bg-primary-600 text-white text-[0.7rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-							v-tooltip.left="'Net Benefit: ' + (col.netBenefit ?? 0)">
-							{{ col.netBenefit ?? 0 }}
+							class="impact-score absolute top-1 right-1 h-[1.5rem] px-[0.5rem] rounded-full bg-primary-600 text-white text-[0.7rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+							v-tooltip.left="{
+								value: `Net Benefit: ${col.netBenefit ?? 0}
+								\nNet Feasibility: ${formatNumber((col.netFeasibility ?? 0) * 100, 0)}%
+								\nImpact Score: ${formatNumber((col.netBenefit ?? 0) * (col.netFeasibility ?? 0), 0)}`
+							}">
+							{{
+								formatNumber(
+									(col.netBenefit ?? 0) * (col.netFeasibility ?? 0),
+									0,
+								)
+							}}
 						</span>
 					</div>
 					<span
