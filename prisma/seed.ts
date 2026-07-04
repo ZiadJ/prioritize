@@ -974,7 +974,7 @@ async function main() {
 	) {
 		await Promise.all(
 			steps.map(step =>
-				prisma.stepNode.create({
+				prisma.step.create({
 					data: {
 						title: step.title,
 						description: step.description,

@@ -240,7 +240,7 @@ model User {
   countryId   Int?
 
   expertise         ExpertiseNode[]
-  assginedSteps     StepNode[]
+  assginedSteps     Step[]
   feedback          Feedback[]
   revisions         RevisionNode[]
   tags              Tag[]
@@ -253,8 +253,8 @@ model User {
   ownedRequestNodes    RequestNode[] @relation("RequestNodeOwner")
   editableProposals    Proposal[]    @relation("ProposalEditors")
   ownedProposals       Proposal[]    @relation("ProposalOwner")
-  editableStepNodes    StepNode[]    @relation("StepNodeEditors")
-  ownedStepNodes       StepNode[]    @relation("StepNodeOwner")
+  editableSteps    Step[]    @relation("StepEditors")
+  ownedSteps       Step[]    @relation("StepOwner")
   editableStepCosts    StepCost[]    @relation("StepCostEditors")
   ownedStepCosts       StepCost[]    @relation("StepCostOwner")
   editableResources    Resource[]    @relation("ResourceEditors")
@@ -320,7 +320,7 @@ model RevisionNode {
   requestNodeId   Int?
   proposal        Proposal?      @relation(fields: [proposalId], references: [id], onDelete: Cascade)
   proposalId      Int?
-  Step            StepNode?      @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  Step            Step?      @relation(fields: [stepId], references: [id], onDelete: Cascade)
   stepId          Int?
   stepCost        StepCost?      @relation(fields: [stepCostId], references: [id], onDelete: Cascade)
   stepCostId      Int?
@@ -378,7 +378,7 @@ model Tag {
   request     Request[]
   requestNode RequestNode[]
   proposal    Proposal[]
-  step        StepNode[]
+  step        Step[]
   stepCost    StepCost[]
   effect      Effect[]
   resource    Resource[]
@@ -583,7 +583,7 @@ model Proposal {
 
   requestNodeImpact     Feedback[] // Voted feedback from experts based on the related interests
   tags                  Tag[]
-  stepNodes             StepNode[]
+  steps             Step[]
   assignedCognitiveBias AssignedCognitiveBias[]
 
   owner   User   @relation("ProposalOwner", fields: [ownerId], references: [id])
@@ -593,7 +593,7 @@ model Proposal {
 
 // An action task which is referenced by proposals in relatio to a request
 // NB: The node fields are commented in this early version for the sake of simplicity
-model StepNode {
+model Step {
   id         Int      @id @default(autoincrement())
   modifiedAt DateTime @updatedAt
   createdAt  DateTime @default(now())
@@ -607,9 +607,9 @@ model StepNode {
   // path     String     @unique
   // depth    Int        @default(0)
   // numchild Int        @default(0)
-  // parent   StepNode?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  // parent   Step?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
   // parentId Int?
-  // children StepNode[] @relation("Self")
+  // children Step[] @relation("Self")
 
   position Int @default(0)
 
@@ -624,9 +624,9 @@ model StepNode {
   AssignedUsers User[]
   tags          Tag[]
 
-  owner      User      @relation("StepNodeOwner", fields: [ownerId], references: [id])
+  owner      User      @relation("StepOwner", fields: [ownerId], references: [id])
   ownerId    String
-  editors    User[]    @relation("StepNodeEditors")
+  editors    User[]    @relation("StepEditors")
   resource   Resource? @relation(fields: [resourceId], references: [id])
   resourceId Int?
 
@@ -652,8 +652,8 @@ model StepCost {
   communityResource         CommunityResource        @relation(fields: [communityResourceId], references: [id])
   communityResourceId       Int
 
-  stepNode   StepNode? @relation(fields: [stepNodeId], references: [id])
-  stepNodeId Int?
+  step   Step? @relation(fields: [stepId], references: [id])
+  stepId Int?
 
   measurementType MeasurementType
   quantity        Float // A negative value denotes a production output rather than a cost
@@ -670,7 +670,7 @@ model StepCost {
   ownerId String
   editors User[] @relation("StepCostEditors")
 
-  // @@unique([stepNodeId])
+  // @@unique([stepId])
 }
 
 // Availability of a specific resource used or produced in 
@@ -699,7 +699,7 @@ model Resource {
 
   // components ResourceCostPerUnitNode[] // "used as ingredient in these BOMs"
 
-  // stepsPerAdditionalRenewalCapacity StepNode[] //
+  // stepsPerAdditionalRenewalCapacity Step[] //
   tags           Tag[]
   localResources CommunityResource[]
 
@@ -707,7 +707,7 @@ model Resource {
   owner     User       @relation("ResourceOwner", fields: [ownerId], references: [id])
   ownerId   String
   editors   User[]     @relation("ResourceEditors")
-  stepNodes StepNode[]
+  steps Step[]
 
   resourceCostPerUnitNodes ResourceCostPerUnitNode[]
 }
@@ -841,7 +841,7 @@ model Effect {
   relationType    RelationType
   relationFormula String
 
-  steps    StepNode[]
+  steps    Step[]
   feedback Feedback[]
   tags     Tag[]
 

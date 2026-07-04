@@ -11,7 +11,7 @@ export interface StepCostRow {
 	title: string
 	description: string
 	isActive: boolean
-	stepNodeId: number
+	stepId: number
 	communityResourceId: number
 	measurementType: MeasurementType
 	quantity: number

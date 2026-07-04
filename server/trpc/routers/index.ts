@@ -7,7 +7,7 @@ import { resourcesRouter } from './resources'
 import { communityResourcesRouter } from './communityResources'
 import { feedbackRouter } from './feedback'
 import { expertiseRouter } from './expertise'
-import { stepNodesRouter } from './stepNodes'
+import { stepsRouter } from './steps'
 import { stepCostsRouter } from './stepCosts'
 import { stockMovementsRouter } from './stockMovements'
 
@@ -19,7 +19,7 @@ export const appRouter = router({
 	communityResources: communityResourcesRouter,
 	feedback: feedbackRouter,
 	expertise: expertiseRouter,
-	stepNodes: stepNodesRouter,
+	steps: stepsRouter,
 	stepCosts: stepCostsRouter,
 	stockMovements: stockMovementsRouter,
 })

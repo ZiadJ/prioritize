@@ -1,9 +1,9 @@
 import { z } from 'zod'
 import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
-import { StepNodeSchema } from '~~/prisma/generated/zod/schemas/models/StepNode.schema'
+import { StepSchema } from '~~/prisma/generated/zod/schemas/models/Step.schema'
 
-const createInput = StepNodeSchema.pick({
+const createInput = StepSchema.pick({
 	proposalId: true,
 	title: true,
 	description: true,
@@ -15,7 +15,11 @@ const createInput = StepNodeSchema.pick({
 
 const updateInput = createInput.partial().extend({ id: z.number() })
 
-export async function assertCanEditProposal(userId: string, role: string | undefined, proposalId: number) {
+export async function assertCanEditProposal(
+	userId: string,
+	role: string | undefined,
+	proposalId: number,
+) {
 	const proposal = await prisma.proposal.findUnique({
 		where: { id: proposalId },
 		include: { editors: true },
@@ -31,11 +35,11 @@ export async function assertCanEditProposal(userId: string, role: string | undef
 	return proposal
 }
 
-export const stepNodesRouter = router({
+export const stepsRouter = router({
 	byProposalId: publicProcedure
 		.input(z.object({ proposalId: z.number() }))
 		.query(async ({ input }) => {
-			return prisma.stepNode.findMany({
+			return prisma.step.findMany({
 				where: { proposalId: input.proposalId },
 				orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
 			})
@@ -48,12 +52,12 @@ export const stepNodesRouter = router({
 		.input(z.object({ proposalId: z.number() }))
 		.query(async ({ input }) => {
 			const [steps, costs, communityResources] = await Promise.all([
-				prisma.stepNode.findMany({
+				prisma.step.findMany({
 					where: { proposalId: input.proposalId },
 					orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
 				}),
 				prisma.stepCost.findMany({
-					where: { stepNode: { proposalId: input.proposalId } },
+					where: { step: { proposalId: input.proposalId } },
 					include: {
 						communityResource: { include: { resource: true } },
 					},
@@ -76,13 +80,13 @@ export const stepNodesRouter = router({
 			await assertCanEditProposal(userId, ctx.user!.role, input.proposalId)
 
 			// Append at the end of the series
-			const lastPosition = await prisma.stepNode.aggregate({
+			const lastPosition = await prisma.step.aggregate({
 				where: { proposalId: input.proposalId },
 				_max: { position: true },
 			})
 			const position = (lastPosition._max.position ?? 0) + 1
 
-			return prisma.stepNode.create({
+			return prisma.step.create({
 				data: {
 					title: input.title,
 					description: input.description,
@@ -102,7 +106,7 @@ export const stepNodesRouter = router({
 		.mutation(async ({ ctx, input }) => {
 			const { id, ...patch } = input as z.infer<typeof updateInput>
 
-			const existing = await prisma.stepNode.findUnique({
+			const existing = await prisma.step.findUnique({
 				where: { id },
 				include: { editors: true },
 			})
@@ -114,16 +118,16 @@ export const stepNodesRouter = router({
 				ctx.user!.role === 'admin'
 			if (!canEdit) throw new Error('Not authorized to edit this step')
 
-			return prisma.stepNode.update({
+			return prisma.step.update({
 				where: { id },
-				data: patch as Prisma.StepNodeUpdateInput,
+				data: patch as Prisma.StepUpdateInput,
 			})
 		}),
 
 	delete: protectedProcedure
 		.input(z.object({ id: z.number() }))
 		.mutation(async ({ ctx, input }) => {
-			const existing = await prisma.stepNode.findUnique({
+			const existing = await prisma.step.findUnique({
 				where: { id: input.id },
 				include: { editors: true },
 			})
@@ -137,7 +141,7 @@ export const stepNodesRouter = router({
 
 			// onDelete: Cascade removes the step from its proposal. Remaining
 			// steps keep their positions (gaps are harmless for ordered reads).
-			return prisma.stepNode.delete({ where: { id: input.id } })
+			return prisma.step.delete({ where: { id: input.id } })
 		}),
 
 	// Re-assigns the `position` of every step in a proposal to match the
@@ -160,20 +164,20 @@ export const stepNodesRouter = router({
 
 			await prisma.$transaction(async tx => {
 				for (let i = 0; i < input.orderedStepIds.length; i++) {
-					await tx.stepNode.update({
+					await tx.step.update({
 						where: { id: input.orderedStepIds[i] },
 						data: { position: i + 1_000_000 },
 					})
 				}
 				for (let i = 0; i < input.orderedStepIds.length; i++) {
-					await tx.stepNode.update({
+					await tx.step.update({
 						where: { id: input.orderedStepIds[i] },
 						data: { position: i + 1 },
 					})
 				}
 			})
 
-			return prisma.stepNode.findMany({
+			return prisma.step.findMany({
 				where: { proposalId: input.proposalId },
 				orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
 			})

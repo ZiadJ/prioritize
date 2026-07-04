@@ -90,14 +90,14 @@ export const stockMovementsRouter = router({
 	// for a movement once its proposal is approved
 	stepCosts: publicProcedure.query(async () => {
 		return prisma.stepCost.findMany({
-			where: { stepNode: { proposal: { approvedAt: { not: null } } } },
+			where: { step: { proposal: { approvedAt: { not: null } } } },
 			orderBy: { id: 'asc' },
 			select: {
 				id: true,
 				title: true,
 				quantity: true,
 				communityResourceId: true,
-				stepNode: {
+				step: {
 					select: {
 						id: true,
 						title: true,

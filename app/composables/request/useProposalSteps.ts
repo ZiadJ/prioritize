@@ -1,5 +1,5 @@
 import { ref, computed, watch, shallowRef, type Ref } from 'vue'
-import type { StepNode } from '~~/prisma/generated/interfaces'
+import type { Step } from '~~/prisma/generated/interfaces'
 import type {
 	StepCostRow,
 	StepCostInput,
@@ -9,7 +9,7 @@ import type {
 
 /**
  * Shallow view of a step node. We deliberately avoid embedding the full
- * recursive `StepNode` (mutually recursive with `Proposal`) into the
+ * recursive `Step` (mutually recursive with `Proposal`) into the
  * TreeTable node data to keep type resolution shallow.
  */
 export interface StepData {
@@ -55,8 +55,8 @@ export function useProposalSteps(
 	const toast = usePausableToast()
 	const confirm = useConfirm()
 
-	// shallowRef avoids deep-unwrapping the recursive StepNode type
-	const steps = shallowRef<StepNode[]>([])
+	// shallowRef avoids deep-unwrapping the recursive Step type
+	const steps = shallowRef<Step[]>([])
 	const allCosts = shallowRef<StepCostRow[]>([])
 	const communityResources = shallowRef<CommunityResourceOption[]>([])
 	const loading = ref(false)
@@ -71,10 +71,10 @@ export function useProposalSteps(
 		}
 		loading.value = true
 		try {
-			const data = await $trpcClient.stepNodes.byProposalIdWithCosts.query({
+			const data = await $trpcClient.steps.byProposalIdWithCosts.query({
 				proposalId: id,
 			})
-			steps.value = data.steps as StepNode[]
+			steps.value = data.steps as Step[]
 			allCosts.value = data.costs as StepCostRow[]
 			communityResources.value =
 				data.communityResources as CommunityResourceOption[]
@@ -87,18 +87,16 @@ export function useProposalSteps(
 
 	watch(proposalId, load, { immediate: true })
 
-	const treeNodes = computed(() =>
-		steps.value.map(step => buildTreeNode(step)),
-	)
+	const treeNodes = computed(() => steps.value.map(step => buildTreeNode(step)))
 
 	// Groups every preloaded cost under its step so each StepCostEditor can
 	// read its slice synchronously (no per-row fetch on expand).
 	const costsByStepId = computed(() => {
 		const map = new Map<number, StepCostRow[]>()
 		for (const c of allCosts.value) {
-			const list = map.get(c.stepNodeId)
+			const list = map.get(c.stepId)
 			if (list) list.push(c)
-			else map.set(c.stepNodeId, [c])
+			else map.set(c.stepId, [c])
 		}
 		return map
 	})
@@ -109,7 +107,7 @@ export function useProposalSteps(
 	 * a flat list. Parallel branches will nest here once the UI supports
 	 * them — derived from the StepLink edges, not a stored `children` field.
 	 */
-	function buildTreeNode(step: StepNode): StepTreeNode {
+	function buildTreeNode(step: Step): StepTreeNode {
 		return {
 			key: String(step.id),
 			data: {
@@ -125,10 +123,10 @@ export function useProposalSteps(
 	async function reload() {
 		const id = proposalId.value
 		if (!id) return
-		const data = await $trpcClient.stepNodes.byProposalIdWithCosts.query({
+		const data = await $trpcClient.steps.byProposalIdWithCosts.query({
 			proposalId: id,
 		})
-		steps.value = data.steps as StepNode[]
+		steps.value = data.steps as Step[]
 		allCosts.value = data.costs as StepCostRow[]
 		communityResources.value =
 			data.communityResources as CommunityResourceOption[]
@@ -140,7 +138,7 @@ export function useProposalSteps(
 
 		saving.value = true
 		try {
-			const created = await $trpcClient.stepNodes.create.mutate({
+			const created = await $trpcClient.steps.create.mutate({
 				proposalId: id,
 				title: input.title.trim(),
 				description: input.description?.trim() ?? '',
@@ -168,7 +166,7 @@ export function useProposalSteps(
 	) {
 		saving.value = true
 		try {
-			await $trpcClient.stepNodes.update.mutate({ id, ...patch })
+			await $trpcClient.steps.update.mutate({ id, ...patch })
 			await reload()
 			toast.add('Step updated')
 		} catch (e: any) {
@@ -187,7 +185,7 @@ export function useProposalSteps(
 			acceptClass: 'p-button-danger',
 			accept: async () => {
 				try {
-					await $trpcClient.stepNodes.delete.mutate({ id: step.id })
+					await $trpcClient.steps.delete.mutate({ id: step.id })
 					await reload()
 					toast.add('Step deleted', step.title)
 				} catch (e: any) {
@@ -202,22 +200,22 @@ export function useProposalSteps(
 	 *
 	 * The local list is reordered optimistically (preserving object refs so
 	 * the table's row identity holds), then the new positions are written
-	 * via the `stepNodes.reorder` mutation and reconciled from the server.
+	 * via the `steps.reorder` mutation and reconciled from the server.
 	 */
 	async function reorder(orderedIds: number[]) {
 		const id = proposalId.value
 		if (!id || !orderedIds.length) return
 
-		const byId = new Map<number, StepNode>()
+		const byId = new Map<number, Step>()
 		for (const s of steps.value) byId.set(s.id, s)
 		const optimistic = orderedIds
 			.map(sid => byId.get(sid))
-			.filter((s): s is StepNode => !!s)
+			.filter((s): s is Step => !!s)
 		if (optimistic.length) steps.value = optimistic
 
 		saving.value = true
 		try {
-			const reordered = await $trpcClient.stepNodes.reorder.mutate({
+			const reordered = await $trpcClient.steps.reorder.mutate({
 				proposalId: id,
 				orderedStepIds: orderedIds,
 			})
@@ -233,11 +231,11 @@ export function useProposalSteps(
 	// --- Step cost mutations: operate on the shared `allCosts` store so the
 	// list stays consistent across expand/collapse of the step row. ---
 
-	async function addCost(stepNodeId: number, input: StepCostInput) {
+	async function addCost(stepId: number, input: StepCostInput) {
 		saving.value = true
 		try {
 			const created = await $trpcClient.stepCosts.create.mutate({
-				stepNodeId,
+				stepId,
 				...input,
 			})
 			allCosts.value = [...allCosts.value, created as StepCostRow]

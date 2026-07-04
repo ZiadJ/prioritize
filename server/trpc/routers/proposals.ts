@@ -55,7 +55,7 @@ export const proposalsRouter = router({
 			return prisma.proposal.findMany({
 				where,
 				include: {
-					stepNodes: true,
+					steps: true,
 					tags: true,
 					owner: true,
 					editors: true,
@@ -70,7 +70,7 @@ export const proposalsRouter = router({
 			return prisma.proposal.findUnique({
 				where: { id: input.id },
 				include: {
-					stepNodes: true,
+					steps: true,
 					tags: true,
 					owner: true,
 					editors: true,
@@ -86,7 +86,7 @@ export const proposalsRouter = router({
 			return prisma.proposal.findMany({
 				where: { requestId: input.requestId },
 				include: {
-					stepNodes: true,
+					steps: true,
 					tags: true,
 				},
 				orderBy: { createdAt: 'desc' },
@@ -116,7 +116,7 @@ export const proposalsRouter = router({
 			const proposal = await prisma.proposal.create({
 				data,
 				include: {
-					stepNodes: true,
+					steps: true,
 					tags: true,
 					owner: true,
 				},

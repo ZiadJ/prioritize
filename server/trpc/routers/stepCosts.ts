@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
 import { StepCostSchema } from '~~/prisma/generated/zod/schemas/models/StepCost.schema'
-import { assertCanEditProposal } from './stepNodes'
+import { assertCanEditProposal } from './steps'
 
 const COST_INCLUDE = {
 	communityResource: { include: { resource: true } },
@@ -17,9 +17,9 @@ const createInput = StepCostSchema.pick({
 	quantity: true,
 	quantityMargin: true,
 	monetaryValue: true,
-	stepNodeId: true,
+	stepId: true,
 }).extend({
-	stepNodeId: z.number().int(),
+	stepId: z.number().int(),
 })
 
 const updateInput = createInput.partial().extend({ id: z.number() })
@@ -36,7 +36,7 @@ async function updateProposalNetFeasibility(proposalId: number) {
 	const proposal = await prisma.proposal.findUnique({
 		where: { id: proposalId },
 		include: {
-			stepNodes: {
+			steps: {
 				include: {
 					costs: {
 						include: { communityResource: true },
@@ -49,8 +49,8 @@ async function updateProposalNetFeasibility(proposalId: number) {
 	let netFeasibility = 1
 
 	if (proposal) {
-		for (const stepNode of proposal.stepNodes) {
-			for (const stepCost of stepNode.costs) {
+		for (const step of proposal.steps) {
+			for (const stepCost of step.costs) {
 				const availability = stepCost.communityResource.quantity
 				if (availability > 0) {
 					// Available Qty = Stock Qty +Renewal RateTime
@@ -68,11 +68,11 @@ async function updateProposalNetFeasibility(proposalId: number) {
 }
 
 export const stepCostsRouter = router({
-	byStepNodeId: publicProcedure
-		.input(z.object({ stepNodeId: z.number() }))
+	byStepId: publicProcedure
+		.input(z.object({ stepId: z.number() }))
 		.query(async ({ input }) => {
 			return prisma.stepCost.findMany({
-				where: { stepNodeId: input.stepNodeId },
+				where: { stepId: input.stepId },
 				include: COST_INCLUDE,
 				orderBy: { createdAt: 'asc' },
 			})
@@ -82,8 +82,8 @@ export const stepCostsRouter = router({
 		.input(createInput)
 		.mutation(async ({ ctx, input: raw }) => {
 			const input = raw as z.infer<typeof createInput>
-			const step = await prisma.stepNode.findUnique({
-				where: { id: input.stepNodeId },
+			const step = await prisma.step.findUnique({
+				where: { id: input.stepId },
 				select: { proposalId: true },
 			})
 			if (!step) throw new Error('Step not found')
@@ -99,7 +99,7 @@ export const stepCostsRouter = router({
 					monetaryValue: input.monetaryValue,
 					consumedAt: new Date(),
 					communityResource: { connect: { id: input.communityResourceId } },
-					stepNode: { connect: { id: input.stepNodeId } },
+					step: { connect: { id: input.stepId } },
 					owner: { connect: { id: ctx.user!.id } },
 				},
 				include: COST_INCLUDE,
@@ -116,11 +116,11 @@ export const stepCostsRouter = router({
 
 			const existing = await prisma.stepCost.findUnique({
 				where: { id },
-				include: { stepNode: { select: { proposalId: true } } },
+				include: { step: { select: { proposalId: true } } },
 			})
 			if (!existing) throw new Error('Step cost not found')
 
-			const proposalId = existing.stepNode?.proposalId
+			const proposalId = existing.step?.proposalId
 			if (!proposalId) throw new Error('Associated step not found')
 			await assertCanEditProposal(ctx.user!.id, ctx.user!.role, proposalId)
 
@@ -154,11 +154,11 @@ export const stepCostsRouter = router({
 		.mutation(async ({ ctx, input }) => {
 			const existing = await prisma.stepCost.findUnique({
 				where: { id: input.id },
-				include: { stepNode: { select: { proposalId: true } } },
+				include: { step: { select: { proposalId: true } } },
 			})
 			if (!existing) throw new Error('Step cost not found')
 
-			const proposalId = existing.stepNode?.proposalId
+			const proposalId = existing.step?.proposalId
 			if (!proposalId) throw new Error('Associated step not found')
 			await assertCanEditProposal(ctx.user!.id, ctx.user!.role, proposalId)
 

@@ -135,7 +135,7 @@ const stockEntryOptions = computed(() =>
 )
 
 const stepCostLabel = (sc: StepCostOption) =>
-	`${sc.title} — ${sc.stepNode?.proposal?.title ?? 'Proposal'}`
+	`${sc.title} — ${sc.step?.proposal?.title ?? 'Proposal'}`
 
 const openNewDialog = () => {
 	direction.value = 'add'

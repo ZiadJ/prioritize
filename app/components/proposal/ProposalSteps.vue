@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { StepNode } from '~~/prisma/generated/interfaces'
+import type { Step } from '~~/prisma/generated/interfaces'
 import type { StepData } from '~/composables/request/useProposalSteps'
 import { useProposalSteps } from '~/composables/request/useProposalSteps'
 import StepCostEditor from '@/components/proposal/StepCostEditor.vue'
@@ -83,7 +83,7 @@ async function saveEdit() {
 	editingId.value = null
 }
 
-function toggleExpand(row: StepNode) {
+function toggleExpand(row: Step) {
 	if (editingId.value === row.id) return
 	if (expandedRows.value[row.id]) {
 		delete expandedRows.value[row.id]
@@ -93,7 +93,7 @@ function toggleExpand(row: StepNode) {
 }
 
 // DataTable row reorder: persist the new execution order.
-function onRowReorder(event: { value: StepNode[] }) {
+function onRowReorder(event: { value: Step[] }) {
 	reorder(event.value.map(s => s.id))
 }
 </script>
