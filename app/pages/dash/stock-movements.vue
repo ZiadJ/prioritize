@@ -5,9 +5,7 @@ import { MeasurementType } from '~~/prisma/generated/client/enums'
 import type { inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from '~~/server/trpc/routers'
 
-type StockMovementRouterOutput = inferRouterOutputs<
-	AppRouter
->['stockMovements']
+type StockMovementRouterOutput = inferRouterOutputs<AppRouter>['stockMovements']
 type StockMovement = StockMovementRouterOutput['list'][number]
 type CommunityResourceOption =
 	StockMovementRouterOutput['communityResources'][number]
@@ -80,7 +78,9 @@ const measurementType = computed<MeasurementType>(
 		selectedResource.value?.resource?.measurementType ?? MeasurementType.None,
 )
 const signedQuantity = computed(() =>
-	direction.value === 'remove' ? -Math.abs(amount.value) : Math.abs(amount.value),
+	direction.value === 'remove'
+		? -Math.abs(amount.value)
+		: Math.abs(amount.value),
 )
 const previewAfter = computed(
 	() => currentQuantity.value + signedQuantity.value,
@@ -94,9 +94,8 @@ const destinationCommunityOptions = computed(() =>
 )
 const destinationCommunityTitle = computed(
 	() =>
-		allCommunities.value.find(
-			c => c.id === destinationCommunityId.value,
-		)?.title ?? '—',
+		allCommunities.value.find(c => c.id === destinationCommunityId.value)
+			?.title ?? '—',
 )
 // Same resource already present in the destination community, if any
 const destinationResource = computed(() => {
@@ -135,9 +134,7 @@ const stepCostOptions = computed(() =>
 // when the same resource exists across multiple communities
 const stockEntryOptions = computed(() =>
 	stockCommunityId.value
-		? allResources.value.filter(
-				r => r.community?.id === stockCommunityId.value,
-			)
+		? allResources.value.filter(r => r.community?.id === stockCommunityId.value)
 		: allResources.value,
 )
 
@@ -171,10 +168,7 @@ const saveMovement = async () => {
 			return
 		}
 		if (destinationCommunityId.value === selectedResource.value.community?.id) {
-			toast.add(
-				'Warning',
-				'Destination community must differ from the source',
-			)
+			toast.add('Warning', 'Destination community must differ from the source')
 			return
 		}
 
@@ -296,27 +290,41 @@ onMounted(async () => {
 				<span>{{ new Date(data.createdAt).toLocaleDateString() }}</span>
 			</template>
 		</Column>
-		<Column field="resource.resource.title" header="Resource" sortable style="width: 20rem">
+		<Column
+			field="resource.resource.title"
+			header="Resource"
+			sortable
+			style="width: 20rem">
 			<template #body="{ data }">
 				<span class="font-medium">{{
 					data.resource?.resource?.title || '-'
 				}}</span>
 			</template>
 		</Column>
-		<Column field="resource.community.title" header="Community" sortable style="width: 8rem">
+		<Column
+			field="resource.community.title"
+			header="Community"
+			sortable
+			style="width: 8rem">
 			<template #body="{ data }">
 				<span>{{ data.resource?.community?.title || '-' }}</span>
 			</template>
 		</Column>
-		<Column field="user.username" header="By" sortable style="width: 8rem">
+		<Column field="user.username" header="By" sortable style="width: 7rem">
 			<template #body="{ data }">
-				<span>{{ data.user?.username || '-' }}</span>
+				<NuxtLink :to="`/dash/users/${data.user.username}`" class="underline">
+					{{ data.user.username }}
+				</NuxtLink>
 			</template>
 		</Column>
-		<Column field="quantity" header="Change" sortable bodyClass="!text-right !p-0" style="width: 6.1rem">
+		<Column
+			field="quantity"
+			header="Change"
+			sortable
+			bodyClass="!text-right !p-0"
+			style="width: 6.1rem">
 			<template #body="{ data }">
-				<Tag
-					:severity="data.quantity >= 0 ? 'success' : 'danger'"
+				<Tag :severity="data.quantity >= 0 ? 'success' : 'danger'"
 					>{{ data.quantity > 0 ? '+' : ''
 					}}<Quantity
 						:modelValue="Math.abs(data.quantity)"
@@ -327,7 +335,12 @@ onMounted(async () => {
 				</Tag>
 			</template>
 		</Column>
-		<Column field="quantityBefore" header="Before" sortable bodyClass="!text-right" style="width: 5.5rem">
+		<Column
+			field="quantityBefore"
+			header="Before"
+			sortable
+			bodyClass="!text-right"
+			style="width: 5.5rem">
 			<template #body="{ data }">
 				<Quantity
 					:modelValue="data.quantityBefore"
@@ -337,7 +350,12 @@ onMounted(async () => {
 					readonly />
 			</template>
 		</Column>
-		<Column field="quantityAfter" header="After" sortable bodyClass="!text-right" style="width: 5rem">
+		<Column
+			field="quantityAfter"
+			header="After"
+			sortable
+			bodyClass="!text-right"
+			style="width: 5rem">
 			<template #body="{ data }">
 				<Quantity
 					:modelValue="data.quantityAfter"
@@ -347,7 +365,11 @@ onMounted(async () => {
 					readonly />
 			</template>
 		</Column>
-		<Column field="stepCost.title" header="Step Cost" sortable style="width: 15rem">
+		<Column
+			field="stepCost.title"
+			header="Step Cost"
+			sortable
+			style="width: 15rem">
 			<template #body="{ data }">
 				<span>{{ data.stepCost?.title || '-' }}</span>
 			</template>
@@ -409,34 +431,34 @@ onMounted(async () => {
 					placeholder="Select a stock entry"
 					class="w-full"
 					filter>
-				<template #value="{ value }">
-					<span v-if="value">
-						{{ value.resource?.title }}
-						(stock: {{ value.quantity }})
-					</span>
-				</template>
-				<template #option="{ option }">
-					<span>
-						{{ option.resource?.title }}
-						(stock: {{ option.quantity }})
-					</span>
-				</template>
+					<template #value="{ value }">
+						<span v-if="value">
+							{{ value.resource?.title }}
+							(stock: {{ value.quantity }})
+						</span>
+					</template>
+					<template #option="{ option }">
+						<span>
+							{{ option.resource?.title }}
+							(stock: {{ option.quantity }})
+						</span>
+					</template>
 				</Dropdown>
 			</div>
 
 			<div class="flex gap-4">
 				<div class="form-field flex-1">
 					<label for="direction">Direction *</label>
-				<SelectButton
-					id="direction"
-					v-model="direction"
-					:options="[
-						{ label: 'Add', value: 'add' },
-						{ label: 'Remove', value: 'remove' },
-						{ label: 'Move', value: 'transfer' },
-					]"
-					optionLabel="label"
-					optionValue="value" />
+					<SelectButton
+						id="direction"
+						v-model="direction"
+						:options="[
+							{ label: 'Add', value: 'add' },
+							{ label: 'Remove', value: 'remove' },
+							{ label: 'Move', value: 'transfer' },
+						]"
+						optionLabel="label"
+						optionValue="value" />
 				</div>
 				<div class="form-field flex-1">
 					<label for="amount">Amount *</label>
@@ -445,14 +467,12 @@ onMounted(async () => {
 						v-model="amount"
 						:min="0"
 						:minFractionDigits="0"
-						:maxFractionDigits="2" 
+						:maxFractionDigits="2"
 						showButtons />
 				</div>
 			</div>
 
-			<div
-				v-if="direction === 'transfer'"
-				class="form-field">
+			<div v-if="direction === 'transfer'" class="form-field">
 				<label for="destinationCommunity">Destination Community *</label>
 				<Dropdown
 					id="destinationCommunity"
@@ -465,8 +485,8 @@ onMounted(async () => {
 					showClear
 					filter />
 				<small class="text-zinc-500">
-					Stock of the same resource will be added to (or created in)
-					this community.
+					Stock of the same resource will be added to (or created in) this
+					community.
 				</small>
 			</div>
 
