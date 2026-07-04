@@ -245,35 +245,36 @@ onMounted(async () => {
 </script>
 
 <template>
-	<div class="stock-movements-page">
-		<div class="flex justify-content-between align-items-center m-6">
-			<InputGroup class="w-auto">
-				<InputGroupAddon>
-					<i class="pi pi-search" />
-				</InputGroupAddon>
-				<InputText
-					v-model="searchQuery"
-					placeholder="Search by reason or resource..."
-					class="!w-[17rem]"
-					@input="debouncedSearch" />
-				<Dropdown
-					v-model="selectedCommunityId"
-					:options="allCommunities"
-					optionLabel="title"
-					optionValue="id"
-					placeholder="All communities"
-					@change="fetchMovements"
-					showClear
-					filter
-					class="!w-48" />
-			</InputGroup>
-			<Button
-				label="New Movement"
-				class="ml-2"
-				icon="pi pi-arrow-up-down"
-				@click="openNewDialog" />
-		</div>
-	</div>
+	<DashDataTablePage>
+		<template #toolbar>
+			<div class="flex justify-content-between align-items-center px-6 pt-6 pb-3">
+				<InputGroup class="w-auto">
+					<InputGroupAddon>
+						<i class="pi pi-search" />
+					</InputGroupAddon>
+					<InputText
+						v-model="searchQuery"
+						placeholder="Search by reason or resource..."
+						class="!w-[17rem]"
+						@input="debouncedSearch" />
+					<Dropdown
+						v-model="selectedCommunityId"
+						:options="allCommunities"
+						optionLabel="title"
+						optionValue="id"
+						placeholder="All communities"
+						@change="fetchMovements"
+						showClear
+						filter
+						class="!w-48" />
+				</InputGroup>
+				<Button
+					label="New Movement"
+					class="ml-2"
+					icon="pi pi-arrow-up-down"
+					@click="openNewDialog" />
+			</div>
+		</template>
 
 	<DataTable
 		class="sm-table"
@@ -284,6 +285,8 @@ onMounted(async () => {
 		dataKey="id"
 		:rowHover="true"
 		resizableColumns
+		:scrollable="true"
+		scrollHeight="flex"
 		stripedRows>
 		<Column field="createdAt" header="Date" sortable style="width: 7rem">
 			<template #body="{ data }">
@@ -401,6 +404,7 @@ onMounted(async () => {
 			</div>
 		</template>
 	</DataTable>
+	</DashDataTablePage>
 
 	<Dialog
 		v-model:visible="dialogVisible"

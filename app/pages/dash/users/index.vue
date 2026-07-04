@@ -49,33 +49,39 @@ onMounted(async () => {
 </script>
 
 <template>
-	<div class="p-4">
-		<div class="flex items-center gap-4 mb-4">
-			<InputGroup class="w-auto">
-				<InputGroupAddon>
-					<i class="pi pi-search" />
-				</InputGroupAddon>
-				<InputText
-					v-model="searchQuery"
-					placeholder="Search users..." />
-				<Dropdown
-					v-model="selectedExpertiseFilter"
-					:options="expertiseOptions"
-					optionLabel="title"
-					optionValue="id"
-					placeholder="All Expertise"
-					showClear
-					filter
-					class="w-64"
-				/>
-			</InputGroup>
-		</div>
+	<DashDataTablePage>
+		<template #toolbar>
+			<div class="flex items-center gap-4 px-6 pt-6 pb-3">
+				<InputGroup class="w-auto">
+					<InputGroupAddon>
+						<i class="pi pi-search" />
+					</InputGroupAddon>
+					<InputText
+						v-model="searchQuery"
+						placeholder="Search users..." />
+					<Dropdown
+						v-model="selectedExpertiseFilter"
+						:options="expertiseOptions"
+						optionLabel="title"
+						optionValue="id"
+						placeholder="All Expertise"
+						showClear
+						filter
+						class="w-64"
+					/>
+				</InputGroup>
+			</div>
+		</template>
 
 		<DataTable
 			size="small"
-			:value="filteredUsers"
-			:loading="loading"
-			tableStyle="min-width: 50rem"
+		:value="filteredUsers"
+		:loading="loading"
+		:paginator="true"
+		:rows="25"
+		tableStyle="min-width: 50rem"
+		:scrollable="true"
+		scrollHeight="flex"
 			v-model:filters="filters"
 			:globalFilterFields="['username', 'email', 'firstname', 'lastname']"
 		>
@@ -119,5 +125,5 @@ onMounted(async () => {
 				</template>
 			</Column>
 		</DataTable>
-	</div>
+	</DashDataTablePage>
 </template>

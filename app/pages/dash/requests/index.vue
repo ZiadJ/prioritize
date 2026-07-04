@@ -462,53 +462,54 @@ onMounted(async () => {
 </script>
 
 <template>
-	<div class="requests-page">
-		<div class="flex justify-content-between align-items-center m-6">
-			<InputGroup class="w-auto">
-				<InputGroupAddon>
-					<i class="pi pi-search" />
-				</InputGroupAddon>
-				<InputText
-					v-model="searchQuery"
-					placeholder="Search requests..."
-					@input="debouncedSearch" />
-				<Dropdown
-					v-model="selectedScope"
-					:options="scopeOptions"
-					optionLabel="label"
-					optionValue="value"
-					placeholder="All regions"
-					@change="fetchRequests"
-					showClear />
-				<Dropdown
-					v-model="selectedExpertiseId"
-					:options="allExpertise"
-					optionLabel="title"
-					optionValue="id"
-					placeholder="All expertise"
-					@change="fetchRequests"
-					showClear
-					filter
-					class="w-40" />
-				<MultiSelect
-					v-model="selectedTagIds"
-					:options="allTags"
-					optionLabel="name"
-					optionValue="id"
-					placeholder="All tags"
-					@change="fetchRequests"
-					:showToggleAll="false"
-					filter
-					display="chip"
-					class="w-40" />
-			</InputGroup>
-			<Button
-				label="New Request"
-				class="ml-2"
-				icon="pi pi-plus"
-				@click="openNewDialog" />
-		</div>
-	</div>
+	<DashDataTablePage>
+		<template #toolbar>
+			<div class="flex justify-content-between align-items-center px-6 pt-6 pb-3">
+				<InputGroup class="w-auto">
+					<InputGroupAddon>
+						<i class="pi pi-search" />
+					</InputGroupAddon>
+					<InputText
+						v-model="searchQuery"
+						placeholder="Search requests..."
+						@input="debouncedSearch" />
+					<Dropdown
+						v-model="selectedScope"
+						:options="scopeOptions"
+						optionLabel="label"
+						optionValue="value"
+						placeholder="All regions"
+						@change="fetchRequests"
+						showClear />
+					<Dropdown
+						v-model="selectedExpertiseId"
+						:options="allExpertise"
+						optionLabel="title"
+						optionValue="id"
+						placeholder="All expertise"
+						@change="fetchRequests"
+						showClear
+						filter
+						class="w-40" />
+					<MultiSelect
+						v-model="selectedTagIds"
+						:options="allTags"
+						optionLabel="name"
+						optionValue="id"
+						placeholder="All tags"
+						@change="fetchRequests"
+						:showToggleAll="false"
+						filter
+						display="chip"
+						class="w-40" />
+				</InputGroup>
+				<Button
+					label="New Request"
+					class="ml-2"
+					icon="pi pi-plus"
+					@click="openNewDialog" />
+			</div>
+		</template>
 
 	<DataTable
 		:value="requests"
@@ -518,6 +519,8 @@ onMounted(async () => {
 		dataKey="id"
 		:rowHover="true"
 		resizableColumns
+		:scrollable="true"
+		scrollHeight="flex"
 		:sortField="sortField"
 		:sortOrder="sortOrder"
 		@sort="onSort"
@@ -610,6 +613,7 @@ onMounted(async () => {
 			</div>
 		</template>
 	</DataTable>
+	</DashDataTablePage>
 
 	<Dialog
 		v-model:visible="dialogVisible"

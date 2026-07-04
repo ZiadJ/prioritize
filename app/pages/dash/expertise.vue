@@ -166,15 +166,16 @@ onMounted(() => {
 </script>
 
 <template>
-	<div class="expertise-page">
-		<div class="flex justify-content-between align-items-center m-6">
-			<InputGroup class="w-auto">
-				<InputGroupAddon>
-					<i class="pi pi-search" />
-				</InputGroupAddon>
-				<InputText
-					v-model="searchQuery"
-					placeholder="Search expertise..."
+	<DashDataTablePage>
+		<template #toolbar>
+			<div class="flex justify-content-between align-items-center px-6 pt-6 pb-3">
+				<InputGroup class="w-auto">
+					<InputGroupAddon>
+						<i class="pi pi-search" />
+					</InputGroupAddon>
+					<InputText
+						v-model="searchQuery"
+						placeholder="Search expertise..."
 					@input="debouncedSearch" />
 			</InputGroup>
 			<Button
@@ -183,7 +184,7 @@ onMounted(() => {
 				icon="pi pi-plus"
 				@click="openNewDialog" />
 		</div>
-	</div>
+		</template>
 
 	<DataTable
 		:value="expertiseNodes"
@@ -193,6 +194,8 @@ onMounted(() => {
 		dataKey="id"
 		:rowHover="true"
 		resizableColumns
+		:scrollable="true"
+		scrollHeight="flex"
 		stripedRows>
 		<Column field="title" header="Title" sortable>
 			<template #body="{ data }">
@@ -253,6 +256,7 @@ onMounted(() => {
 			</div>
 		</template>
 	</DataTable>
+	</DashDataTablePage>
 
 	<Dialog
 		v-model:visible="dialogVisible"

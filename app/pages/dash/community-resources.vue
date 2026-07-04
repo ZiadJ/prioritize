@@ -197,34 +197,35 @@ onMounted(async () => {
 </script>
 
 <template>
-	<div class="community-resources-page">
-		<div class="flex justify-content-between align-items-center m-6">
-			<InputGroup class="w-auto">
-				<InputGroupAddon>
-					<i class="pi pi-search" />
-				</InputGroupAddon>
-				<InputText
-					v-model="searchQuery"
-					placeholder="Search by resource..."
-					@input="debouncedSearch" />
-				<Dropdown
-					v-model="selectedCommunityId"
-					:options="allCommunities"
-					optionLabel="title"
-					optionValue="id"
-					placeholder="All communities"
-					@change="fetchCommunityResources"
-					showClear
-					filter
-					class="w-48" />
-			</InputGroup>
-			<Button
-				label="New Stock Entry"
-				class="ml-2"
-				icon="pi pi-plus"
-				@click="openNewDialog" />
-		</div>
-	</div>
+	<DashDataTablePage>
+		<template #toolbar>
+			<div class="flex justify-content-between align-items-center px-6 pt-6 pb-3">
+				<InputGroup class="w-auto">
+					<InputGroupAddon>
+						<i class="pi pi-search" />
+					</InputGroupAddon>
+					<InputText
+						v-model="searchQuery"
+						placeholder="Search by resource..."
+						@input="debouncedSearch" />
+					<Dropdown
+						v-model="selectedCommunityId"
+						:options="allCommunities"
+						optionLabel="title"
+						optionValue="id"
+						placeholder="All communities"
+						@change="fetchCommunityResources"
+						showClear
+						filter
+						class="w-48" />
+				</InputGroup>
+				<Button
+					label="New Stock Entry"
+					class="ml-2"
+					icon="pi pi-plus"
+					@click="openNewDialog" />
+			</div>
+		</template>
 
 	<DataTable
 		class="cr-table"
@@ -235,6 +236,8 @@ onMounted(async () => {
 		dataKey="id"
 		:rowHover="true"
 		resizableColumns
+		:scrollable="true"
+		scrollHeight="flex"
 		stripedRows>
 		<Column field="resource.title" header="Resource" sortable style="width: 25rem">
 			<template #body="{ data }">
@@ -322,6 +325,7 @@ onMounted(async () => {
 			</div>
 		</template>
 	</DataTable>
+	</DashDataTablePage>
 
 	<Dialog
 		v-model:visible="dialogVisible"

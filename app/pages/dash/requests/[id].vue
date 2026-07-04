@@ -9,7 +9,7 @@ import type {
 	TreeTableExpandedKeys,
 } from 'primevue/treetable'
 import { ref, reactive, onMounted, computed, type Ref } from 'vue'
-import { useWindowSize, useStyleTag, useLocalStorage } from '@vueuse/core'
+import { useStyleTag, useLocalStorage } from '@vueuse/core'
 
 import Feedback from '@/components/proposal/Feedback.vue'
 import ProposalFormDialog from '@/components/proposal/ProposalFormDialog.vue'
@@ -38,8 +38,6 @@ const searchFilters = ref({ global: '' })
 const selectedExpertiseFilter = ref<number | null>(null)
 
 const hasOnceEditedProposal = useLocalStorage('hasOnceEditedProposal', false)
-
-const treeTable = useTemplateRef('treeTable')
 
 const rootNodes = ref<TreeNodeEx[]>([])
 const dataLoaded = ref(false)
@@ -159,13 +157,6 @@ onMounted(async () => {
 	dataLoaded.value = true
 })
 
-// Adjust table height to fit window
-const windowHeight = useWindowSize()
-const tableHeight = computed<string>(() => {
-	const top = (treeTable.value as any)?.$el.getBoundingClientRect().top
-	return `${windowHeight.height.value - top - 66}px`
-})
-
 function onNodeSelect(node: TreeNodeEx) {
 	selectedNode.value = node
 	selectedNodes.value.push(node)
@@ -240,7 +231,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 </script>
 
 <template>
-	<div>
+	<div class="h-full">
 		<ConfirmDialog group="proposalDelete"></ConfirmDialog>
 		<ConfirmDialog group="nodeDelete"></ConfirmDialog>
 		<Menu ref="nodeMenuRef" :model="nodeMenuItems" :popup="true" />
@@ -266,10 +257,12 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			:saving="nodeFormSaving"
 			:editMode="nodeFormEditMode"
 			@save="saveNodeForm" />
-		<Panel class="rounded-b-none" :header="request?.title" toggleable collapsed>
-			{{ request?.description }}
-		</Panel>
-		<Toolbar class="mt-0 rounded-t-none">
+		<DashDataTablePage>
+			<template #toolbar>
+				<Panel class="rounded-b-none" :header="request?.title" toggleable collapsed>
+					{{ request?.description }}
+				</Panel>
+				<Toolbar class="mt-0 rounded-t-none">
 			<template #start>
 				<div class="col-8 md:col-8 sm:col-5 xs:col-2" style="float: right">
 					<div class="p-inputgroup">
@@ -349,9 +342,9 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 				</Transition>
 			</Panel>
 		</div>
+			</template>
 
 		<TreeTable
-			ref="treeTable"
 			@mousemove="highlightColumnAndShowDescription"
 			@mouseout="highlightColumnAndShowDescription"
 			:value="filteredRootNodes"
@@ -367,7 +360,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			columnResizeMode="expand"
 			:scrollable="true"
 			responsiveLayout="scroll"
-			:scrollHeight="tableHeight">
+			scrollHeight="flex">
 			<Column field="rating" header="Value" class="w-[40px]">
 				<template #body="{ node }">
 					<div :class="'w-full hover-info request_node_key_' + node.data.id">
@@ -521,8 +514,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			</Column>
 			<Column> </Column>
 		</TreeTable>
-		<br />
-		<!-- {{ expandedKeys }} -->
+		</DashDataTablePage>
 	</div>
 </template>
 

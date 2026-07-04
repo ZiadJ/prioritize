@@ -180,35 +180,38 @@ onMounted(() => {
 </script>
 
 <template>
-	<div class="resources-page">
-		<div class="flex justify-content-between align-items-center m-6">
-			<InputGroup class="w-auto">
-				<InputGroupAddon>
-					<i class="pi pi-search" />
-				</InputGroupAddon>
-				<InputText
-					v-model="searchQuery"
-					placeholder="Search resources..."
-					@input="debouncedSearch" />
-			</InputGroup>
-			<Button
-				label="New Resource"
-				class="ml-2"
-				icon="pi pi-plus"
-				@click="openNewDialog" />
-		</div>
-	</div>
+	<DashDataTablePage>
+		<template #toolbar>
+			<div class="flex justify-content-between align-items-center px-6 pt-6 pb-3">
+				<InputGroup class="w-auto">
+					<InputGroupAddon>
+						<i class="pi pi-search" />
+					</InputGroupAddon>
+					<InputText
+						v-model="searchQuery"
+						placeholder="Search resources..."
+						@input="debouncedSearch" />
+				</InputGroup>
+				<Button
+					label="New Resource"
+					class="ml-2"
+					icon="pi pi-plus"
+					@click="openNewDialog" />
+			</div>
+		</template>
 
-	<DataTable
-		class="resources-table"
-		:value="resources"
-		:loading="loading"
-		:paginator="true"
-		:rows="25"
-		dataKey="id"
-		:rowHover="true"
-		resizableColumns
-		stripedRows>
+		<DataTable
+			class="resources-table"
+			:value="resources"
+			:loading="loading"
+			:paginator="true"
+			:rows="25"
+			dataKey="id"
+			:rowHover="true"
+			resizableColumns
+			:scrollable="true"
+			scrollHeight="flex"
+			stripedRows>
 		<Column field="title" header="Title" sortable style="width: 25rem">
 			<template #body="{ data }">
 				<span class="font-medium">{{ data.title }}</span>
@@ -292,6 +295,7 @@ onMounted(() => {
 			</div>
 		</template>
 	</DataTable>
+	</DashDataTablePage>
 
 	<Dialog
 		v-model:visible="dialogVisible"
