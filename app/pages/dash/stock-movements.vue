@@ -296,9 +296,14 @@ onMounted(async () => {
 			sortable
 			style="width: 20rem">
 			<template #body="{ data }">
-				<span class="font-medium">{{
-					data.resource?.resource?.title || '-'
-				}}</span>
+				<span
+					v-tooltip.top="{
+						value: data.resource?.resource?.description || '',
+						disabled: !data.resource?.resource?.description,
+					}"
+					class="font-medium">{{
+						data.resource?.resource?.title || '-'
+					}}</span>
 			</template>
 		</Column>
 		<Column
@@ -589,12 +594,6 @@ onMounted(async () => {
 .sm-table :deep(.p-datatable-table) {
 	table-layout: fixed;
 }
-
-.sm-table :deep(.p-datatable-thead th),
-.sm-table :deep(.p-datatable-tbody td) {
-	white-space: normal;
-}
-
 .auto-ellipsis {
 	display: block;
 	overflow: hidden;

@@ -23,7 +23,14 @@ const movementInclude = {
 	user: { select: { id: true, username: true } },
 	resource: {
 		include: {
-			resource: { select: { id: true, title: true, measurementType: true } },
+			resource: {
+				select: {
+					id: true,
+					title: true,
+					description: true,
+					measurementType: true,
+				},
+			},
 			community: { select: { id: true, title: true } },
 		},
 	},
@@ -80,7 +87,9 @@ export const stockMovementsRouter = router({
 				},
 				orderBy: { id: 'asc' },
 				include: {
-					resource: { select: { id: true, title: true, measurementType: true } },
+					resource: {
+						select: { id: true, title: true, measurementType: true },
+					},
 					community: { select: { id: true, title: true } },
 				},
 			})
@@ -118,7 +127,7 @@ export const stockMovementsRouter = router({
 
 	// Applies a signed stock movement and updates the community stock atomically
 	move: protectedProcedure.input(moveInput).mutation(async ({ ctx, input }) => {
-		return prisma.$transaction(async (tx) => {
+		return prisma.$transaction(async tx => {
 			const resource = await tx.communityResource.findUnique({
 				where: { id: input.communityResourceId },
 			})
@@ -169,7 +178,7 @@ export const stockMovementsRouter = router({
 	transfer: protectedProcedure
 		.input(transferInput)
 		.mutation(async ({ ctx, input }) => {
-			return prisma.$transaction(async (tx) => {
+			return prisma.$transaction(async tx => {
 				const source = await tx.communityResource.findUnique({
 					where: { id: input.sourceCommunityResourceId },
 					include: { community: { select: { title: true } } },
@@ -178,9 +187,7 @@ export const stockMovementsRouter = router({
 					throw new Error('Source community resource not found')
 				}
 				if (input.destinationCommunityId === source.communityId) {
-					throw new Error(
-						'Destination community must differ from the source',
-					)
+					throw new Error('Destination community must differ from the source')
 				}
 				if (input.quantity > source.quantity) {
 					throw new Error('Cannot move more stock than is available')
