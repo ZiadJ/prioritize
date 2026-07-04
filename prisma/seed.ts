@@ -1303,6 +1303,148 @@ async function main() {
 
 	console.log('Creating step nodes & costs...')
 
+	// --- Stock movements: illustrate additions, removals and consumption
+	// against the seeded community stock. All rows are inserted in a single
+	// batch, with quantityBefore/quantityAfter consistent with the running
+	// balance. ---
+
+	const stockCrRecords = await prisma.communityResource.findMany({
+		select: {
+			id: true,
+			quantity: true,
+			resource: { select: { title: true } },
+		},
+	})
+	const stockCrByTitle = new Map(
+		stockCrRecords.map(r => [r.resource.title, r]),
+	)
+
+	const stepCostRecords = await prisma.stepCost.findMany({
+		select: { id: true, title: true },
+	})
+	const stepCostByTitle = new Map(
+		stepCostRecords.map(sc => [sc.title, sc.id]),
+	)
+
+	const daysAgo = (days: number) => {
+		const d = new Date()
+		d.setDate(d.getDate() - days)
+		d.setHours(9 + (days % 8), (days * 7) % 60, 0, 0)
+		return d
+	}
+
+	const movementSpecs: {
+		resourceTitle: string
+		userId: string
+		quantity: number
+		reason: string | null
+		createdAt: Date
+		stepCostTitle?: string
+	}[] = [
+		{
+			resourceTitle: 'Portland Cement',
+			userId: adminUser.id,
+			quantity: 1500,
+			reason: 'Bulk cement delivery from the regional supplier',
+			createdAt: daysAgo(20),
+		},
+		{
+			resourceTitle: 'Filter Sand',
+			userId: adminUser.id,
+			quantity: 5,
+			reason: 'Restock from the municipal quarry',
+			createdAt: daysAgo(15),
+		},
+		{
+			resourceTitle: 'Storage Cistern',
+			userId: adminUser.id,
+			quantity: -1,
+			reason: 'Cistern cracked during unloading, written off',
+			createdAt: daysAgo(12),
+		},
+		{
+			resourceTitle: 'Portland Cement',
+			userId: adminUser.id,
+			quantity: -3000,
+			reason: 'Drawn down for cistern masonry',
+			createdAt: daysAgo(6),
+			stepCostTitle: 'Cistern Cement Supply',
+		},
+		{
+			resourceTitle: 'Filter Sand',
+			userId: regularUser.id,
+			quantity: -4,
+			reason: 'Bio-sand filter charge',
+			createdAt: daysAgo(4),
+			stepCostTitle: 'Filter Sand Charge',
+		},
+		{
+			resourceTitle: 'PVC Pipe & Fittings',
+			userId: regularUser.id,
+			quantity: -300,
+			reason: 'Gravity distribution line installation',
+			createdAt: daysAgo(2),
+			stepCostTitle: 'Distribution PVC Run',
+		},
+		{
+			resourceTitle: 'Seakoo Mark II Electric Pump',
+			userId: regularUser.id,
+			quantity: -1,
+			reason: 'Installed at the communal borehole',
+			createdAt: daysAgo(1),
+			stepCostTitle: 'Electric Pump Unit',
+		},
+		{
+			resourceTitle: 'Sodium Hypochlorite',
+			userId: regularUser.id,
+			quantity: -10,
+			reason: 'Annual chlorination supply draw-down',
+			createdAt: daysAgo(0),
+			stepCostTitle: 'Annual Chlorine Supply',
+		},
+	]
+
+	// Specs are in chronological order per resource, so the running balance
+	// computed here yields correct before/after snapshots.
+	const movementRows = movementSpecs.map(spec => {
+		const entry = stockCrByTitle.get(spec.resourceTitle)
+		if (!entry)
+			throw new Error(
+				`Community resource "${spec.resourceTitle}" not found`,
+			)
+		const quantityBefore = entry.quantity
+		const quantityAfter = quantityBefore + spec.quantity
+		entry.quantity = quantityAfter
+		return {
+			isActive: true,
+			userId: spec.userId,
+			communityResourceId: entry.id,
+			stepCostId: spec.stepCostTitle
+				? (stepCostByTitle.get(spec.stepCostTitle) ?? null)
+				: null,
+			quantity: spec.quantity,
+			quantityBefore,
+			quantityAfter,
+			reason: spec.reason,
+			createdAt: spec.createdAt,
+		}
+	})
+
+	await prisma.stockMovement.createMany({ data: movementRows })
+
+	// Sync the resulting balances back onto each touched community resource
+	await Promise.all(
+		[...new Set(movementSpecs.map(s => s.resourceTitle))].map(title => {
+			const entry = stockCrByTitle.get(title)!
+			return prisma.communityResource.update({
+				where: { id: entry.id },
+				data: { quantity: entry.quantity },
+			})
+		}),
+	)
+
+	console.log('Creating stock movements...')
+
 	// --- Seed feedback so proposals appear with ratings ---
 
 	const allRequestNodes = await prisma.requestNode.findMany({

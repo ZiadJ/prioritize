@@ -275,6 +275,7 @@ onMounted(async () => {
 	</div>
 
 	<DataTable
+		class="sm-table"
 		:value="movements"
 		:loading="loading"
 		:paginator="true"
@@ -283,29 +284,29 @@ onMounted(async () => {
 		:rowHover="true"
 		resizableColumns
 		stripedRows>
-		<Column field="createdAt" header="Date" sortable>
+		<Column field="createdAt" header="Date" sortable style="width: 7rem">
 			<template #body="{ data }">
-				<span>{{ new Date(data.createdAt).toLocaleString() }}</span>
+				<span>{{ new Date(data.createdAt).toLocaleDateString() }}</span>
 			</template>
 		</Column>
-		<Column field="resource.resource.title" header="Resource" sortable>
+		<Column field="resource.resource.title" header="Resource" sortable style="width: 20rem">
 			<template #body="{ data }">
 				<span class="font-medium">{{
 					data.resource?.resource?.title || '-'
 				}}</span>
 			</template>
 		</Column>
-		<Column field="resource.community.title" header="Community" sortable>
+		<Column field="resource.community.title" header="Community" sortable style="width: 8rem">
 			<template #body="{ data }">
 				<span>{{ data.resource?.community?.title || '-' }}</span>
 			</template>
 		</Column>
-		<Column field="user.username" header="By" sortable>
+		<Column field="user.username" header="By" sortable style="width: 8rem">
 			<template #body="{ data }">
 				<span>{{ data.user?.username || '-' }}</span>
 			</template>
 		</Column>
-		<Column field="quantity" header="Change" sortable>
+		<Column field="quantity" header="Change" sortable bodyClass="!text-right" style="width: 6rem">
 			<template #body="{ data }">
 				<Tag
 					:value="`${data.quantity > 0 ? '+' : ''}${formatNumber(data.quantity)}`"
@@ -313,22 +314,22 @@ onMounted(async () => {
 					class="!text-xs" />
 			</template>
 		</Column>
-		<Column field="quantityBefore" header="Before" sortable>
+		<Column field="quantityBefore" header="Before" sortable bodyClass="!text-right" style="width: 6rem">
 			<template #body="{ data }">
 				<span>{{ formatNumber(data.quantityBefore) }}</span>
 			</template>
 		</Column>
-		<Column field="quantityAfter" header="After" sortable>
+		<Column field="quantityAfter" header="After" sortable bodyClass="!text-right" style="width: 6rem">
 			<template #body="{ data }">
 				<span class="font-medium">{{ formatNumber(data.quantityAfter) }}</span>
 			</template>
 		</Column>
-		<Column field="stepCost.title" header="Step Cost" sortable>
+		<Column field="stepCost.title" header="Step Cost" sortable style="width: 12rem">
 			<template #body="{ data }">
 				<span>{{ data.stepCost?.title || '-' }}</span>
 			</template>
 		</Column>
-		<Column field="reason" header="Reason" style="max-width: 280px">
+		<Column field="reason" header="Reason">
 			<template #body="{ data }">
 				<span class="auto-ellipsis">{{ data.reason || '-' }}</span>
 			</template>
@@ -531,6 +532,15 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.sm-table :deep(.p-datatable-table) {
+	table-layout: fixed;
+}
+
+.sm-table :deep(.p-datatable-thead th),
+.sm-table :deep(.p-datatable-tbody td) {
+	white-space: normal;
+}
+
 .auto-ellipsis {
 	display: block;
 	overflow: hidden;

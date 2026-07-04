@@ -235,9 +235,8 @@ onMounted(async () => {
 		dataKey="id"
 		:rowHover="true"
 		resizableColumns
-		columnResizeMode="fit"
 		stripedRows>
-		<Column field="resource.title" header="Resource" sortable>
+		<Column field="resource.title" header="Resource" sortable style="width: 25rem">
 			<template #body="{ data }">
 				<span class="font-medium">{{ data.resource?.title || '-' }}</span>
 			</template>
@@ -247,12 +246,12 @@ onMounted(async () => {
 				<span>{{ measurementLabel(data.resourceId) }}</span>
 			</template>
 		</Column> -->
-		<Column field="community.title" header="Community" sortable>
+		<Column field="community.title" header="Community" sortable style="width: 8rem">
 			<template #body="{ data }">
 				<span>{{ data.community?.title || '-' }}</span>
 			</template>
 		</Column>
-		<Column field="quantity" header="Available" sortable>
+		<Column field="quantity" header="Available" sortable bodyClass="!text-right" style="width: 7rem">
 			<template #body="{ data }">
 				<Quantity
 					:modelValue="data.quantity"
@@ -262,7 +261,7 @@ onMounted(async () => {
 					readonly />
 			</template>
 		</Column>
-		<Column field="monthlyCapacity" header="Monthly Capacity" sortable>
+		<Column field="monthlyCapacity" header="Monthly Capacity" sortable bodyClass="!text-right" style="width: 7rem">
 			<template #body="{ data }">
 				<Quantity
 					:modelValue="data.monthlyCapacity"
@@ -272,7 +271,7 @@ onMounted(async () => {
 					readonly />
 			</template>
 		</Column>
-		<Column field="monetaryValuePerUnit" header="Value/Unit" sortable>
+		<Column field="monetaryValuePerUnit" header="Value/Unit" sortable bodyClass="!text-right" style="width: 6rem">
 			<template #body="{ data }">
 				<span>{{ formatCurrency(data.monetaryValuePerUnit) }}</span>
 			</template>
@@ -297,7 +296,7 @@ onMounted(async () => {
 			header="Actions"
 			:exportable="false"
 			class="actions-column"
-			style="width: 6rem">
+			style="width: 7rem">
 			<template #body="{ data }">
 				<div class="action-buttons">
 					<Button

@@ -208,9 +208,8 @@ onMounted(() => {
 		dataKey="id"
 		:rowHover="true"
 		resizableColumns
-		columnResizeMode="fit"
 		stripedRows>
-		<Column field="title" header="Title" sortable>
+		<Column field="title" header="Title" sortable style="width: 25rem">
 			<template #body="{ data }">
 				<span class="font-medium">{{ data.title }}</span>
 			</template>
@@ -220,7 +219,7 @@ onMounted(() => {
 				<span>{{ data.measurementType }}</span>
 			</template>
 		</Column> -->
-		<Column field="quantityAvailable" header="Available" sortable>
+		<Column field="quantityAvailable" header="Available" sortable bodyClass="!text-right" style="width: 7rem">
 			<template #body="{ data }">
 				<Quantity
 					:modelValue="data.quantityAvailable"
@@ -228,7 +227,7 @@ onMounted(() => {
 					readonly />
 			</template>
 		</Column>
-		<Column field="monthlyCapacity" header="Monthly Capacity" sortable>
+		<Column field="monthlyCapacity" header="Monthly Capacity" sortable bodyClass="!text-right" style="width: 7rem">
 			<template #body="{ data }">
 				<Quantity
 					:modelValue="data.monthlyCapacity"
@@ -236,7 +235,7 @@ onMounted(() => {
 					readonly />
 			</template>
 		</Column>
-		<Column field="shelfLife" header="Shelf Life" sortable>
+		<Column field="shelfLife" header="Shelf Life" sortable bodyClass="!text-right" style="width: 6rem">
 			<template #body="{ data }">
 				<span
 					>{{
@@ -265,7 +264,7 @@ onMounted(() => {
 				</span>
 			</template>
 		</Column>
-		<Column header="Actions" :exportable="false" class="actions-column">
+		<Column header="Actions" :exportable="false" class="actions-column" style="width: 7rem">
 			<template #body="{ data }">
 				<div class="action-buttons">
 					<Button
