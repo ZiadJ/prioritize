@@ -475,7 +475,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							v-tooltip.left="{
 								value: `Net Benefit: ${col.netBenefit ?? 0}
 								\nNet Feasibility: ${formatNumber((col.netFeasibility ?? 0) * 100, 0)}%
-								\nImpact Score: ${formatNumber((col.netBenefit ?? 0) * (col.netFeasibility ?? 0), 0)}`
+								\nImpact Score: ${formatNumber((col.netBenefit ?? 0) * (col.netFeasibility ?? 0), 2)}`
 							}">
 							{{
 								formatNumber(
