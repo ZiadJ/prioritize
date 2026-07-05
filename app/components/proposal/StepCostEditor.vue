@@ -8,6 +8,10 @@ import type {
 	StepCostRow,
 	CommunityResourceOption,
 } from '~/composables/request/useStepCosts'
+import {
+	stepCostFeasibility,
+	stepFeasibility,
+} from '~/composables/request/useStepCosts'
 
 /**
  * Stateless view over a step's costs. The cost list and all mutations are
@@ -25,10 +29,10 @@ const props = defineProps<{
 	remove: (cost: StepCostRow) => void
 }>()
 
-const measurementTypeOptions = Object.keys(MeasurementType).map(key => ({
-	label: key,
-	value: key as MeasurementType,
-}))
+// const measurementTypeOptions = Object.keys(MeasurementType).map(key => ({
+// 	label: key,
+// 	value: key as MeasurementType,
+// }))
 
 interface CostForm {
 	title: string
@@ -97,6 +101,16 @@ const canSave = computed(
 		form.value.communityResourceId != null,
 )
 
+// const stepFeasibilityProduct = computed(() => stepFeasibility(props.costs))
+
+function feasibilityColor(value: number): string {
+	if (value < 0 || !Number.isFinite(value))
+		return 'var(--p-red-500, #ef4444)'
+	if (value >= 0.66) return 'var(--p-green-500, #22c55e)'
+	if (value >= 0.33) return 'var(--p-yellow-500, #eab308)'
+	return 'var(--p-red-500, #ef4444)'
+}
+
 // Default the cost's measurement type to that of the selected resource so
 // the Quantity unit dropdown reflects how that resource is measured.
 function onCommunityResourceChange() {
@@ -132,13 +146,34 @@ async function onSave() {
 <template>
 	<div class="step-cost-editor">
 		<div class="flex items-center justify-between px-2">
+			<div class="flex items-center gap-1">
 			<span
 				class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-				Step Costs
-				<span v-if="costs.length" class="font-normal"
-					>({{ costs.length }})</span
-				>
-			</span>
+					Step Costs
+					<span v-if="costs.length" class="font-normal"
+						>({{ costs.length }})</span
+					>
+				</span>
+			<!-- The step-level feasibility product is already shown on the step row
+			  	 in ProposalSteps.vue, so it's omitted here to avoid repetition.
+			<span
+				v-if="costs.length"
+				class="text-xs text-gray-500 dark:text-gray-400 ml-2"
+				>Feasibility</span
+			>
+			<Knob
+				v-if="costs.length"
+				:modelValue="stepFeasibilityProduct"
+				:min="0"
+				:max="1"
+				:step="0.01"
+				:size="36"
+				readonly
+				:valueColor="feasibilityColor(stepFeasibilityProduct)"
+				rangeColor="#8882"
+				pt:text:class="hidden" />
+			-->
+			</div>
 			<Button
 				label="Add cost"
 				icon="pi pi-plus"
@@ -174,6 +209,17 @@ async function onSave() {
 						>
 					</div>
 				</div>
+				<Knob
+					:modelValue="stepCostFeasibility(cost)"
+					:min="0"
+					:max="1"
+					:step="0.01"
+					:size="36"
+					readonly
+					:valueColor="feasibilityColor(stepCostFeasibility(cost))"
+					rangeColor="#8882"
+					v-tooltip.top="`Feasibility: ${(stepCostFeasibility(cost) * 100).toFixed(0)}%`"
+					pt:text:class="hidden" />
 				<div class="flex gap-1 shrink-0">
 					<Button
 						icon="pi pi-pencil"

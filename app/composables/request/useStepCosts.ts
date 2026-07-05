@@ -19,6 +19,7 @@ export interface StepCostRow {
 	monetaryValue: number
 	communityResource?: {
 		id: number
+		quantity: number
 		resource?: {
 			id: number
 			title: string
@@ -48,3 +49,26 @@ export type StepCostInput = {
 }
 
 export type StepCostPatch = Partial<StepCostInput> & { isActive?: boolean }
+
+/**
+ * Feasibility of a single step cost:
+ *   availability / (availability + stepCost.quantity)
+ * where availability is the quantity of the community resource it draws from.
+ * Returns 1 when availability is missing or non-positive (no constraint).
+ */
+export function stepCostFeasibility(cost: StepCostRow): number {
+	const availability = cost.communityResource?.quantity
+	if (!availability || availability <= 0) return 1
+	const feasibility = availability / (availability + cost.quantity)
+	return Number.isFinite(feasibility) ? feasibility : 1
+}
+
+/**
+ * Feasibility of a step: the product of the feasibility of all its step costs.
+ * Returns 1 when there are no costs.
+ */
+export function stepFeasibility(costs: StepCostRow[]): number {
+	let product = 1
+	for (const c of costs) product *= stepCostFeasibility(c)
+	return product
+}

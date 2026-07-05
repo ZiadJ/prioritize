@@ -479,8 +479,8 @@ model UserRequest {
   quantity    Float   @default(0) // Defaults to 0 for shared/joined requests with no measurable quantity
   priority    Int // Tokens the user is willing to spend on the request. Tokens are allocated monthly and are eliminated upon delivery.
   isBasicNeed Boolean @default(false)
-  isPrivate   Boolean @default(false)
   isJoined    Boolean @default(false) // Whether the user joined the request as a shared request rather than specifying their own quantity
+  // isPrivate   Boolean @default(false)
 
   recurrencePeriod    Int // In days even thoughDaily, Weekly, Monthly, Quaterly, Semi-anually, Anually
   dueAt               DateTime? // The user request deadline

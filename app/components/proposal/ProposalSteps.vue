@@ -4,6 +4,7 @@ import type { Step } from '~~/prisma/generated/interfaces'
 import type { StepData } from '~/composables/request/useProposalSteps'
 import { useProposalSteps } from '~/composables/request/useProposalSteps'
 import StepCostEditor from '@/components/proposal/StepCostEditor.vue'
+import { stepFeasibility } from '~/composables/request/useStepCosts'
 
 const props = defineProps<{
 	proposalId: number
@@ -92,6 +93,18 @@ function toggleExpand(row: Step) {
 	}
 }
 
+function feasibilityForStep(stepId: number): number {
+	return stepFeasibility(costsByStepId.value.get(stepId) ?? [])
+}
+
+function feasibilityColor(value: number): string {
+	if (value < 0 || !Number.isFinite(value))
+		return 'var(--p-red-500, #ef4444)'
+	if (value >= 0.66) return 'var(--p-green-500, #22c55e)'
+	if (value >= 0.33) return 'var(--p-yellow-500, #eab308)'
+	return 'var(--p-red-500, #ef4444)'
+}
+
 // DataTable row reorder: persist the new execution order.
 function onRowReorder(event: { value: Step[] }) {
 	reorder(event.value.map(s => s.id))
@@ -142,18 +155,30 @@ function onRowReorder(event: { value: Step[] }) {
 									class="!text-xs" />
 							</div>
 						</template>
-						<template v-else>
-							<div class="min-w-0">
-								<div class="font-medium leading-tight break-words">
-									{{ data.title }}
-								</div>
-								<div
-									v-if="data.description"
-									class="text-xs text-gray-500 dark:text-gray-400 break-words">
-									{{ data.description }}
-								</div>
+					<template v-else>
+						<div class="min-w-0 flex-1">
+							<div class="font-medium leading-tight break-words">
+								{{ data.title }}
 							</div>
-						</template>
+							<div
+								v-if="data.description"
+								class="text-xs text-gray-500 dark:text-gray-400 break-words">
+								{{ data.description }}
+							</div>
+						</div>
+						<Knob
+							v-if="(costsByStepId.get(data.id)?.length ?? 0) > 0"
+							:modelValue="feasibilityForStep(data.id)"
+							:min="0"
+							:max="1"
+							:step="0.01"
+							:size="36"
+							readonly
+							:valueColor="feasibilityColor(feasibilityForStep(data.id))"
+							rangeColor="#8882"
+							v-tooltip.top="`Step feasibility: ${(feasibilityForStep(data.id) * 100).toFixed(0)}%`"
+							pt:text:class="hidden" />
+					</template>
 					</div>
 				</template>
 			</Column>
