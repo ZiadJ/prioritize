@@ -52,8 +52,8 @@ const updateInput = createInput.partial().extend({ id: z.number() })
 /**
  * Recalculates and persists the netFeasibility for a single proposal.
  *
- * For each StepCost it computes a feasibility in [0, 1]: the smooth curve
- *   resourceQuantity / (resourceQuantity + required)
+ * For each StepCost it computes a feasibility in [0, 1]: the linear curve
+ *   1 - required / resourceQuantity
  * while required <= resourceQuantity, and 0 once the requirement exceeds the
  * on-hand quantity of the community resource it draws from. The proposal's
  * netFeasibility is the product of every step cost's feasibility.
@@ -81,10 +81,10 @@ export async function updateProposalNetFeasibility(proposalId: number) {
 				const required = stepCost.quantity
 				let feasibility = 1
 				if (required > 0) {
-					feasibility =
-						required > resourceQuantity
-							? 0
-							: resourceQuantity / (resourceQuantity + required)
+				feasibility =
+					required > resourceQuantity
+						? 0
+						: 1 - required / resourceQuantity
 				}
 				netFeasibility *= feasibility
 			}

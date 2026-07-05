@@ -53,9 +53,9 @@ export type StepCostPatch = Partial<StepCostInput> & { isActive?: boolean }
 /**
  * Feasibility of a single step cost, in [0, 1].
  *
- * In the feasible region (required <= resourceQuantity) it follows the smooth
- * curve  resourceQuantity / (resourceQuantity + required), rising from 0.5
- * when supply exactly meets demand toward 1 as supply grows. When the
+ * In the feasible region (required <= resourceQuantity) it follows the linear
+ * curve  1 - required / resourceQuantity, falling from 1 as required approaches
+ * 0 down to 0 when required reaches the available quantity. When the
  * requirement exceeds what is available the step cannot be fulfilled, so
  * feasibility is 0.
  *
@@ -68,7 +68,7 @@ export function stepCostFeasibility(cost: StepCostRow): number {
 	const required = cost.quantity
 	if (!Number.isFinite(required) || required <= 0) return 1
 	if (required > resourceQuantity) return 0
-	return resourceQuantity / (resourceQuantity + required)
+	return 1 - required / resourceQuantity
 }
 
 /**
