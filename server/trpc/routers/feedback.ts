@@ -24,7 +24,7 @@ type RequestNodeWithFeedback = Prisma.RequestNodeGetPayload<{
 	include: { feedback: true }
 }>
 
-async function updateProposalNetBenefit(
+export async function updateProposalNetBenefit(
 	proposalId: number,
 	requestNodes: RequestNodeWithFeedback[],
 ) {

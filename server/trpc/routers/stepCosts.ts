@@ -52,12 +52,13 @@ const updateInput = createInput.partial().extend({ id: z.number() })
 /**
  * Recalculates and persists the netFeasibility for a single proposal.
  *
- * Iterates over every StepCost across the proposal's step nodes and computes
- * the ratio of the step cost quantity to the available quantity of the
- * community resource it draws from (stepCost.quantity / communityResource.quantity).
- * The proposal's netFeasibility is the sum of all those ratios.
+ * For each StepCost it computes a feasibility in [0, 1]: the smooth curve
+ *   resourceQuantity / (resourceQuantity + required)
+ * while required <= resourceQuantity, and 0 once the requirement exceeds the
+ * on-hand quantity of the community resource it draws from. The proposal's
+ * netFeasibility is the product of every step cost's feasibility.
  */
-async function updateProposalNetFeasibility(proposalId: number) {
+export async function updateProposalNetFeasibility(proposalId: number) {
 	const proposal = await prisma.proposal.findUnique({
 		where: { id: proposalId },
 		include: {
@@ -76,12 +77,16 @@ async function updateProposalNetFeasibility(proposalId: number) {
 	if (proposal) {
 		for (const step of proposal.steps) {
 			for (const stepCost of step.costs) {
-				const availability = stepCost.communityResource.quantity
-				if (availability > 0) {
-					// Available Qty = Stock Qty +Renewal RateTime
-					const feasibility = availability / (availability + stepCost.quantity)
-					netFeasibility *= feasibility
+				const resourceQuantity = stepCost.communityResource.quantity
+				const required = stepCost.quantity
+				let feasibility = 1
+				if (required > 0) {
+					feasibility =
+						required > resourceQuantity
+							? 0
+							: resourceQuantity / (resourceQuantity + required)
 				}
+				netFeasibility *= feasibility
 			}
 		}
 	}

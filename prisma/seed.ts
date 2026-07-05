@@ -1,6 +1,8 @@
 import prisma from '../lib/prisma'
 import bcrypt from 'bcrypt'
 import { createTreeNode } from '../lib/tree'
+import { updateProposalNetFeasibility } from '../server/trpc/routers/stepCosts'
+import { updateProposalNetBenefit } from '../server/trpc/routers/feedback'
 
 async function main() {
 	console.log('Starting seed...')
@@ -822,7 +824,7 @@ async function main() {
 				description:
 					'Skilled masonry labor for building cisterns, pump pads and tap stands.',
 				measurementType: 'Time',
-				quantityAvailable: 0,
+				quantityAvailable: 400,
 				monthlyCapacity: 400,
 				shelfLife: null,
 				minQuantity: 0,
@@ -916,18 +918,18 @@ async function main() {
 
 	await prisma.communityResource.createMany({
 		data: [
-			cr('Portland Cement', community1.id, 2000, 2000, 500, 0, 0.3),
-			cr('Filter Sand', community1.id, 12, 10, 2, 0, 25),
-			cr('Storage Cistern', community1.id, 4, 2, 1, 1, 800),
-			cr('PVC Pipe & Fittings', community1.id, 800, 500, 100, 0, 2),
-			cr('Roof Gutter & Downpipe', community1.id, 200, 200, 50, 0, 4),
-			cr('HDPE Pond Liner', community1.id, 400, 200, 100, 0, 5),
-			cr('Excavation Labor', community1.id, 0, 800, 0, 0, 15),
-			cr('Masonry & Construction Labor', community1.id, 0, 400, 0, 0, 22),
-			cr('Seakoo Mark II Electric Pump', community2.id, 2, 1, 1, 0, 1200),
-			cr('Sodium Hypochlorite', community2.id, 30, 20, 5, 0, 2),
-			cr('Borehole Drilling Service', community2.id, 0, 60, 0, 0, 120),
-			cr('Community Training & Coordination', community2.id, 0, 150, 0, 0, 18),
+			cr('Portland Cement', community1.id, 4000, 2000, 500, 0, 0.3),
+			cr('Filter Sand', community1.id, 20, 10, 2, 0, 25),
+			cr('Storage Cistern', community1.id, 6, 2, 1, 0, 800),
+			cr('PVC Pipe & Fittings', community1.id, 1500, 500, 100, 0, 2),
+			cr('Roof Gutter & Downpipe', community1.id, 400, 200, 50, 0, 4),
+			cr('HDPE Pond Liner', community1.id, 600, 200, 100, 0, 5),
+			cr('Excavation Labor', community1.id, 1500, 800, 0, 0, 15),
+			cr('Masonry & Construction Labor', community1.id, 1000, 400, 0, 0, 22),
+			cr('Seakoo Mark II Electric Pump', community2.id, 3, 1, 1, 0, 1200),
+			cr('Sodium Hypochlorite', community2.id, 50, 20, 5, 0, 2),
+			cr('Borehole Drilling Service', community2.id, 60, 60, 0, 0, 120),
+			cr('Community Training & Coordination', community2.id, 150, 150, 0, 0, 18),
 		],
 	})
 
@@ -1303,6 +1305,14 @@ async function main() {
 
 	console.log('Creating step nodes & costs...')
 
+	await Promise.all([
+		updateProposalNetFeasibility(proposal1.id),
+		updateProposalNetFeasibility(proposal2.id),
+		updateProposalNetFeasibility(proposal3.id),
+	])
+
+	console.log('Updating proposal net feasibility...')
+
 	// --- Stock movements: illustrate additions, removals and consumption
 	// against the seeded community stock. All rows are inserted in a single
 	// batch, with quantityBefore/quantityAfter consistent with the running
@@ -1529,6 +1539,19 @@ async function main() {
 	}
 
 	console.log('Creating feedbacks...')
+
+	const allRequestNodesWithFeedback = await prisma.requestNode.findMany({
+		where: { requestId: waterRequest.id },
+		include: { feedback: true },
+	})
+
+	await Promise.all(
+		proposals.map(p =>
+			updateProposalNetBenefit(p.id, allRequestNodesWithFeedback),
+		),
+	)
+
+	console.log('Updating proposal net benefit...')
 	console.log('Seed completed!')
 }
 

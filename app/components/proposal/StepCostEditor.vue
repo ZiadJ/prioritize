@@ -204,6 +204,14 @@ async function onSave() {
 							:modelValue="cost.quantity"
 							:measurementType="cost.measurementType"
 							readonly />
+						<template v-if="cost.communityResource?.quantity != null">
+							/
+						</template>
+						<Quantity
+							v-if="cost.communityResource?.quantity != null"
+							:modelValue="cost.communityResource.quantity"
+							:measurementType="cost.measurementType"
+							readonly />
 						<span v-if="cost.monetaryValue">
 							· ${{ formatNumber(cost.monetaryValue) }}</span
 						>

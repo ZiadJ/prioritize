@@ -51,16 +51,24 @@ export type StepCostInput = {
 export type StepCostPatch = Partial<StepCostInput> & { isActive?: boolean }
 
 /**
- * Feasibility of a single step cost:
- *   availability / (availability + stepCost.quantity)
- * where availability is the quantity of the community resource it draws from.
- * Returns 1 when availability is missing or non-positive (no constraint).
+ * Feasibility of a single step cost, in [0, 1].
+ *
+ * In the feasible region (required <= resourceQuantity) it follows the smooth
+ * curve  resourceQuantity / (resourceQuantity + required), rising from 0.5
+ * when supply exactly meets demand toward 1 as supply grows. When the
+ * requirement exceeds what is available the step cannot be fulfilled, so
+ * feasibility is 0.
+ *
+ * Returns 1 (no constraint) when there is no community resource or nothing is
+ * required.
  */
 export function stepCostFeasibility(cost: StepCostRow): number {
-	const availability = cost.communityResource?.quantity
-	if (!availability || availability <= 0) return 1
-	const feasibility = availability / (availability + cost.quantity)
-	return Number.isFinite(feasibility) ? feasibility : 1
+	const resourceQuantity = cost.communityResource?.quantity
+	if (resourceQuantity == null) return 1
+	const required = cost.quantity
+	if (!Number.isFinite(required) || required <= 0) return 1
+	if (required > resourceQuantity) return 0
+	return resourceQuantity / (resourceQuantity + required)
 }
 
 /**
