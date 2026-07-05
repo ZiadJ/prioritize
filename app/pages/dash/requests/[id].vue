@@ -421,6 +421,8 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 						class="show-on-hover-parent relative w-full">
 						<div
 							v-html="node.data.title"
+							:class="node.children?.length ? 'cursor-pointer select-none' : ''"
+							@click="node.children?.length && toggleNode(node)"
 							class="w-full !whitespace-normal"></div>
 						<div class="absolute right-0 top-1/2 -translate-y-1/2 text-[11px]">
 							<span

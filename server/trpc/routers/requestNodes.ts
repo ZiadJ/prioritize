@@ -13,6 +13,7 @@ const createInput = RequestNodeSchema.pick({
 	isNonNegotiable: true,
 	position: true,
 	requestId: true,
+	isActive: true,
 }).extend({
 	id: z.number().optional(),
 	ownerId: z.string().optional(),
