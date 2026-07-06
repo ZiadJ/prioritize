@@ -149,7 +149,7 @@ async function onSave() {
 			<div class="flex items-center gap-1">
 			<span
 				class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-					Step Costs
+					Costs
 					<span v-if="costs.length" class="font-normal"
 						>({{ costs.length }})</span
 					>

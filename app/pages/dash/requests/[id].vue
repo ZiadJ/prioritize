@@ -473,11 +473,11 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							{{ col.header }}
 						</div>
 						<span
-							class="impact-score absolute top-1 right-1 h-[1.5rem] px-[0.5rem] rounded-full bg-primary-600 text-white text-[0.7rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+							class="impact-score absolute top-1 right-1 h-[1.5rem] min-w-[1.5rem] px-[0.5rem] rounded-full bg-primary-600 text-white text-[0.7rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
 							v-tooltip.left="{
 								value: `Net Benefit: ${col.netBenefit ?? 0}
 								\nNet Feasibility: ${formatNumber((col.netFeasibility ?? 0) * 100, 0)}%
-								\nImpact Score: ${formatNumber((col.netBenefit ?? 0) * (col.netFeasibility ?? 0), 2)}`
+								\nFeasible Benefit: ${formatNumber((col.netBenefit ?? 0) * (col.netFeasibility ?? 0), 2)}`
 							}">
 							{{
 								formatNumber(
