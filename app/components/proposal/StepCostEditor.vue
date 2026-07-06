@@ -9,8 +9,8 @@ import type {
 	CommunityResourceOption,
 } from '~/composables/request/useStepCosts'
 import {
-	getStepCostFeasibility,
-	getStepFeasibility,
+	evaluateStepCostFeasibilities,
+	type StepCostEvaluation,
 } from '~/composables/request/useStepCosts'
 
 /**
@@ -22,6 +22,7 @@ import {
 const props = defineProps<{
 	stepId: number
 	costs: StepCostRow[]
+	allCosts?: StepCostRow[]
 	communityResources: CommunityResourceOption[]
 	saving?: boolean
 	create: (input: StepCostInput) => Promise<void>
@@ -100,6 +101,30 @@ const canSave = computed(
 		form.value.title.trim().length > 0 &&
 		form.value.communityResourceId != null,
 )
+
+// Per-cost evaluation across the whole proposal's cost list, so each row's
+// gauge and "used / remaining" reflect every cost already consumed across
+// all steps (not just this step). Falls back to this step's costs when no
+// proposal-wide list is passed (e.g. when the editor is used standalone).
+// `allCosts` shares row references with the rendered `costs`, so lookups by
+// identity always hit.
+const evaluationByCost = computed(() => {
+	const ctx = props.allCosts ?? props.costs
+	const evaluations = evaluateStepCostFeasibilities(ctx)
+	const map = new Map<StepCostRow, StepCostEvaluation>()
+	for (let i = 0; i < ctx.length; i++) {
+		const row = ctx[i]
+		const evaluation = evaluations[i]
+		if (row != null && evaluation != null) map.set(row, evaluation)
+	}
+	return map
+})
+
+const feasibilityFor = (cost: StepCostRow): number =>
+	evaluationByCost.value.get(cost)?.feasibility ?? 1
+
+const availableQuantityFor = (cost: StepCostRow): number | null =>
+	evaluationByCost.value.get(cost)?.availableQuantity ?? null
 
 // const stepFeasibilityProduct = computed(() => stepFeasibility(props.costs))
 
@@ -204,12 +229,12 @@ async function onSave() {
 							:modelValue="cost.quantity"
 							:measurementType="cost.measurementType"
 							readonly />
-						<template v-if="cost.communityResource?.quantity != null">
+						<template v-if="availableQuantityFor(cost) != null">
 							/
 						</template>
 						<Quantity
-							v-if="cost.communityResource?.quantity != null"
-							:modelValue="cost.communityResource.quantity"
+							v-if="availableQuantityFor(cost) != null"
+							:modelValue="availableQuantityFor(cost) ?? 0"
 							:measurementType="cost.measurementType"
 							readonly />
 						<span v-if="cost.monetaryValue">
@@ -218,15 +243,15 @@ async function onSave() {
 					</div>
 				</div>
 				<Knob
-					:modelValue="getStepCostFeasibility(cost)"
+					:modelValue="feasibilityFor(cost)"
 					:min="0"
 					:max="1"
 					:step="0.01"
 					:size="36"
 					readonly
-					:valueColor="feasibilityColor(getStepCostFeasibility(cost))"
+					:valueColor="feasibilityColor(feasibilityFor(cost))"
 					rangeColor="#8882"
-					v-tooltip.top="`Feasibility: ${(getStepCostFeasibility(cost) * 100).toFixed(0)}%`"
+					v-tooltip.top="`Feasibility: ${(feasibilityFor(cost) * 100).toFixed(0)}%`"
 					pt:text:class="hidden" />
 				<div class="flex gap-1 shrink-0">
 					<Button

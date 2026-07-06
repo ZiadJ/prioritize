@@ -16,12 +16,13 @@ const {
 	steps,
 	loading,
 	saving,
+	allCosts,
+	costsByStepId,
+	communityResources,
 	addStep,
 	updateStep,
 	removeStep,
 	reorder,
-	costsByStepId,
-	communityResources,
 	addCost,
 	updateCost,
 	removeCost,
@@ -94,7 +95,10 @@ function toggleExpand(row: Step) {
 }
 
 function feasibilityForStep(stepId: number): number {
-	return getStepFeasibility(costsByStepId.value.get(stepId) ?? [])
+	return getStepFeasibility(
+		costsByStepId.value.get(stepId) ?? [],
+		allCosts.value,
+	)
 }
 
 function feasibilityColor(value: number): string {
@@ -253,14 +257,15 @@ function onRowReorder(event: { value: Step[] }) {
 
 			<template #expansion="{ data }">
 				<div class="-mt-2 ml-6">
-					<StepCostEditor
-						:stepId="data.id"
-						:costs="costsByStepId.get(data.id) ?? []"
-						:communityResources="communityResources"
-						:saving="saving"
-						:create="input => addCost(data.id, input)"
-						:update="updateCost"
-						:remove="removeCost" />
+				<StepCostEditor
+					:stepId="data.id"
+					:costs="costsByStepId.get(data.id) ?? []"
+					:allCosts="allCosts"
+					:communityResources="communityResources"
+					:saving="saving"
+					:create="input => addCost(data.id, input)"
+					:update="updateCost"
+					:remove="removeCost" />
 				</div>
 			</template>
 

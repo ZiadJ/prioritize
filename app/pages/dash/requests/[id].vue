@@ -405,9 +405,9 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			</Column>
 			<Column
 				field="title"
-				header="Request Criteria, Benefits & Proposal Side-Effects"
+				header="Goals, Norms or Proposal Side-Effects"
 				expander
-				class="min-w-[45%] z-[1]">
+				bodyClass="min-w-[45%] z-[1] !py-0">
 				<template #body="{ node }">
 					<div
 						:class="
@@ -423,7 +423,7 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 							v-html="node.data.title"
 							:class="node.children?.length ? 'cursor-pointer select-none' : ''"
 							@click="node.children?.length && toggleNode(node)"
-							class="w-full !whitespace-normal"></div>
+							class="w-full !whitespace-normal !py-[1rem]"></div>
 						<div class="absolute right-0 top-1/2 -translate-y-1/2 text-[11px]">
 							<span
 								class="show-on-hover-child absolute right-0 p-[5px] cursor-pointer">

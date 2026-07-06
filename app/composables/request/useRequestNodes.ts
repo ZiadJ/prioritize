@@ -163,7 +163,7 @@ export function useRequestNodes(
 		formSaving.value = true
 
 		try {
-			const result = (await $trpcClient.requestNodes.create.mutate({
+			const result = await $trpcClient.requestNodes.create.mutate({
 				title: title.trim(),
 				description: description.trim(),
 				requestId,
@@ -174,7 +174,9 @@ export function useRequestNodes(
 				isNonNegotiable: false,
 				position: 0,
 				expertiseNodeId: expertiseNodeId ?? undefined,
-			})) as any
+			})
+
+			if (!result) throw new Error('Empty node returned')
 
 			const newNode: TreeNodeEx = {
 				key: String(result.id),

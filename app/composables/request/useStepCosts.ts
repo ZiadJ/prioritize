@@ -1,5 +1,10 @@
 import { MeasurementType } from '~~/prisma/generated/client/enums'
-import { getStepCostsFeasibility as _getStepCostsFeasibility } from '~~/lib/stepCostsFeasibility'
+import {
+	evaluateStepCostFeasibilities as _evaluateStepCostFeasibilities,
+	type StepCostEvaluation,
+} from '~~/lib/stepCostsFeasibility'
+
+export type { StepCostEvaluation }
 
 /**
  * Shared types for step costs. The cost list and its mutations are owned by
@@ -53,35 +58,44 @@ export type StepCostInput = {
 export type StepCostPatch = Partial<StepCostInput> & { isActive?: boolean }
 
 /**
- * Feasibility of a set of step costs that may share community resources.
+ * Per-cost evaluation (feasibility + remaining available quantity) across a
+ * proposal's full cost list, in array order.
  *
- * Thin wrapper over the canonical implementation in
- * `lib/stepCostsFeasibility.ts` so client and server stay in sync.
- * Each cost's consumed quantity is subtracted from the available quantity of
- * every other cost sharing the same `communityResource`, so subsequent
- * costs referencing the same resource see the reduced capacity.
+ * Each cost's required quantity is subtracted from the available quantity of
+ * every other cost sharing the same `communityResourceId` before it is
+ * evaluated, so later costs on a shared resource see reduced capacity. Use
+ * this for row-level display (e.g. a feasibility gauge plus "used /
+ * remaining"). `allCosts` must be in the same order the server consumes
+ * them (i.e. creation/execution order), not narrowed to a single step.
  */
-export function getCostsFeasibility(costs: StepCostRow[]): number {
-	return _getStepCostsFeasibility(costs)
+export function evaluateStepCostFeasibilities(
+	allCosts: StepCostRow[],
+): StepCostEvaluation[] {
+	return _evaluateStepCostFeasibilities(allCosts)
 }
 
 /**
- * Feasibility of a single step cost, in [0, 1].
+ * Feasibility of a step in the context of the whole proposal, in `[0, 1]`.
  *
- * Thin wrapper over the canonical implementation in
- * `lib/stepCostsFeasibility.ts` so client and server stay in sync.
- * Equivalent to `getCostsFeasibility([cost])`: a single cost has no siblings
- * to deplete shared stock from, so this is just its raw feasibility.
+ * The product of each of the step's costs' feasibility, each computed
+ * against the remaining capacity left after every cost consumed before it
+ * across all steps. `allCosts` is the full, ordered cost list for the
+ * proposal. Returns `1` when the step has no costs.
  */
-export function getStepCostFeasibility(cost: StepCostRow): number {
-	return _getStepCostsFeasibility([cost])
-}
-
-/**
- * Feasibility of a step: the product of the feasibility of all its step costs.
- * Returns 1 when there are no costs. Shared community resources across the
- * step's costs are consumed in order (see `getCostsFeasibility`).
- */
-export function getStepFeasibility(costs: StepCostRow[]): number {
-	return getCostsFeasibility(costs)
+export function getStepFeasibility(
+	stepCosts: StepCostRow[],
+	allCosts: StepCostRow[] = stepCosts,
+): number {
+	if (!stepCosts.length) return 1
+	const feasibilityByCost = new Map<StepCostRow, number>()
+	const evaluations = _evaluateStepCostFeasibilities(allCosts)
+	for (let i = 0; i < allCosts.length; i++) {
+		const row = allCosts[i]
+		if (row) feasibilityByCost.set(row, evaluations[i]?.feasibility ?? 1)
+	}
+	let product = 1
+	for (const cost of stepCosts) {
+		product *= feasibilityByCost.get(cost) ?? 1
+	}
+	return product
 }

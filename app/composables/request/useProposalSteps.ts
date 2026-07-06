@@ -296,6 +296,7 @@ export function useProposalSteps(
 		treeNodes,
 		loading,
 		saving,
+		allCosts,
 		costsByStepId,
 		communityResources,
 		addStep,
