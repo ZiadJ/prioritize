@@ -1,4 +1,5 @@
 import { MeasurementType } from '~~/prisma/generated/client/enums'
+import { getStepCostFeasibility as _getStepCostFeasibility } from '~~/server/trpc/routers/stepCosts'
 
 /**
  * Shared types for step costs. The cost list and its mutations are owned by
@@ -20,6 +21,7 @@ export interface StepCostRow {
 	communityResource?: {
 		id: number
 		quantity: number
+		monetaryValuePerUnit: number
 		resource?: {
 			id: number
 			title: string
@@ -52,31 +54,20 @@ export type StepCostPatch = Partial<StepCostInput> & { isActive?: boolean }
 
 /**
  * Feasibility of a single step cost, in [0, 1].
- *
- * In the feasible region (required <= resourceQuantity) it follows the linear
- * curve  1 - required / resourceQuantity, falling from 1 as required approaches
- * 0 down to 0 when required reaches the available quantity. When the
- * requirement exceeds what is available the step cannot be fulfilled, so
- * feasibility is 0.
- *
- * Returns 1 (no constraint) when there is no community resource or nothing is
- * required.
+ * 
+ * Thin wrapper over the canonical implementation in
+ * `server/trpc/routers/stepCosts.ts` so client and server stay in sync.
  */
-export function stepCostFeasibility(cost: StepCostRow): number {
-	const resourceQuantity = cost.communityResource?.quantity
-	if (resourceQuantity == null) return 1
-	const required = cost.quantity
-	if (!Number.isFinite(required) || required <= 0) return 1
-	if (required > resourceQuantity) return 0
-	return 1 - required / resourceQuantity
+export function getStepCostFeasibility(cost: StepCostRow): number {
+	return _getStepCostFeasibility(cost)
 }
 
 /**
  * Feasibility of a step: the product of the feasibility of all its step costs.
  * Returns 1 when there are no costs.
  */
-export function stepFeasibility(costs: StepCostRow[]): number {
+export function getStepFeasibility(costs: StepCostRow[]): number {
 	let product = 1
-	for (const c of costs) product *= stepCostFeasibility(c)
+	for (const c of costs) product *= getStepCostFeasibility(c)
 	return product
 }

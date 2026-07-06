@@ -47,16 +47,33 @@ const createInput = StepCostSchema.pick({
 	stepId: z.number().int(),
 })
 
-const updateInput = createInput.partial().extend({ id: z.number() })
+const updateInput = createInput.extend({ id: z.number() })
+
+/** Shape required to compute a step cost's feasibility. */
+export interface StepCostFeasibilityInput {
+	quantity: number
+	communityResource?: { quantity: number; monetaryValuePerUnit: number } | null
+}
+
+/**
+ * Feasibility of a single step cost, in [0, 1].
+ * Is shared by useStepCosts.ts so that client and server stay in sync.
+ */
+export function getStepCostFeasibility(cost: StepCostFeasibilityInput): number {
+	const availableQuantity = cost.communityResource?.quantity
+	if (availableQuantity == null) return 1
+	const requiredQuantity = cost.quantity
+	if (!Number.isFinite(requiredQuantity) || requiredQuantity <= 0) return 1
+	if (requiredQuantity > availableQuantity) return 0 // (cost.communityResource?.monetaryValuePerUnit ?? 0) * requiredQuantity
+	return 1 - requiredQuantity / availableQuantity
+}
 
 /**
  * Recalculates and persists the netFeasibility for a single proposal.
  *
- * For each StepCost it computes a feasibility in [0, 1]: the linear curve
- *   1 - required / resourceQuantity
- * while required <= resourceQuantity, and 0 once the requirement exceeds the
- * on-hand quantity of the community resource it draws from. The proposal's
- * netFeasibility is the product of every step cost's feasibility.
+ * For each StepCost it computes a feasibility in [0, 1] via
+ * `stepCostFeasibility` (see above). The proposal's netFeasibility is the
+ * product of every step cost's feasibility.
  */
 export async function updateProposalNetFeasibility(proposalId: number) {
 	const proposal = await prisma.proposal.findUnique({
@@ -77,16 +94,7 @@ export async function updateProposalNetFeasibility(proposalId: number) {
 	if (proposal) {
 		for (const step of proposal.steps) {
 			for (const stepCost of step.costs) {
-				const resourceQuantity = stepCost.communityResource.quantity
-				const required = stepCost.quantity
-				let feasibility = 1
-				if (required > 0) {
-				feasibility =
-					required > resourceQuantity
-						? 0
-						: 1 - required / resourceQuantity
-				}
-				netFeasibility *= feasibility
+				netFeasibility *= getStepCostFeasibility(stepCost)
 			}
 		}
 	}

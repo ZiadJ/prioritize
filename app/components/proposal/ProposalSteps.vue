@@ -4,7 +4,7 @@ import type { Step } from '~~/prisma/generated/interfaces'
 import type { StepData } from '~/composables/request/useProposalSteps'
 import { useProposalSteps } from '~/composables/request/useProposalSteps'
 import StepCostEditor from '@/components/proposal/StepCostEditor.vue'
-import { stepFeasibility } from '~/composables/request/useStepCosts'
+import { getStepFeasibility } from '~/composables/request/useStepCosts'
 
 const props = defineProps<{
 	proposalId: number
@@ -94,7 +94,7 @@ function toggleExpand(row: Step) {
 }
 
 function feasibilityForStep(stepId: number): number {
-	return stepFeasibility(costsByStepId.value.get(stepId) ?? [])
+	return getStepFeasibility(costsByStepId.value.get(stepId) ?? [])
 }
 
 function feasibilityColor(value: number): string {

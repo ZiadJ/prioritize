@@ -9,8 +9,8 @@ import type {
 	CommunityResourceOption,
 } from '~/composables/request/useStepCosts'
 import {
-	stepCostFeasibility,
-	stepFeasibility,
+	getStepCostFeasibility,
+	getStepFeasibility,
 } from '~/composables/request/useStepCosts'
 
 /**
@@ -218,15 +218,15 @@ async function onSave() {
 					</div>
 				</div>
 				<Knob
-					:modelValue="stepCostFeasibility(cost)"
+					:modelValue="getStepCostFeasibility(cost)"
 					:min="0"
 					:max="1"
 					:step="0.01"
 					:size="36"
 					readonly
-					:valueColor="feasibilityColor(stepCostFeasibility(cost))"
+					:valueColor="feasibilityColor(getStepCostFeasibility(cost))"
 					rangeColor="#8882"
-					v-tooltip.top="`Feasibility: ${(stepCostFeasibility(cost) * 100).toFixed(0)}%`"
+					v-tooltip.top="`Feasibility: ${(getStepCostFeasibility(cost) * 100).toFixed(0)}%`"
 					pt:text:class="hidden" />
 				<div class="flex gap-1 shrink-0">
 					<Button
