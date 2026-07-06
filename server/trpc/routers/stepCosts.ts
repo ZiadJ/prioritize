@@ -3,6 +3,7 @@ import { publicProcedure, protectedProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
 import { StepCostSchema } from '~~/prisma/generated/zod/schemas/models/StepCost.schema'
 import { assertCanEditProposal } from './steps'
+import { getStepCostsFeasibility } from '~~/lib/stepCostsFeasibility'
 
 const COST_INCLUDE = {
 	communityResource: { include: { resource: true } },
@@ -49,31 +50,14 @@ const createInput = StepCostSchema.pick({
 
 const updateInput = createInput.extend({ id: z.number() })
 
-/** Shape required to compute a step cost's feasibility. */
-export interface StepCostFeasibilityInput {
-	quantity: number
-	communityResource?: { quantity: number; monetaryValuePerUnit: number } | null
-}
-
-/**
- * Feasibility of a single step cost, in [0, 1].
- * Is shared by useStepCosts.ts so that client and server stay in sync.
- */
-export function getStepCostFeasibility(cost: StepCostFeasibilityInput): number {
-	const availableQuantity = cost.communityResource?.quantity
-	if (availableQuantity == null) return 1
-	const requiredQuantity = cost.quantity
-	if (!Number.isFinite(requiredQuantity) || requiredQuantity <= 0) return 1
-	if (requiredQuantity > availableQuantity) return 0 // (cost.communityResource?.monetaryValuePerUnit ?? 0) * requiredQuantity
-	return 1 - requiredQuantity / availableQuantity
-}
-
 /**
  * Recalculates and persists the netFeasibility for a single proposal.
  *
  * For each StepCost it computes a feasibility in [0, 1] via
- * `stepCostFeasibility` (see above). The proposal's netFeasibility is the
- * product of every step cost's feasibility.
+ * `getStepCostsFeasibility` (see `lib/stepCostsFeasibility.ts`), consuming
+ * shared community resources in order across all of the proposal's steps.
+ * The proposal's netFeasibility is the product of every step cost's
+ * feasibility.
  */
 export async function updateProposalNetFeasibility(proposalId: number) {
 	const proposal = await prisma.proposal.findUnique({
@@ -92,11 +76,8 @@ export async function updateProposalNetFeasibility(proposalId: number) {
 	let netFeasibility = 1
 
 	if (proposal) {
-		for (const step of proposal.steps) {
-			for (const stepCost of step.costs) {
-				netFeasibility *= getStepCostFeasibility(stepCost)
-			}
-		}
+		const allCosts = proposal.steps.flatMap((step) => step.costs)
+		netFeasibility = getStepCostsFeasibility(allCosts)
 	}
 
 	await prisma.proposal.update({
