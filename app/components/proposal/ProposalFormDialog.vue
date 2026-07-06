@@ -127,7 +127,7 @@ function formatApprovalDate(value: string | Date | null | undefined) {
 			</div>-->
 
 			<Divider v-if="editMode && proposalId" align="left" class="-m-1">
-				Proposal Step Costs
+				Proposal Feasibility
 			</Divider>
 			<ProposalSteps
 				v-if="editMode && proposalId"
