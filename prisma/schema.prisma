@@ -241,8 +241,8 @@ model User {
 
   expertise         ExpertiseNode[]
   assginedSteps     Step[]
-   feedback          Feedback[]
-   comments          Comment[]
+  feedback          Feedback[]
+  comments          Comment[]
   revisions         RevisionNode[]
   tags              Tag[]
   fromRelationships UserRelation[]  @relation("from")
@@ -940,9 +940,9 @@ model Comment {
   createdAt  DateTime @default(now())
   isActive   Boolean  @default(true)
 
-
-  isDirty     Boolean? // Client-server-clients sync flag
-  revisions   RevisionNode[]
+  content   String
+  isDirty   Boolean? // Client-server-clients sync flag
+  revisions RevisionNode[]
 
   path     String    @unique
   depth    Int       @default(0)
@@ -951,12 +951,12 @@ model Comment {
   parentId Int?
   children Comment[] @relation("Self")
 
-   proposal   Proposal? @relation(fields: [proposalId], references: [id])
-   proposalId Int?
+  proposal   Proposal? @relation(fields: [proposalId], references: [id])
+  proposalId Int?
 
-   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-   userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
 
-   //step Step? @relation(fields: [stepId], references: [id])
-   //stepId Int?
+  //step Step? @relation(fields: [stepId], references: [id])
+  //stepId Int?
 }

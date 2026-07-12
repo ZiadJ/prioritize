@@ -27,15 +27,14 @@ export const commentsRouter = router({
 			z.object({
 				proposalId: z.number(),
 				parentId: z.number().int().nullable().optional(),
-				description: z.string().min(1),
+				content: z.string().min(1),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
 			// `createTreeNode` materialises the tree-bookkeeping fields
 			// (path/depth/numchild) and connects the parent when replying.
 			const node = await createTreeNode(prisma.comment, {
-				title: '',
-				description: input.description,
+				content: input.content,
 				parentId: input.parentId ?? null,
 				proposal: { connect: { id: input.proposalId } },
 				user: { connect: { id: ctx.user!.id } },
@@ -48,7 +47,7 @@ export const commentsRouter = router({
 		}),
 
 	update: protectedProcedure
-		.input(z.object({ id: z.number(), description: z.string().min(1) }))
+		.input(z.object({ id: z.number(), content: z.string().min(1) }))
 		.mutation(async ({ ctx, input }) => {
 			const existing = await prisma.comment.findUnique({
 				where: { id: input.id },
@@ -62,7 +61,7 @@ export const commentsRouter = router({
 
 			return prisma.comment.update({
 				where: { id: input.id },
-				data: { description: input.description },
+				data: { content: input.content },
 				include: COMMENT_INCLUDE,
 			})
 		}),

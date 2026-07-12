@@ -9,8 +9,7 @@ export interface CommentUser {
 
 export interface CommentRow {
 	id: number
-	title: string
-	description: string
+	content: string
 	createdAt: string
 	isActive: boolean
 	userId: string
@@ -89,15 +88,15 @@ export function useProposalComments(
 		return roots
 	})
 
-	async function addComment(description: string, parentId: number | null = null) {
+	async function addComment(content: string, parentId: number | null = null) {
 		const id = proposalId.value
-		if (!id || !description.trim()) return
+		if (!id || !content.trim()) return
 		saving.value = true
 		try {
 			const created = await $trpcClient.comments.create.mutate({
 				proposalId: id,
 				parentId,
-				description: description.trim(),
+				content: content.trim(),
 			})
 			comments.value = [...comments.value, created as CommentRow]
 			toast.add('Comment added')
