@@ -10,6 +10,7 @@ import { expertiseRouter } from './expertise'
 import { stepsRouter } from './steps'
 import { stepCostsRouter } from './stepCosts'
 import { stockMovementsRouter } from './stockMovements'
+import { commentsRouter } from './comments'
 
 export const appRouter = router({
 	requests: requestsRouter,
@@ -22,6 +23,7 @@ export const appRouter = router({
 	steps: stepsRouter,
 	stepCosts: stepCostsRouter,
 	stockMovements: stockMovementsRouter,
+	comments: commentsRouter,
 })
 
 // export type definition of API

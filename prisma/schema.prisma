@@ -120,12 +120,18 @@ datasource db {
 //   Proposal
 // }
 
-enum RevisionType {
-  Self
-  Suggestion
-  Deduplication
-  ModeratorFlag
-}
+// enum RevisionType {
+//   Self
+//   Suggestion
+//   Deduplication
+//   ModeratorFlag
+//}
+
+// enum ResourceType {
+//   ServiceTime
+//   Material
+//   Digital
+// }
 
 enum RelationType {
   Enabler
@@ -134,25 +140,19 @@ enum RelationType {
   Incrementor
 }
 
-enum ResourceType {
-  ServiceTime
-  Material
-  Digital
-}
+// enum RequestType {
+//   Question
+//   Observational
+//   Material
+// }
 
-enum RequestType {
-  Emotional
-  Observational
-  Material
-}
-
-enum RequestLevel {
-  Safety
-  Health
-  Belonging
-  Esteem
-  SelfActualization
-}
+// enum RequestLevel {
+//   Safety
+//   Health
+//   Belonging
+//   Esteem
+//   SelfActualization
+// }
 
 enum MeasurementType {
   None // For non-countable items
@@ -241,7 +241,8 @@ model User {
 
   expertise         ExpertiseNode[]
   assginedSteps     Step[]
-  feedback          Feedback[]
+   feedback          Feedback[]
+   comments          Comment[]
   revisions         RevisionNode[]
   tags              Tag[]
   fromRelationships UserRelation[]  @relation("from")
@@ -332,6 +333,8 @@ model RevisionNode {
   resourceId      Int?
   effectHook      Effector?      @relation(fields: [effectHookId], references: [id], onDelete: Cascade)
   effectHookId    Int?
+  comment         Comment?       @relation(fields: [commentId], references: [id])
+  commentId       Int?
 
   //@@unique([userId, requestId, requestId, requestNodeId, proposalId, proposalId, stepId, stepCostId, effectId, expertiseNodeId, resourceId, effectHookId])
   @@index([path])
@@ -372,7 +375,7 @@ model AssignedCognitiveBias {
 model Tag {
   id   Int    @id @default(autoincrement())
   name String @unique
-  type String @default("request")
+  // type String @default("request")
 
   users       User[]
   request     Request[]
@@ -383,7 +386,7 @@ model Tag {
   effect      Effect[]
   resource    Resource[]
 
-  @@unique([name, type])
+  // @@unique([name, type])
   @@index([name])
 }
 
@@ -587,9 +590,10 @@ model Proposal {
   steps                 Step[]
   assignedCognitiveBias AssignedCognitiveBias[]
 
-  owner   User   @relation("ProposalOwner", fields: [ownerId], references: [id])
-  ownerId String
-  editors User[] @relation("ProposalEditors")
+  owner    User      @relation("ProposalOwner", fields: [ownerId], references: [id])
+  ownerId  String
+  editors  User[]    @relation("ProposalEditors")
+  comments Comment[]
 }
 
 // An action task which is referenced by proposals in relatio to a request
@@ -928,4 +932,31 @@ model Country {
 
   @@index([name])
   @@index([code])
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement())
+  modifiedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  isActive   Boolean  @default(true)
+
+
+  isDirty     Boolean? // Client-server-clients sync flag
+  revisions   RevisionNode[]
+
+  path     String    @unique
+  depth    Int       @default(0)
+  numchild Int       @default(0)
+  parent   Comment?  @relation("Self", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId Int?
+  children Comment[] @relation("Self")
+
+   proposal   Proposal? @relation(fields: [proposalId], references: [id])
+   proposalId Int?
+
+   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+   userId String
+
+   //step Step? @relation(fields: [stepId], references: [id])
+   //stepId Int?
 }

@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center justify-center min-h-screen" style="padding-bottom: 20vh;">
     <p class="w-[400px] text-center">
-      A collaborative prioritization platform where communities can submit and organize requests granularly, using expert-based feedback to determine the best course of action based on desirability and availability. 
+      A collaborative resource management platform where community members can submit and organize requests granularly, using expert-based feedback to determine the best course of action based on desirability and availability. 
     </p>
     
     

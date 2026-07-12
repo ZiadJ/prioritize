@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import ProposalSteps from '@/components/proposal/ProposalSteps.vue'
+import ProposalComments from '@/components/proposal/ProposalComments.vue'
 
 const props = defineProps<{
 	saving?: boolean
@@ -31,8 +32,10 @@ const emit = defineEmits<{
 }>()
 
 const dialogStyle = computed(() => ({
-	width: props.editMode ? '680px' : '450px',
+	width: props.editMode ? '720px' : '450px',
 }))
+
+const discussionTab = ref<'steps' | 'comments'>('steps')
 
 function formatApprovalDate(value: string | Date | null | undefined) {
 	if (!value) return ''
@@ -126,13 +129,31 @@ function formatApprovalDate(value: string | Date | null | undefined) {
 				</div>
 			</div>-->
 
-			<Divider v-if="editMode && proposalId" align="left" class="-m-1">
-				Steps Feasibility
-			</Divider>
-			<ProposalSteps
+			<Tabs
 				v-if="editMode && proposalId"
-				:proposalId="proposalId"
-				:onCostsChanged="onCostsChanged" />
+				v-model:value="discussionTab"
+				class="-m-1">
+				<TabList :pt="{ tabList: { class: 'justify-center' } }">
+					<Tab value="steps">
+						<i class="pi pi-list-check mr-2" />
+						Steps Feasibility
+					</Tab>
+					<Tab value="comments">
+						<i class="pi pi-comments mr-2" />
+						Comments
+					</Tab>
+				</TabList>
+				<TabPanels>
+					<TabPanel value="steps">
+						<ProposalSteps
+							:proposalId="proposalId"
+							:onCostsChanged="onCostsChanged" />
+					</TabPanel>
+					<TabPanel value="comments">
+						<ProposalComments :proposalId="proposalId" />
+					</TabPanel>
+				</TabPanels>
+			</Tabs>
 		</div>
 
 		<template #footer>
