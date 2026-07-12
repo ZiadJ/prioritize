@@ -107,13 +107,13 @@ export function useProposalComments(
 		}
 	}
 
-	async function updateComment(id: number, description: string) {
-		if (!description.trim()) return
+	async function updateComment(id: number, content: string) {
+		if (!content.trim()) return
 		saving.value = true
 		try {
 			const updated = await $trpcClient.comments.update.mutate({
 				id,
-				description: description.trim(),
+				content: content.trim(),
 			})
 			comments.value = comments.value.map(c =>
 				c.id === id ? (updated as CommentRow) : c,

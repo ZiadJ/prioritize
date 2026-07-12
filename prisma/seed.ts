@@ -543,15 +543,15 @@ async function main() {
 	// --- Tags ---
 
 	const tagHealth = await prisma.tag.create({
-		data: { name: 'health', type: 'request' },
+		data: { name: 'health' },
 	})
 
 	const tagWater = await prisma.tag.create({
-		data: { name: 'water', type: 'request' },
+		data: { name: 'water' },
 	})
 
 	const tagInfrastructure = await prisma.tag.create({
-		data: { name: 'infrastructure', type: 'request' },
+		data: { name: 'infrastructure' },
 	})
 
 	await prisma.request.update({
@@ -929,7 +929,15 @@ async function main() {
 			cr('Seakoo Mark II Electric Pump', community2.id, 3, 1, 1, 0, 1200),
 			cr('Sodium Hypochlorite', community2.id, 50, 20, 5, 0, 2),
 			cr('Borehole Drilling Service', community2.id, 60, 60, 0, 0, 120),
-			cr('Community Training & Coordination', community2.id, 150, 150, 0, 0, 18),
+			cr(
+				'Community Training & Coordination',
+				community2.id,
+				150,
+				150,
+				0,
+				0,
+				18,
+			),
 		],
 	})
 
@@ -1325,16 +1333,12 @@ async function main() {
 			resource: { select: { title: true } },
 		},
 	})
-	const stockCrByTitle = new Map(
-		stockCrRecords.map(r => [r.resource.title, r]),
-	)
+	const stockCrByTitle = new Map(stockCrRecords.map(r => [r.resource.title, r]))
 
 	const stepCostRecords = await prisma.stepCost.findMany({
 		select: { id: true, title: true },
 	})
-	const stepCostByTitle = new Map(
-		stepCostRecords.map(sc => [sc.title, sc.id]),
-	)
+	const stepCostByTitle = new Map(stepCostRecords.map(sc => [sc.title, sc.id]))
 
 	const daysAgo = (days: number) => {
 		const d = new Date()
@@ -1419,9 +1423,7 @@ async function main() {
 	const movementRows = movementSpecs.map(spec => {
 		const entry = stockCrByTitle.get(spec.resourceTitle)
 		if (!entry)
-			throw new Error(
-				`Community resource "${spec.resourceTitle}" not found`,
-			)
+			throw new Error(`Community resource "${spec.resourceTitle}" not found`)
 		const quantityBefore = entry.quantity
 		const quantityAfter = quantityBefore + spec.quantity
 		entry.quantity = quantityAfter
@@ -1500,8 +1502,8 @@ async function main() {
 	const adminFeedbackRatings: Record<string, number> = {
 		'Treatment method': 2,
 		'Natural filtration only': 1,
-	'No chlorine required': 0,
-	'Water source': 1,
+		'No chlorine required': 0,
+		'Water source': 1,
 		'Rain-fed with storage': 2,
 		'Groundwater via borehole': -1,
 		Construction: 2,

@@ -2,12 +2,21 @@ import { z } from 'zod'
 import { protectedProcedure, publicProcedure, router } from '../trpc'
 import prisma, { Prisma } from '~~/lib/prisma'
 import { createTreeNode } from '~~/lib/tree'
+import { CommentSchema } from '~~/prisma/generated/zod/schemas/models/Comment.schema'
 
 const COMMENT_INCLUDE = {
 	user: {
 		select: { id: true, firstname: true, lastname: true, username: true },
 	},
 } satisfies Prisma.CommentInclude
+
+const createInput = CommentSchema.pick({
+	proposalId: true,
+	parentId: true,
+	content: true,
+})
+
+const updateInput = createInput.extend({ id: z.number().int() })
 
 export const commentsRouter = router({
 	byProposalId: publicProcedure
@@ -23,20 +32,15 @@ export const commentsRouter = router({
 		}),
 
 	create: protectedProcedure
-		.input(
-			z.object({
-				proposalId: z.number(),
-				parentId: z.number().int().nullable().optional(),
-				content: z.string().min(1),
-			}),
-		)
+		.input(createInput)
 		.mutation(async ({ ctx, input }) => {
+			const data = input as z.infer<typeof createInput>
 			// `createTreeNode` materialises the tree-bookkeeping fields
 			// (path/depth/numchild) and connects the parent when replying.
 			const node = await createTreeNode(prisma.comment, {
-				content: input.content,
-				parentId: input.parentId ?? null,
-				proposal: { connect: { id: input.proposalId } },
+				content: data.content,
+				parentId: data.parentId ?? null,
+				proposal: { connect: { id: data.proposalId } },
 				user: { connect: { id: ctx.user!.id } },
 			})
 
@@ -47,10 +51,11 @@ export const commentsRouter = router({
 		}),
 
 	update: protectedProcedure
-		.input(z.object({ id: z.number(), content: z.string().min(1) }))
+		.input(updateInput)
 		.mutation(async ({ ctx, input }) => {
+			const data = input as z.infer<typeof updateInput>
 			const existing = await prisma.comment.findUnique({
-				where: { id: input.id },
+				where: { id: data.id },
 			})
 			if (!existing) throw new Error('Comment not found')
 
@@ -60,8 +65,8 @@ export const commentsRouter = router({
 			}
 
 			return prisma.comment.update({
-				where: { id: input.id },
-				data: { content: input.content },
+				where: { id: data.id },
+				data: { content: data.content },
 				include: COMMENT_INCLUDE,
 			})
 		}),

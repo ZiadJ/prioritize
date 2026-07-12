@@ -5,8 +5,8 @@ import type { CommentNode } from '~/composables/request/useProposalComments'
 interface CommentsApi {
 	saving: Ref<boolean>
 	currentUserId: ComputedRef<string | null>
-	addComment: (description: string, parentId: number | null) => Promise<void>
-	updateComment: (id: number, description: string) => Promise<void>
+	addComment: (content: string, parentId: number | null) => Promise<void>
+	updateComment: (id: number, content: string) => Promise<void>
 	removeComment: (id: number) => void
 }
 
@@ -29,7 +29,7 @@ const replyText = ref('')
 
 // Inline edit state.
 const editing = ref(false)
-const editText = ref(props.comment.description)
+const editText = ref(props.comment.content)
 
 function startReply() {
 	replyText.value = ''
@@ -43,7 +43,7 @@ async function submitReply() {
 }
 
 function startEdit() {
-	editText.value = props.comment.description
+	editText.value = props.comment.content
 	editing.value = true
 }
 
@@ -106,7 +106,7 @@ function formatDate(value: string) {
 			<p
 				v-else
 				class="text-sm mt-0.5 whitespace-pre-wrap break-words text-gray-700 dark:text-gray-200">
-				{{ comment.description }}
+				{{ comment.content }}
 			</p>
 		</div>
 

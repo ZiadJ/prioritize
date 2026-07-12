@@ -86,14 +86,14 @@ export const requestsRouter = router({
 						return []
 					}
 
-				// Fetch user's community with relevant regional relation
-				const userCommunity = await prisma.community.findUnique({
-					where: { id: ctx.user.communityId },
-					select: {
-						regionalCommunities: { select: { id: true } },
-						localCommunities: { select: { id: true } },
-					},
-				})
+					// Fetch user's community with relevant regional relation
+					const userCommunity = await prisma.community.findUnique({
+						where: { id: ctx.user.communityId },
+						select: {
+							regionalCommunities: { select: { id: true } },
+							localCommunities: { select: { id: true } },
+						},
+					})
 
 					// Get community IDs based on scope
 					let regionalIds: number[] = []
@@ -140,10 +140,10 @@ export const requestsRouter = router({
 			const result = await prisma.request.findMany({
 				where,
 				orderBy,
-			include: {
-				tags: true,
-				community: true,
-				editors: true,
+				include: {
+					tags: true,
+					community: true,
+					editors: true,
 					// _count: {
 					// 	select: { children: true },
 					// },
@@ -169,16 +169,16 @@ export const requestsRouter = router({
 							expertise: true,
 						},
 					},
-			proposals: {
-				include: {
-					owner: {
-						select: { username: true },
+					proposals: {
+						include: {
+							owner: {
+								select: { username: true },
+							},
+						},
 					},
-				},
-			},
-				userRequests: true,
-				community: true,
-				country: true,
+					userRequests: true,
+					community: true,
+					country: true,
 					_count: {
 						select: {
 							children: true,
@@ -192,44 +192,42 @@ export const requestsRouter = router({
 	create: protectedProcedure
 		.input(createInput)
 		.mutation(async ({ ctx, input }) => {
-	const { tagIds, parentId, ...data } = input as z.infer<
-		typeof createInput
-	>
+			const { tagIds, parentId, ...data } = input as z.infer<typeof createInput>
 
-		if (!ctx.user!.communityId) {
-			throw new Error('User must be assigned to a community')
-		}
+			if (!ctx.user!.communityId) {
+				throw new Error('User must be assigned to a community')
+			}
 
-		try {
-		const node = await createTreeNode(prisma.request, {
-				...data,
-				parentId,
-				communityId: ctx.user!.communityId,
-				countryId: ctx.user!.countryId,
-				ownerId: ctx.user!.id,
-				tags: tagIds?.length
-					? {
-							connect: tagIds.map((id: number) => ({ id })),
-						}
-					: undefined,
-			})
+			try {
+				const node = await createTreeNode(prisma.request, {
+					...data,
+					parentId,
+					communityId: ctx.user!.communityId,
+					countryId: ctx.user!.countryId,
+					ownerId: ctx.user!.id,
+					tags: tagIds?.length
+						? {
+								connect: tagIds.map((id: number) => ({ id })),
+							}
+						: undefined,
+				})
 
-			// Update denormalized totals
-			await updateRequestTotals(node.id)
+				// Update denormalized totals
+				await updateRequestTotals(node.id)
 
-			return node
-		} catch (e) {
-			console.error('Prisma create error:', e)
-			throw e
-		}
-	}),
+				return node
+			} catch (e) {
+				console.error('Prisma create error:', e)
+				throw e
+			}
+		}),
 
 	update: protectedProcedure
 		.input(updateInput)
 		.mutation(async ({ ctx, input }) => {
-	const { id, tagIds, measurementType, ...data } = input as z.infer<
-		typeof updateInput
-	>
+			const { id, tagIds, measurementType, ...data } = input as z.infer<
+				typeof updateInput
+			>
 
 			// Fetch the request to check permissions
 			const existingRequest = await prisma.request.findUnique({
@@ -258,9 +256,9 @@ export const requestsRouter = router({
 						set: tagIds.map((tagId: number) => ({ id: tagId })),
 					}
 				}
-			if (measurementType !== undefined) {
-				updateData.measurementType = measurementType
-			}
+				if (measurementType !== undefined) {
+					updateData.measurementType = measurementType
+				}
 			}
 
 			if (Object.keys(updateData).length > 0) {
@@ -354,8 +352,7 @@ export const requestsRouter = router({
 					updateData.recurrencePeriod = data.recurrencePeriod
 				if (data.quantity != null)
 					updateData.quantity = data.isJoined ? 0 : data.quantity
-				if (data.priority !== undefined)
-					updateData.priority = data.priority
+				if (data.priority !== undefined) updateData.priority = data.priority
 				if (data.dueAt !== undefined)
 					updateData.dueAt = data.dueAt ? new Date(data.dueAt) : null
 				if (data.isBasicNeed !== undefined)
@@ -364,8 +361,7 @@ export const requestsRouter = router({
 					updateData.isJoined = data.isJoined
 					if (data.isJoined) updateData.quantity = 0
 				}
-				if (data.comment !== undefined)
-					updateData.comment = data.comment
+				if (data.comment !== undefined) updateData.comment = data.comment
 				await prisma.userRequest.update({
 					where: { id: existingUserRequest.id },
 					data: updateData,
@@ -386,9 +382,9 @@ export const requestsRouter = router({
 				})
 			}
 
-		await updateRequestTotals(requestId)
-		return { success: true }
-	}),
+			await updateRequestTotals(requestId)
+			return { success: true }
+		}),
 
 	// Delete the current user's user request for a specific request
 	deleteUserRequest: protectedProcedure
@@ -403,7 +399,6 @@ export const requestsRouter = router({
 
 	listTags: publicProcedure.query(async () => {
 		return prisma.tag.findMany({
-			where: { type: 'request' },
 			include: {
 				_count: {
 					select: { request: true },
@@ -419,9 +414,9 @@ export const requestsRouter = router({
 		.input(z.object({ name: z.string().min(1) }))
 		.mutation(async ({ input }) => {
 			return prisma.tag.upsert({
-				where: { name_type: { name: input.name, type: 'request' } },
+				where: { name: input.name },
 				update: {},
-				create: { name: input.name, type: 'request' },
+				create: { name: input.name },
 			})
 		}),
 
@@ -430,82 +425,82 @@ export const requestsRouter = router({
 	listByUser: publicProcedure
 		.input(z.object({ userId: z.string() }))
 		.query(async ({ input }) => {
-		const [owned, edited, requested] = await Promise.all([
-			prisma.request.findMany({
-				where: { ownerId: input.userId },
-				include: { tags: true, community: true, editors: true },
-			}),
-			prisma.request.findMany({
-				where: { editors: { some: { id: input.userId } } },
-				include: { tags: true, community: true, editors: true },
-			}),
-			prisma.userRequest.findMany({
-				where: { userId: input.userId },
-				select: {
-					quantity: true,
-					priority: true,
-					isJoined: true,
-					isActive: true,
-					dueAt: true,
-					recurrencePeriod: true,
-					request: {
-						include: {
-							tags: true,
-							community: true,
-							editors: true,
+			const [owned, edited, requested] = await Promise.all([
+				prisma.request.findMany({
+					where: { ownerId: input.userId },
+					include: { tags: true, community: true, editors: true },
+				}),
+				prisma.request.findMany({
+					where: { editors: { some: { id: input.userId } } },
+					include: { tags: true, community: true, editors: true },
+				}),
+				prisma.userRequest.findMany({
+					where: { userId: input.userId },
+					select: {
+						quantity: true,
+						priority: true,
+						isJoined: true,
+						isActive: true,
+						dueAt: true,
+						recurrencePeriod: true,
+						request: {
+							include: {
+								tags: true,
+								community: true,
+								editors: true,
+							},
 						},
 					},
-				},
-			}),
-		])
+				}),
+			])
 
-		type RequestWithIncludes = (typeof owned)[number]
-		const byId = new Map<
-			number,
-			{
-				request: RequestWithIncludes
-				role: 'Owner' | 'Editor' | 'Requester'
-				priority: number
-				quantity: number
-			}
-		>()
-
-		for (const r of owned) {
-			byId.set(r.id, { request: r, role: 'Owner', priority: 0, quantity: 0 })
-		}
-		for (const r of edited) {
-			if (!byId.has(r.id)) {
-				byId.set(r.id, {
-					request: r,
-					role: 'Editor',
-					priority: 0,
-					quantity: 0,
-				})
-			}
-		}
-		for (const ur of requested) {
-			const existing = byId.get(ur.request.id)
-			if (existing) {
-				if (existing.role === 'Owner' || existing.role === 'Editor') {
-					existing.priority = ur.priority
-					existing.quantity = ur.quantity
+			type RequestWithIncludes = (typeof owned)[number]
+			const byId = new Map<
+				number,
+				{
+					request: RequestWithIncludes
+					role: 'Owner' | 'Editor' | 'Requester'
+					priority: number
+					quantity: number
 				}
-			} else {
-				byId.set(ur.request.id, {
-					request: ur.request as unknown as RequestWithIncludes,
-					role: 'Requester',
-					priority: ur.priority,
-					quantity: ur.quantity,
-				})
-			}
-		}
+			>()
 
-		return Array.from(byId.values()).sort(
-			(a, b) =>
-				new Date(b.request.createdAt).getTime() -
-				new Date(a.request.createdAt).getTime(),
-		)
-	}),
+			for (const r of owned) {
+				byId.set(r.id, { request: r, role: 'Owner', priority: 0, quantity: 0 })
+			}
+			for (const r of edited) {
+				if (!byId.has(r.id)) {
+					byId.set(r.id, {
+						request: r,
+						role: 'Editor',
+						priority: 0,
+						quantity: 0,
+					})
+				}
+			}
+			for (const ur of requested) {
+				const existing = byId.get(ur.request.id)
+				if (existing) {
+					if (existing.role === 'Owner' || existing.role === 'Editor') {
+						existing.priority = ur.priority
+						existing.quantity = ur.quantity
+					}
+				} else {
+					byId.set(ur.request.id, {
+						request: ur.request as unknown as RequestWithIncludes,
+						role: 'Requester',
+						priority: ur.priority,
+						quantity: ur.quantity,
+					})
+				}
+			}
+
+			return Array.from(byId.values()).sort(
+				(a, b) =>
+					new Date(b.request.createdAt).getTime() -
+					new Date(a.request.createdAt).getTime(),
+			)
+		}),
 
 	// Community procedures
 	listCommunities: publicProcedure.query(async () => {
@@ -524,7 +519,9 @@ export const requestsRouter = router({
 			select: { expertiseNodeId: true },
 			distinct: ['expertiseNodeId'],
 		})
-		const expertiseIds = requestNodes.map(rn => rn.expertiseNodeId!).filter(Boolean)
+		const expertiseIds = requestNodes
+			.map(rn => rn.expertiseNodeId!)
+			.filter(Boolean)
 		if (expertiseIds.length === 0) return []
 		return prisma.expertiseNode.findMany({
 			where: { id: { in: expertiseIds } },
