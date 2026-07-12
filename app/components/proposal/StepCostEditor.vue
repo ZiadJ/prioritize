@@ -120,10 +120,10 @@ const evaluationByCost = computed(() => {
 	return map
 })
 
-const feasibilityFor = (cost: StepCostRow): number =>
+const getFeasibilityFor = (cost: StepCostRow): number =>
 	evaluationByCost.value.get(cost)?.feasibility ?? 1
 
-const availableQuantityFor = (cost: StepCostRow): number | null =>
+const getAvailableQuantityFor = (cost: StepCostRow): number | null =>
 	evaluationByCost.value.get(cost)?.availableQuantity ?? null
 
 // const stepFeasibilityProduct = computed(() => stepFeasibility(props.costs))
@@ -229,12 +229,12 @@ async function onSave() {
 							:modelValue="cost.quantity"
 							:measurementType="cost.measurementType"
 							readonly />
-						<template v-if="availableQuantityFor(cost) != null">
+						<template v-if="getAvailableQuantityFor(cost) != null">
 							/
 						</template>
 						<Quantity
-							v-if="availableQuantityFor(cost) != null"
-							:modelValue="availableQuantityFor(cost) ?? 0"
+							v-if="getAvailableQuantityFor(cost) != null"
+							:modelValue="getAvailableQuantityFor(cost) ?? 0"
 							:measurementType="cost.measurementType"
 							readonly />
 						<span v-if="cost.monetaryValue">
@@ -243,15 +243,15 @@ async function onSave() {
 					</div>
 				</div>
 				<Knob
-					:modelValue="feasibilityFor(cost)"
+					:modelValue="getFeasibilityFor(cost)"
 					:min="0"
 					:max="1"
 					:step="0.01"
 					:size="36"
 					readonly
-					:valueColor="feasibilityColor(feasibilityFor(cost))"
+					:valueColor="feasibilityColor(getFeasibilityFor(cost))"
 					rangeColor="#8882"
-					v-tooltip.top="`Feasibility: ${(feasibilityFor(cost) * 100).toFixed(0)}%`"
+					v-tooltip.top="`Feasibility: ${(getFeasibilityFor(cost) * 100).toFixed(0)}%`"
 					pt:text:class="hidden" />
 				<div class="flex gap-1 shrink-0">
 					<Button
@@ -341,7 +341,8 @@ async function onSave() {
 				<InputNumber
 					v-model="form.monetaryValue"
 					:min="0"
-					:maxFractionDigits="2" />
+					:maxFractionDigits="2" 
+					placeholder="Auto-calculated when empty (not yet implemented)" />
 			</div>
 		</div>
 

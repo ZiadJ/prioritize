@@ -147,13 +147,13 @@ export function useRequestNodes(
 
 	function saveForm() {
 		if (formEditMode.value) {
-			applyEdit()
+			editNode()
 		} else {
-			applyCreate()
+			createNode()
 		}
 	}
 
-	async function applyCreate() {
+	async function createNode() {
 		const { title, description, expertiseNodeId } = formData.value
 		if (!title.trim()) return
 
@@ -210,7 +210,7 @@ export function useRequestNodes(
 		}
 	}
 
-	async function applyEdit() {
+	async function editNode() {
 		const node = editingNode.value
 		if (!node) return
 
