@@ -50,13 +50,23 @@ function formatApprovalDate(value: string | Date | null | undefined) {
 <template>
 	<Dialog
 		v-model:visible="visible"
-		:header="editMode ? 'Edit Proposal' : 'New Proposal'"
 		:modal="true"
 		dismissableMask
 		:style="dialogStyle"
 		:breakpoints="{ '760px': '95vw' }"
 		show-effect="fadeIn"
 		hide-effect="fadeOut">
+		<template #header>
+			<span v-if="editMode">
+				Edit Proposal (author:
+				<NuxtLink
+					:to="`/dash/users/${ownerName}`"
+					class="underline hover:opacity-70">
+					{{ ownerName }} </NuxtLink
+				>)
+			</span>
+			<span v-else>Create Proposal</span>
+		</template>
 		<div class="flex flex-col gap-3 pt-1">
 			<div class="flex gap-4 items-start">
 				<div class="form-field flex-1">
@@ -69,14 +79,21 @@ function formatApprovalDate(value: string | Date | null | undefined) {
 						@keydown.enter="$emit('save')" />
 				</div>
 				<div class="form-field">
-					<label for="proposal-duration">Duration (days)</label>
+					<label for="proposal-duration">Duration</label>
 					<InputNumber
 						id="proposal-duration"
 						v-model="form.duration"
 						:min="0"
 						:inputStyle="{ width: '6rem' }"
 						showButtons
+						suffix="d"
 						:maxFractionDigits="2" />
+				</div>
+				<div class="form-field">
+					<label>{{ !approvedAt ? 'Approval' : 'Approval Date' }} </label>
+					<p class="text-gray-600 dark:text-gray-400">
+						{{ !approvedAt ? 'Pending' : formatApprovalDate(approvedAt) }}
+					</p>
 				</div>
 			</div>
 			<div class="form-field">
@@ -89,22 +106,6 @@ function formatApprovalDate(value: string | Date | null | undefined) {
 			</div>
 			<div v-if="editMode" class="form-field items-center mt-2">
 				<div class="grid grid-cols-2 gap-x-8 gap-y-2">
-					<div class="flex flex-col gap-0.5">
-						<label>Author</label>
-						<p class="text-gray-600 dark:text-gray-400">
-							<NuxtLink
-								:to="`/dash/users/${ownerName}`"
-								class="underline hover:opacity-70">
-								{{ ownerName }}
-							</NuxtLink>
-						</p>
-					</div>
-					<div class="flex flex-col gap-0.5">
-						<label>{{ !approvedAt ? 'Approval' : 'Approval Date' }} </label>
-						<p class="text-gray-600 dark:text-gray-400">
-							{{ !approvedAt ? 'Pending' : formatApprovalDate(approvedAt) }}
-						</p>
-					</div>
 					<div class="flex flex-col gap-0.5">
 						<label>Net Benefit</label>
 						<p class="text-gray-600 dark:text-gray-400">

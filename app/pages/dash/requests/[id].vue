@@ -37,7 +37,7 @@ const route = useRoute()
 const searchFilters = ref({ global: '' })
 const selectedExpertiseFilter = ref<number | null>(null)
 
-const hasOnceEditedProposal = useLocalStorage('hasOnceEditedProposal', false)
+const hasOnceViewedProposal = useLocalStorage('hasOnceViewedProposal', false)
 
 const rootNodes = ref<TreeNodeEx[]>([])
 const dataLoaded = ref(false)
@@ -171,6 +171,21 @@ function onNodeUnselect(node: any) {
 const hoveredProposal = ref<ProposalColumn | undefined>()
 const hoveredRequestNode = ref<RequestNode | undefined>()
 
+const proposalDetailsHintPopup = useTemplateRef('proposalDetailsHintPopup')
+let previousProposalKeyClass: string | null = null
+
+function showproposalDetailsHint(proposalKeyClass: string) {
+	if (hasOnceViewedProposal.value) return
+
+	const headerEl = document.querySelector<HTMLElement>(
+		'th .' + proposalKeyClass,
+	)
+	if (!headerEl || previousProposalKeyClass === proposalKeyClass) return
+
+	previousProposalKeyClass = proposalKeyClass
+	proposalDetailsHintPopup.value?.show(headerEl)
+}
+
 const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 	(el: HTMLElement) => {
 		if (el) {
@@ -221,6 +236,8 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 					hoveredProposal.value = columns.value.find(
 						col => col.columnKey === proposalKey,
 					)
+
+					showproposalDetailsHint(proposalKeyClass)
 				}
 			}
 		}
@@ -236,6 +253,9 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 		<ConfirmDialog group="nodeDelete"></ConfirmDialog>
 		<Menu ref="nodeMenuRef" :model="nodeMenuItems" :popup="true" />
 		<Toast style="opacity: 0.9" />
+		<Popup ref="proposalDetailsHintPopup" position="top" alignment="center">
+			<div class="px-2 py-1 w-[230px]">Click below for more details</div>
+		</Popup>
 		<ProposalFormDialog
 			v-model:visible="proposalFormDialogVisible"
 			v-model:form="proposalFormData"
@@ -259,263 +279,270 @@ const highlightColumnAndShowDescription = utils.uiElements.delayedHover(
 			@save="saveNodeForm" />
 		<FillHeightLayout>
 			<template #toolbar>
-				<Panel class="rounded-b-none" :header="request?.title" toggleable collapsed>
+				<Panel
+					class="rounded-b-none"
+					:header="request?.title"
+					toggleable
+					collapsed>
 					{{ request?.description }}
 				</Panel>
 				<Toolbar class="mt-0 rounded-t-none">
-			<template #start>
-				<div class="col-8 md:col-8 sm:col-5 xs:col-2" style="float: right">
-					<div class="p-inputgroup">
-						<InputText
-							v-if="rootNodes.length"
-							v-model.lazy="searchFilters['global']"
-							placeholder="Search request nodes..."
-							size="small"
-							style="z-index: 1" />
-						<Dropdown
-							v-if="rootNodes.length"
-							v-model="selectedExpertiseFilter"
-							:options="usedExpertiseOptions"
-							optionLabel="title"
-							optionValue="id"
-							placeholder="All Expertise"
-							:showClear="true"
-							:filter="true"
-							size="small"
-							class="max-w-[180px]" />
-						<Button
-							v-if="dataLoaded && !rootNodes.length"
-							type="button"
-							label="Add a request node"
-							icon="pi pi-plus"
-							severity="info"
-							outlined
-							@click="openCreateForm()" />
-					</div>
+					<template #start>
+						<div class="col-8 md:col-8 sm:col-5 xs:col-2" style="float: right">
+							<div class="p-inputgroup">
+								<InputText
+									v-if="rootNodes.length"
+									v-model.lazy="searchFilters['global']"
+									placeholder="Search request nodes..."
+									size="small"
+									style="z-index: 1" />
+								<Dropdown
+									v-if="rootNodes.length"
+									v-model="selectedExpertiseFilter"
+									:options="usedExpertiseOptions"
+									optionLabel="title"
+									optionValue="id"
+									placeholder="All Expertise"
+									:showClear="true"
+									:filter="true"
+									size="small"
+									class="max-w-[180px]" />
+								<Button
+									v-if="dataLoaded && !rootNodes.length"
+									type="button"
+									label="Add a request node"
+									icon="pi pi-plus"
+									severity="info"
+									outlined
+									@click="openCreateForm()" />
+							</div>
+						</div>
+					</template>
+
+					<template #end>
+						<div class="" style="float: right">
+							<div v-if="rootNodes.length" class="p-inputgroup">
+								<Button
+									type="button"
+									icon="pi pi-plus"
+									class="p-button"
+									@click="openCreateProposalForm"
+									v-tooltip.left="'Add a new proposal'" />
+								<MultiSelect
+									class="requests-multiselect p-button"
+									:modelValue="visibleColumns"
+									@update:modelValue="onColumnVisibilityToggle"
+									:options="columns"
+									optionLabel="header"
+									placeholder="Select Columns"
+									v-tooltip="'Show/Hide Columns'"
+									style="width: 43px" />
+							</div>
+						</div>
+					</template>
+				</Toolbar>
+
+				<div class="flex mt-3">
+					<Panel
+						v-tooltip.top="'Request node description'"
+						class="w-1/2 rounded-b-none rounded-tr-none"
+						pt:header:class="p-2"
+						pt:content:class="h-[5rem] overflow-y-auto">
+						<Transition name="fade" mode="out-in">
+							<p :key="hoveredRequestNode?.description">
+								{{ hoveredRequestNode?.description }}
+							</p>
+						</Transition>
+					</Panel>
+					<Panel
+						v-tooltip.top="'Proposal description'"
+						class="w-1/2 rounded-b-none rounded-tl-none"
+						pt:header:class="p-2"
+						pt:content:class="h-[5rem] overflow-y-auto">
+						<Transition name="fade" mode="out-in">
+							<p :key="hoveredProposal?.description">
+								{{ hoveredProposal?.description }}
+							</p>
+						</Transition>
+					</Panel>
 				</div>
 			</template>
 
-			<template #end>
-				<div class="" style="float: right">
-					<div v-if="rootNodes.length" class="p-inputgroup">
-						<Button
-							type="button"
-							icon="pi pi-plus"
-							class="p-button"
-							@click="openCreateProposalForm"
-							v-tooltip.left="'Add a new proposal'" />
-						<MultiSelect
-							class="requests-multiselect p-button"
-							:modelValue="visibleColumns"
-							@update:modelValue="onColumnVisibilityToggle"
-							:options="columns"
-							optionLabel="header"
-							placeholder="Select Columns"
-							v-tooltip="'Show/Hide Columns'"
-							style="width: 43px" />
-					</div>
-				</div>
-			</template>
-		</Toolbar>
-
-		<div class="flex mt-3">
-			<Panel
-				v-tooltip.top="'Request node description'"
-				class="w-1/2 rounded-b-none rounded-tr-none"
-				pt:header:class="p-2"
-				pt:content:class="h-[5rem] overflow-y-auto">
-				<Transition name="fade" mode="out-in">
-					<p :key="hoveredRequestNode?.description">
-						{{ hoveredRequestNode?.description }}
-					</p>
-				</Transition>
-			</Panel>
-			<Panel
-				v-tooltip.top="'Proposal description'"
-				class="w-1/2 rounded-b-none rounded-tl-none"
-				pt:header:class="p-2"
-				pt:content:class="h-[5rem] overflow-y-auto">
-				<Transition name="fade" mode="out-in">
-					<p :key="hoveredProposal?.description">
-						{{ hoveredProposal?.description }}
-					</p>
-				</Transition>
-			</Panel>
-		</div>
-			</template>
-
-		<TreeTable
-			@mousemove="highlightColumnAndShowDescription"
-			@mouseout="highlightColumnAndShowDescription"
-			:value="filteredRootNodes"
-			v-model:selectionKeys="selectedKeys"
-			:expandedKeys="expandedKeys"
-			@nodeSelect="onNodeSelect"
-			@nodeUnselect="onNodeUnselect"
-			:filters="searchFilters"
-			filterMode="lenient"
-			selectionMode="single"
-			:resizableColumns="true"
-			:showGridlines="false"
-			columnResizeMode="expand"
-			:scrollable="true"
-			responsiveLayout="scroll"
-			scrollHeight="flex">
-			<Column field="rating" header="Value" class="w-[40px]">
-				<template #body="{ node }">
-					<div :class="'w-full hover-info request_node_key_' + node.data.id">
-						<Feedback
-							v-if="!node.children?.length"
-							v-model="node.data.feedback"
-							:requestNodeId="node.data.id"
-							:proposalId="null"
-							:requestId="Number(route.params.id)"
-							:userId="session?.user.id!"
-							:max="3"
-							parentSelector="td"
-							@change="refreshNetBenefits" />
-					</div>
-				</template>
-			</Column>
-			<Column
-				class="relative"
-				headerClass="w-0 p-0"
-				bodyClass="p-0"
-				:sortable="false">
-				<template #body="{ node }">
-					<div
-						:class="
-							landingNode?.key === node.key
-								? 'tree-drag-over-' + landingPosition
-								: ''
-						"
-						class="absolute !inset-0">
-						<Button
-							:draggable="true"
-							@dragstart="e => handleDragStart(e, node)"
-							@dragover="e => handleDragOver(e, node)"
-							@drop="e => handleDrop(e, node)"
-							@dragleave="handleDragLeave"
-							type="button"
-							icon="pi pi-ellipsis-v"
-							class="absolute !w-[14px] h-[46px] inset-0 m-auto"
-							@click="e => toggleNodeMenu(e, node)" />
-					</div>
-				</template>
-			</Column>
-			<Column
-				field="title"
-				header="Goals, Norms or Proposal Side-Effects"
-				expander
-				bodyClass="min-w-[45%] z-[1] !py-0">
-				<template #body="{ node }">
-					<div
-						:class="
-							'hover-info request_node_key_' +
-							node.data.id +
-							' ' +
-							(landingNode?.key === node.key
-								? 'tree-drag-over-' + landingPosition
-								: '')
-						"
-						class="show-on-hover-parent relative w-full">
+			<TreeTable
+				@mousemove="highlightColumnAndShowDescription"
+				@mouseout="highlightColumnAndShowDescription"
+				:value="filteredRootNodes"
+				v-model:selectionKeys="selectedKeys"
+				:expandedKeys="expandedKeys"
+				@nodeSelect="onNodeSelect"
+				@nodeUnselect="onNodeUnselect"
+				:filters="searchFilters"
+				filterMode="lenient"
+				selectionMode="single"
+				:resizableColumns="true"
+				:showGridlines="false"
+				columnResizeMode="expand"
+				:scrollable="true"
+				responsiveLayout="scroll"
+				scrollHeight="flex">
+				<Column field="rating" header="Value" class="w-[40px]">
+					<template #body="{ node }">
+						<div :class="'w-full hover-info request_node_key_' + node.data.id">
+							<Feedback
+								v-if="!node.children?.length"
+								v-model="node.data.feedback"
+								:requestNodeId="node.data.id"
+								:proposalId="null"
+								:requestId="Number(route.params.id)"
+								:userId="session?.user.id!"
+								:max="3"
+								parentSelector="td"
+								@change="refreshNetBenefits" />
+						</div>
+					</template>
+				</Column>
+				<Column
+					class="relative"
+					headerClass="w-0 p-0"
+					bodyClass="p-0"
+					:sortable="false">
+					<template #body="{ node }">
 						<div
-							v-html="node.data.title"
-							:class="node.children?.length ? 'cursor-pointer select-none' : ''"
-							@click="node.children?.length && toggleNode(node)"
-							class="w-full !whitespace-normal !py-[1rem]"></div>
-						<div class="absolute right-0 top-1/2 -translate-y-1/2 text-[11px]">
+							:class="
+								landingNode?.key === node.key
+									? 'tree-drag-over-' + landingPosition
+									: ''
+							"
+							class="absolute !inset-0">
+							<Button
+								:draggable="true"
+								@dragstart="e => handleDragStart(e, node)"
+								@dragover="e => handleDragOver(e, node)"
+								@drop="e => handleDrop(e, node)"
+								@dragleave="handleDragLeave"
+								type="button"
+								icon="pi pi-ellipsis-v"
+								class="absolute !w-[14px] h-[46px] inset-0 m-auto"
+								@click="e => toggleNodeMenu(e, node)" />
+						</div>
+					</template>
+				</Column>
+				<Column
+					field="title"
+					header="Goals, Norms or Proposal Side-Effects"
+					expander
+					bodyClass="min-w-[45%] z-[1] !py-0">
+					<template #body="{ node }">
+						<div
+							:class="
+								'hover-info request_node_key_' +
+								node.data.id +
+								' ' +
+								(landingNode?.key === node.key
+									? 'tree-drag-over-' + landingPosition
+									: '')
+							"
+							class="show-on-hover-parent relative w-full">
+							<div
+								v-html="node.data.title"
+								:class="
+									node.children?.length ? 'cursor-pointer select-none' : ''
+								"
+								@click="node.children?.length && toggleNode(node)"
+								class="w-full !whitespace-normal !py-[1rem]"></div>
+							<div
+								class="absolute right-0 top-1/2 -translate-y-1/2 text-[11px]">
+								<span
+									class="show-on-hover-child absolute right-0 p-[5px] cursor-pointer">
+								</span>
+								<span
+									class="p-[5px]"
+									v-if="node.children?.length"
+									@click="toggleNode(node)">
+									({{ node.children?.length }})
+								</span>
+							</div>
+						</div>
+					</template>
+				</Column>
+				<Column
+					field="expertise"
+					header="Expertise"
+					bodyClass="!p-0"
+					headerClass="!p-0">
+					<template #body="{ node }">
+						<div :class="'hover-info request_node_key_' + node.data.id">
 							<span
-								class="show-on-hover-child absolute right-0 p-[5px] cursor-pointer">
-							</span>
-							<span
-								class="p-[5px]"
-								v-if="node.children?.length"
-								@click="toggleNode(node)">
-								({{ node.children?.length }})
+								v-if="node.data.expertise"
+								class="inline-block px-1.5 py-0.5 rounded-full text-[11px] leading-tight bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 whitespace-nowrap">
+								{{ node.data.expertise.title }}
 							</span>
 						</div>
-					</div>
-				</template>
-			</Column>
-			<Column
-				field="expertise"
-				header="Expertise"
-				bodyClass="!p-0"
-				headerClass="!p-0">
-				<template #body="{ node }">
-					<div :class="'hover-info request_node_key_' + node.data.id">
-						<span
-							v-if="node.data.expertise"
-							class="inline-block px-1.5 py-0.5 rounded-full text-[11px] leading-tight bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 whitespace-nowrap">
-							{{ node.data.expertise.title }}
-						</span>
-					</div>
-				</template>
-			</Column>
+					</template>
+				</Column>
 
-			<Column
-				v-for="(col, index) of visibleColumns"
-				:key="col.columnKey"
-				:field="col.field"
-				bodyClass="!p-0"
-				headerClass="relative !p-0 group max-w-[100px] font-light text-sm !whitespace-normal"
-				:sortable="false"
-				:rowEditor="false">
-				<template #header>
-					<div
-						class="w-full h-full cursor-pointer"
-						v-tooltip.top="hasOnceEditedProposal ? undefined : 'Click to edit'"
-						:class="'hover-info proposal_key_' + col.columnKey">
+				<Column
+					v-for="(col, index) of visibleColumns"
+					:key="col.columnKey"
+					:field="col.field"
+					bodyClass="!p-0"
+					headerClass="relative !p-0 group max-w-[100px] font-light text-sm !whitespace-normal"
+					:sortable="false"
+					:rowEditor="false">
+					<template #header>
 						<div
-							class="!whitespace-normal py-2 px-3"
-							@click="editProposal(col); hasOnceEditedProposal = true">
-							{{ col.header }}
-						</div>
-						<span
-							class="impact-score absolute top-1 right-1 h-[1.5rem] min-w-[1.5rem] px-[0.5rem] rounded-full bg-primary-600 text-white text-[0.7rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-							v-tooltip.left="{
-								value: `Net Benefit: ${col.netBenefit ?? 0}
+							class="w-full h-full cursor-pointer"
+							:class="'hover-info proposal_key_' + col.columnKey">
+							<div
+								class="!whitespace-normal py-2 px-3"
+								@click="editProposal(col)"
+								@mouseup="hasOnceViewedProposal = true">
+								{{ col.header }}
+							</div>
+							<span
+								class="impact-score absolute top-1 right-1 h-[1.5rem] min-w-[1.5rem] px-[0.5rem] rounded-full bg-primary-600 text-white text-[0.7rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+								v-tooltip.left="{
+									value: `Net Benefit: ${col.netBenefit ?? 0}
 								\nNet Feasibility: ${formatNumber((col.netFeasibility ?? 0) * 100, 0)}%
-								\nFeasible Benefit: ${formatNumber((col.netBenefit ?? 0) * (col.netFeasibility ?? 0), 2)}`
-							}">
-							{{
-								formatNumber(
-									(col.netBenefit ?? 0) * (col.netFeasibility ?? 0),
-									0,
-								)
-							}}
-						</span>
-					</div>
-					<span
-						v-if="col.isLoading"
-						class="pi pi-spin pi-spinner text-xs ml-1" />
-				</template>
-				<template #body="{ node }">
-					<div
-						:class="
-							'hover-info request_node_key_' +
-							node.data.id +
-							' proposal_key_' +
-							col.columnKey
-						"
-						class="w-full">
-						<Feedback
-							v-if="!node.children?.length"
-							v-model="node.data.feedback"
-							:requestNodeId="node.data.id"
-							:proposalId="col.id!"
-							:requestId="Number(route.params.id)"
-							:userId="session?.user.id!"
-							:max="3"
-							:expertiseNodeId="node.data.expertise?.id"
-							parentSelector="td"
-							@change="refreshNetBenefits" />
-					</div>
-				</template>
-			</Column>
-			<Column> </Column>
-		</TreeTable>
+								\nFeasible Benefit: ${formatNumber((col.netBenefit ?? 0) * (col.netFeasibility ?? 0), 2)}`,
+								}">
+								{{
+									formatNumber(
+										(col.netBenefit ?? 0) * (col.netFeasibility ?? 0),
+										0,
+									)
+								}}
+							</span>
+						</div>
+						<span
+							v-if="col.isLoading"
+							class="pi pi-spin pi-spinner text-xs ml-1" />
+					</template>
+					<template #body="{ node }">
+						<div
+							:class="
+								'hover-info request_node_key_' +
+								node.data.id +
+								' proposal_key_' +
+								col.columnKey
+							"
+							class="w-full">
+							<Feedback
+								v-if="!node.children?.length"
+								v-model="node.data.feedback"
+								:requestNodeId="node.data.id"
+								:proposalId="col.id!"
+								:requestId="Number(route.params.id)"
+								:userId="session?.user.id!"
+								:max="3"
+								:expertiseNodeId="node.data.expertise?.id"
+								parentSelector="td"
+								@change="refreshNetBenefits" />
+						</div>
+					</template>
+				</Column>
+				<Column> </Column>
+			</TreeTable>
 		</FillHeightLayout>
 	</div>
 </template>

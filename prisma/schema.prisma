@@ -904,6 +904,9 @@ model Community {
   latitude  Float
   location  Unsupported("geography(Point, 4326)")?
 
+  currency String  @default("USD")
+  budget   Decimal @default(0) @db.Decimal(10, 2)
+
   requests                Request[]
   members                 User[]
   regionalCommunities     Community[]         @relation("RegionalCommunities")

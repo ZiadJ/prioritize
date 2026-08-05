@@ -218,24 +218,24 @@ async function showPopover(
 ) {
 	emit('before-show', target)
 
-	const isOpen = popover?.container != null
+	const isClosed = !popover?.container
 
-	if (!isOpen || travelDuration) {
-		if (!isOpen) {
+	if (isClosed || travelDuration) {
+		if (isClosed) {
 			lastActiveElement = document.activeElement as HTMLElement
 			popover?.show(event, target)
 			await nextTick()
 		}
+	}
+	
+	alignPopup(target, popover?.container, travelDuration)
 
-		alignPopup(target, popover?.container, travelDuration)
-
-		if (autofocus) {
-			// Select first focusable item in the popup that doesn't have .nofocus
-			const focusElement = popover?.container.querySelector(
-				'.autofocus,[autofocus],:is(a, input, button, select, textarea):not(.nofocus)',
-			) as HTMLElement
-			focusElement?.focus()
-		}
+	if (autofocus) {
+		// Select first focusable item in the popup that doesn't have .nofocus
+		const focusElement = popover?.container.querySelector(
+			'.autofocus,[autofocus],:is(a, input, button, select, textarea):not(.nofocus)',
+		) as HTMLElement
+		focusElement?.focus()
 	}
 
 	emit('show', target)
