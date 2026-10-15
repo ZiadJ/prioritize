@@ -2,7 +2,7 @@
 
 **A collaborative distribution and prioritization platform for communities that manage resources without money — the early implementation of the [HUMANIA governance model](https://docs.google.com/document/d/18r9iCYR5ZJVODkXw5sm0jIIELEIC1hNcGaeaKO0WM9U/edit?tab=t.0#heading=h.pbsl4ghqap3).**
 
-**Try the live demo: https://humania-prioritize.vercel.app/**
+**Try the live demo: https://humania-prioritize.vercel.app/dash/requests**
 
 ---
 
@@ -83,8 +83,6 @@ Proposals that lack sufficient resources are queued and automatically re-evaluat
 | Auth       | JWT + refresh tokens (sidebase/nuxt-auth)           |
 
 ## Getting Started
-
-To run the platform locally, follow the steps below.
 
 ### Prerequisites
 
