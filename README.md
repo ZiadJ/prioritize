@@ -1,6 +1,6 @@
 # Prioritize
 
-**A collaborative distribution and prioritization platform for communities that manage resources without money — the early implementation of the [HUMANIA](https://docs.google.com/document/d/18r9iCYR5ZJVODkXw5sm0jIIELEIC1hNcGaeaKO0WM9U) governance model.**
+**A collaborative distribution and prioritization platform for communities that manage resources without money — the early implementation of the [HUMANIA](https://docs.google.com/document/d/18r9iCYR5ZJVODkXw5sm0jIIELEIC1hNcGaeaKO0WM9U/edit?tab=t.0#heading=h.pbsl4ghqap3) governance model.**
 
 ---
 
@@ -71,14 +71,14 @@ Proposals that lack sufficient resources are queued and automatically re-evaluat
 
 ## Tech Stack
 
-| Layer      | Technology                                                            |
-| ---------- | --------------------------------------------------------------------- |
-| Framework  | [Nuxt 4](https://nuxt.com) / Vue 3 / TypeScript                       |
-| API        | [tRPC](https://trpc.io) (end-to-end typesafe) + [Zod](https://zod.dev) validation |
-| Database   | [Prisma 7](https://www.prisma.io) + PostgreSQL (with PostGIS)         |
-| UI         | [PrimeVue 4](https://primevue.org), [Tailwind CSS](https://tailwindcss.com), [Quill](https://quilljs.com) |
-| State      | [Pinia](https://pinia.vuejs.org), [VueUse](https://vueuse.org)        |
-| Auth       | JWT + refresh tokens ([sidebase/nuxt-auth](https://sidebase.io/nuxt-auth)) |
+| Layer      | Technology                                          |
+| ---------- | --------------------------------------------------- |
+| Framework  | Nuxt 4 / Vue 3 / TypeScript                         |
+| API        | tRPC (end-to-end typesafe) + Zod validation         |
+| Database   | Prisma 7 + PostgreSQL (with PostGIS)                |
+| UI         | PrimeVue 4, Tailwind CSS, Quill                     |
+| State      | Pinia, VueUse                                       |
+| Auth       | JWT + refresh tokens (sidebase/nuxt-auth)           |
 
 ## Getting Started
 
@@ -126,8 +126,6 @@ This is an **early version** under active development — a pilot aiming to demo
 - A pro-abundance economy built on low-labor, high-yield win-win principles
 - Voluntary labor, autonomy and intrinsic incentivization
 - Solidarity, sustainability and seamless integration with nature
-
-Planned directions include AI-assisted request processing, automated sensor-driven inventory updates, proactive demand forecasting, and distributed computing support as the community scales.
 
 ## Contributing
 
