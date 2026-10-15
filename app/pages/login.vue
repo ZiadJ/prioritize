@@ -72,7 +72,7 @@ watch(status, (newStatus) => {
 			</div>
 
 			<Form :resolver="resolver" @submit="submit" validateOnBlur class="flex flex-col gap-4 w-full">
-				<FormField v-slot="$field" name="email" initialValue="admin@example.com">
+				<FormField v-slot="$field" name="email" initialValue="admin@mockemail.com">
 					<IftaLabel>
 						<InputText id="email" type="email" autofocus autocomplete="username" class="w-full" v-bind="$field" />
 						<label for="email">Email</label>

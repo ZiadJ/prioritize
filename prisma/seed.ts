@@ -332,7 +332,7 @@ async function main() {
 		update: { password: hashedPassword },
 		create: {
 			username: 'admin_user',
-			email: 'admin@example.com',
+			email: 'admin@mockemail.com',
 			password: hashedPassword,
 			firstname: 'Admin',
 			lastname: 'User',
@@ -357,7 +357,7 @@ async function main() {
 		update: { password: hashedPassword },
 		create: {
 			username: 'regular_user',
-			email: 'user@example.com',
+			email: 'user@mockemail.com',
 			password: hashedPassword,
 			firstname: 'Regular',
 			lastname: 'User',
@@ -375,7 +375,7 @@ async function main() {
 		update: { password: hashedPassword },
 		create: {
 			username: 'another_user',
-			email: 'another@example.com',
+			email: 'another@mockemail.com',
 			password: hashedPassword,
 			firstname: 'Another',
 			lastname: 'User',
