@@ -2,6 +2,8 @@
 
 **A collaborative distribution and prioritization platform for communities that manage resources without money — the early implementation of the [HUMANIA governance model](https://docs.google.com/document/d/18r9iCYR5ZJVODkXw5sm0jIIELEIC1hNcGaeaKO0WM9U/edit?tab=t.0#heading=h.pbsl4ghqap3).**
 
+**Try the live demo: https://humania-prioritize.vercel.app**
+
 ---
 
 ## About HUMANIA
@@ -74,7 +76,7 @@ Proposals that lack sufficient resources are queued and automatically re-evaluat
 | Layer      | Technology                                          |
 | ---------- | --------------------------------------------------- |
 | Framework  | Nuxt 4 / Vue 3 / TypeScript                         |
-| API        | tRPC (end-to-end typesafe) + Zod validation         |
+| API        | tRPC + Zod validation         |
 | Database   | Prisma 7 + PostgreSQL (with PostGIS)                |
 | UI         | PrimeVue 4, Tailwind CSS, Quill                     |
 | State      | Pinia, VueUse                                       |
@@ -82,10 +84,12 @@ Proposals that lack sufficient resources are queued and automatically re-evaluat
 
 ## Getting Started
 
+The easiest way to explore the platform is the hosted demo at **https://humania-prioritize.vercel.app**. To run it locally instead, follow the steps below.
+
 ### Prerequisites
 
-- [Node.js](https://nodejs.org) 
-- A PostgreSQL database (the project currently uses [Supabase](https://supabase.com) in development, with PostGIS enabled)
+- Node.js
+- A PostgreSQL database (the project currently uses Supabase in development, with PostGIS enabled)
 
 ### Installation
 
