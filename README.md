@@ -1,6 +1,6 @@
 # Prioritize
 
-**A collaborative distribution and prioritization platform for communities that manage resources without money — the early implementation of the [HUMANIA](#about-humania) governance model.**
+**A collaborative distribution and prioritization platform for communities that manage resources without money — the early implementation of the [HUMANIA](https://docs.google.com/document/d/18r9iCYR5ZJVODkXw5sm0jIIELEIC1hNcGaeaKO0WM9U) governance model.**
 
 ---
 
